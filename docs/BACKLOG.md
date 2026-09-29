@@ -8,7 +8,7 @@ Nenhuma tarefa Android foi iniciada. A sequência abaixo é proposta; não estim
 | B-01 — pendente | Consolidar escopo e decisões financeiras | Q-01, Q-03 a Q-05 | MVP e decisões atualizados com respostas |
 | B-02 — concluída | Trazer seletivamente projeto Android da referência | Pedido de desenvolvimento, Q-02 | Arquivos rastreados ao hash, identidade definida, build no destino; origem intacta |
 | B-03 — em andamento | Primeiro uso, clientes e vendas | B-01, B-02 | MVP-01/02/03/05 validados com dados sintéticos |
-| B-04 — pendente | Pagamentos, correções e integridade | B-03 | MVP-04 e cenários financeiros validados |
+| B-04 — em andamento | Pagamentos, correções e integridade | B-03 | MVP-04 e cenários financeiros validados |
 | B-05 — pendente | Fotos, relatórios, exportação e cobrança | B-04 | MVP-06/07/08 validados, inclusive cancelamento de ações externas |
 | B-06 — pendente | Backup e decisão sobre recuperação | B-05, Q-06, Q-08 | MVP-09 verificado; recuperação declarada com precisão |
 | B-07 — pendente | Homologação do piloto | B-03 a B-06, Q-07 | MVP-10, checklist executado e limitações registradas |
@@ -25,6 +25,10 @@ Arquivos técnicos foram trazidos do commit `ce112c40c4f79368042555e451338b5f318
 `DomainRules.kt` adiciona `MoneyCents` para valores novos e `FreeSalesGate` para o limite FREE de 30 vendas. A regra deixa leitura, histórico, saldo, relatórios e pagamentos existentes fora do bloqueio; a integração com persistência e UI ficará em incrementos posteriores. Billing real ainda não foi adicionado.
 
 O primeiro ponto de integração conta compras distintas no SQLite e intercepta apenas a ação de nova venda. O desbloqueio ainda é informativo até a fase de Billing; nenhum dado existente é bloqueado ou removido.
+
+### B-04 — contrato de entitlement
+
+`BillingDomain.kt` define `EntitlementRepository`, implementação local provisória e o produto LIFETIME como compra única de 4.990 centavos. O adaptador Google Play Billing e a persistência de entitlement serão incrementos separados; nenhum acesso ao Play Console foi realizado.
 
 ## Critério de pronto por entrega
 
