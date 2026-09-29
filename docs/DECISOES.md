@@ -11,6 +11,15 @@ Registro inicial: 29/09/2026. “Proposto” não significa aprovado nem impleme
 | D-03 | Usar `alejoiasvendasapp`, branch comercial, como referência |
 | D-04 | Criar documentação, AGENTS.md, skills e estruturar MVP antes de desenvolver |
 | D-05 | Não alterar o repositório original AleJoias |
+| D-06 | Produto offline-first e independente, sem marca, credenciais, endpoints, banco real ou Google Planilhas do AleJoias |
+| D-07 | Modelo comercial somente FREE + LIFETIME; FREE permite até 30 vendas; clientes não têm limite |
+| D-08 | Ao atingir 30 vendas, preservar leitura, histórico, saldo, relatórios e pagamentos existentes; a 31ª venda solicita desbloqueio |
+| D-09 | LIFETIME é compra única planejada em R$ 49,90, sem assinatura ou mensalidade |
+| D-10 | Compra vitalícia deve ser restaurável pelo Google Play; Billing isolado da UI por abstração de domínio |
+| D-11 | MVP pode usar contador gratuito local, documentando que reinstalação poderá reiniciar o trial sem backend |
+| D-12 | Não criar conta/backend apenas para antifraude no MVP |
+| D-13 | Valores monetários novos usam centavos em `Long` ou tipo decimal seguro; nunca `Float`/`Double` |
+| D-14 | Mudanças de schema exigem migração testada; falha de licença nunca apaga dados |
 
 ## Propostas derivadas da referência
 
@@ -33,7 +42,7 @@ Registro inicial: 29/09/2026. “Proposto” não significa aprovado nem impleme
 | Q-06 | Incluir restauração no MVP ou em incremento posterior | Antes de ampliar distribuição |
 | Q-07 | Alertas apenas com app ativo ou também em segundo plano | Antes de prometer notificações |
 | Q-08 | Política de backup Android, privacidade e recuperação | Antes de distribuição |
-| Q-09 | Monetização, assinatura, canal, suporte e direitos de recursos reaproveitados | Antes de lançamento; sem autorização de gastos/publicação |
+| Q-09 | Canal, suporte, direitos de recursos reaproveitados e configuração final do Google Play | Antes de lançamento; sem autorização de gastos/publicação |
 | Q-10 | Conteúdo adicional da conversa vinculada | Quando disponibilizado; reconciliar sem inventar decisões |
 
 Atualize este registro quando houver decisão do usuário ou constatação técnica. Registre data, origem da decisão e documentos afetados. Não transforme uma hipótese em requisito apenas por repetição no backlog.
