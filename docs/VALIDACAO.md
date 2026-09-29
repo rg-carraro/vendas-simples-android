@@ -2,6 +2,8 @@
 
 Status: cenários do aplicativo **não executados neste repositório**, que ainda não contém código Android. Não reaproveitar marcações de sucesso da origem.
 
+O build Android já foi executado com sucesso em 29/09/2026 usando o JDK bundled do Android Studio. Isso valida compilação, não os fluxos funcionais; os achados estão em [AUDITORIA_PRE_BILLING.md](AUDITORIA_PRE_BILLING.md).
+
 ## Documentação nesta fase
 
 Verificar links locais, consistência entre escopo e backlog, frontmatter das skills e ausência de código/dados importados. Revisar mudanças apenas no destino e conferir estado da origem em leitura sem locks opcionais.

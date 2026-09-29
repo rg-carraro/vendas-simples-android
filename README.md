@@ -20,6 +20,7 @@ A referência é a branch `comercial` de `alejoiasvendasapp`, fixada no commit `
 - [Release Play Store](docs/RELEASE_PLAY_STORE.md): checklist de publicação e configuração comercial.
 - [Roadmap do produto](docs/ROADMAP_PRODUTO.md): fases após a consolidação do MVP.
 - [Regras financeiras](docs/REGRAS_FINANCEIRAS.md): dinheiro em centavos e invariantes de cálculo.
+- [Auditoria pré-Billing](docs/AUDITORIA_PRE_BILLING.md): achados, riscos e limitações antes da loja.
 - [AGENTS.md](AGENTS.md): instruções para trabalhar neste repositório.
 
 ## Skills do projeto
