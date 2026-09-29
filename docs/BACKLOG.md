@@ -24,6 +24,8 @@ Arquivos técnicos foram trazidos do commit `ce112c40c4f79368042555e451338b5f318
 
 `DomainRules.kt` adiciona `MoneyCents` para valores novos e `FreeSalesGate` para o limite FREE de 30 vendas. A regra deixa leitura, histórico, saldo, relatórios e pagamentos existentes fora do bloqueio; a integração com persistência e UI ficará em incrementos posteriores. Billing real ainda não foi adicionado.
 
+O primeiro ponto de integração conta compras distintas no SQLite e intercepta apenas a ação de nova venda. O desbloqueio ainda é informativo até a fase de Billing; nenhum dado existente é bloqueado ou removido.
+
 ## Critério de pronto por entrega
 
 Escopo e comportamento documentados, alteração restrita ao destino, diff revisado, verificações aplicáveis com resultado registrado e limitações explícitas. Para recursos financeiros, incluir exemplos de entrada e saída conferidos independentemente da implementação.

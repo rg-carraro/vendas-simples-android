@@ -277,7 +277,7 @@ class MainActivity : AppCompatActivity() {
 
         val linha1 = linhaBotoes()
         linha1.addView(botaoQuadrado("Vendas", "Lista", 1f) { abrirListaVendas() })
-        linha1.addView(botaoQuadrado("Nova", "Venda", 1f) { abrirDialogVenda(null) })
+        linha1.addView(botaoQuadrado("Nova", "Venda", 1f) { abrirNovaVendaOuDesbloqueio() })
         content.addView(linha1)
 
         val linha2 = linhaBotoes()
@@ -1693,6 +1693,22 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
                     arquivoCamera = null
                 }
             }
+            .show()
+    }
+
+    private fun abrirNovaVendaOuDesbloqueio() {
+        val gate = FreeSalesGate()
+        if (gate.canCreateSale(localDb.totalVendas(), lifetimeEntitled = false)) {
+            abrirDialogVenda(null)
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Desbloqueie novas vendas")
+            .setMessage("O plano FREE permite até 30 vendas. Seus dados, consultas, relatórios e pagamentos continuam disponíveis. Desbloqueie o plano LIFETIME para cadastrar a próxima venda.")
+            .setPositiveButton("Ver opções") { _, _ ->
+                Toast.makeText(this, "Compra LIFETIME será integrada em uma próxima fase.", Toast.LENGTH_LONG).show()
+            }
+            .setNegativeButton("Cancelar", null)
             .show()
     }
 

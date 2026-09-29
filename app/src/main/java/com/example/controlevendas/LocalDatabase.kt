@@ -113,6 +113,16 @@ class LocalDatabase(context: Context) : SQLiteOpenHelper(context, DB_NAME, null,
         }
     }
 
+    /** Quantidade de compras distintas usada pelo limite FREE local do MVP. */
+    fun totalVendas(): Int {
+        readableDatabase.rawQuery(
+            "SELECT COUNT(DISTINCT COALESCE(id_venda_pai, id_venda)) FROM VENDAS",
+            null
+        ).use { c ->
+            return if (c.moveToFirst()) c.getInt(0) else 0
+        }
+    }
+
     fun getRelatorio(): List<VendaRelatorio> {
         val sql = """
             SELECT v.id_venda, v.id_cliente, c.nome, v.descricao, v.data_venda,
