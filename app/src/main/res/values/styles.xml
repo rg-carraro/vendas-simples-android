@@ -1,0 +1,31 @@
+<resources>
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">#F5F7FB</item>
+        <item name="android:statusBarColor">#F5F7FB</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="colorPrimary">#2563EB</item>
+        <item name="colorPrimaryVariant">#1E3A5F</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">#475569</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="colorAccent">#475569</item>
+        <item name="android:windowBackground">#F5F7FB</item>
+        <item name="materialAlertDialogTheme">@style/VendasSimplesAlertDialog</item>
+    </style>
+
+    <style name="VendasSimplesAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="colorPrimary">#2563EB</item>
+        <item name="colorSecondary">#475569</item>
+        <item name="colorSurface">#FFFFFF</item>
+        <item name="android:textColorPrimary">#1E293B</item>
+        <item name="android:textColorSecondary">#64748B</item>
+        <item name="shapeAppearanceOverlay">@style/VendasSimplesDialogShape</item>
+    </style>
+
+    <style name="VendasSimplesDialogShape">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">20dp</item>
+    </style>
+</resources>
