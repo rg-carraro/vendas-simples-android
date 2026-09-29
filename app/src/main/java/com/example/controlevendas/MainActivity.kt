@@ -682,7 +682,7 @@ private fun abrirDashboardFinanceiro() {
         linha2.addView(cardDashboard("A Receber", moeda.format(totalReceber), 1f) {
             abrirDetalhamentoFinanceiro("dashboard", "faltante")
         })
-        linha2.addView(cardDashboard("Clientes Débito", clientesDebito.toString(), 1f) {
+        linha2.addView(cardDashboard("Clientes", clientesDebito.toString(), 1f) {
             abrirDetalhamentoFinanceiro("dashboard", "clientes_debito")
         })
         content.addView(linha2)
@@ -747,7 +747,7 @@ private fun abrirDashboardFinanceiro() {
             "abertos" -> "Cards em aberto"
             "vencidos" -> "Cards vencidos"
             "quitados" -> "Cards quitados"
-            "clientes_debito" -> "Clientes em débito"
+            "clientes_debito" -> "Clientes"
             else -> "Todos os cards"
         }
         val periodo = when (origem) {
