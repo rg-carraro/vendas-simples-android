@@ -328,7 +328,7 @@ class MainActivity : AppCompatActivity() {
         val lista = vendasFiltradas().sortedByDescending { it.data_vencimento ?: "" }
         statusText.text = "Lista De Vendas | ${lista.size} Cards"
 
-        content.addView(botaoVoltar("Voltar Ao Menu") { abrirMenuPrincipal() })
+        content.addView(botaoVoltar("Voltar") { abrirMenuPrincipal() })
 
         val pesquisaCliente = campo("Pesquisar Cliente, Descrição, Data Ou Valor").apply {
             setText(filtroCliente)
@@ -655,7 +655,7 @@ private fun abrirDashboardFinanceiro() {
         val vendasDashboard = vendasCache.filter { (it.data_venda ?: "").startsWith(mesSelecionado) }
         statusText.text = "Financeiro e Relatórios | $mesSelecionado"
 
-        content.addView(botaoVoltar("Voltar Ao Menu") { abrirMenuPrincipal() })
+        content.addView(botaoVoltar("Voltar") { abrirMenuPrincipal() })
         content.addView(botaoVoltar("Selecionar Outro Mês") { abrirSelecionarMesDashboard() })
         adicionarCardResumo("Mês Selecionado", mesSelecionado)
 
@@ -763,7 +763,7 @@ private fun abrirDashboardFinanceiro() {
             else -> lista.size.toString()
         }
         statusText.text = "$titulo | $periodo"
-        content.addView(botaoVoltar("Voltar Ao Relatório") { voltarDetalhamentoFinanceiro() })
+        content.addView(botaoVoltar("Voltar") { voltarDetalhamentoFinanceiro() })
         adicionarCardResumo(titulo, total)
         content.addView(texto("$periodo • ${lista.size} cards", 14f, false), margemCard())
         if (lista.isEmpty()) {
@@ -849,7 +849,7 @@ private fun abrirDashboardFinanceiro() {
         content.removeAllViews()
         statusText.text = "Resumo Por Período"
 
-        content.addView(botaoVoltar("Voltar Ao Financeiro") { abrirDashboardFinanceiro() })
+        content.addView(botaoVoltar("Voltar") { abrirDashboardFinanceiro() })
         content.addView(botaoVoltar("Alterar Período") { abrirFiltroResumoPeriodo() })
 
         val lista = vendasCache.filter { venda ->
@@ -887,7 +887,7 @@ private fun abrirResumoMes() {
         content.removeAllViews()
         statusText.text = "Relatório Mensal"
 
-        content.addView(botaoVoltar("Voltar Ao Financeiro") { abrirDashboardFinanceiro() })
+        content.addView(botaoVoltar("Voltar") { abrirDashboardFinanceiro() })
 
         val mesSelecionado = mesResumoSelecionado ?: mesAtual
         val vendasMes = vendasCache.filter { (it.data_venda ?: "").startsWith(mesSelecionado) }
@@ -954,7 +954,7 @@ private fun abrirResumoMes() {
         content.removeAllViews()
         statusText.text = "Relatório Por Cliente"
 
-        content.addView(botaoVoltar("Voltar Ao Financeiro") { abrirDashboardFinanceiro() })
+        content.addView(botaoVoltar("Voltar") { abrirDashboardFinanceiro() })
 
         val pesquisaCliente = campo("Pesquisar Cliente").apply {
             setText(filtroClienteResumo)
@@ -1030,7 +1030,7 @@ private fun abrirHistoricoCliente(cliente: String, vendas: List<VendaRelatorio>)
         content.removeAllViews()
         statusText.text = "Histórico Do Cliente"
 
-        content.addView(botaoVoltar("Voltar Ao Resumo Por Cliente") { abrirResumoClientes() })
+        content.addView(botaoVoltar("Voltar") { abrirResumoClientes() })
 
         val totalVendido = vendas.sumOf { it.valor_total }
         val totalRecebido = vendas.sumOf { it.total_pago }
@@ -1201,7 +1201,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         content.removeAllViews()
         statusText.text = "Dados E Backup"
 
-        content.addView(botaoVoltar("Voltar Ao Menu") { abrirMenuPrincipal() })
+        content.addView(botaoVoltar("Voltar") { abrirMenuPrincipal() })
         adicionarCardResumo("Cards No SQLite", vendasCache.size.toString())
         content.addView(botaoVoltar("Exportar CSV Para Excel") {
             exportarCsvResumo(vendasCache, "vendas_simples_sqlite.csv")
