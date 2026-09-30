@@ -339,11 +339,30 @@ class MainActivity : AppCompatActivity() {
                 true
             }
         }
-        content.addView(campoRotulado("Pesquisa:", pesquisaCliente), margemCard())
-
-        content.addView(botaoVoltar("Aplicar Pesquisa") {
+        val campoPesquisa = campoRotulado("Pesquisa:", pesquisaCliente).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
+            ).apply { setMargins(0, dp(5), dp(6), dp(5)) }
+        }
+        val aplicarPesquisa = botaoVoltar("Aplicar") {
             filtroCliente = pesquisaCliente.text.toString()
             abrirListaVendas()
+        }.apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(0, dp(5), 0, dp(5)) }
+            minWidth = 0
+            minHeight = dp(48)
+            setPadding(dp(10), dp(6), dp(10), dp(6))
+        }
+        content.addView(LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            addView(campoPesquisa)
+            addView(aplicarPesquisa)
         })
 
         val filtros = linhaBotoes()
