@@ -2133,6 +2133,15 @@ private fun criarCanalNotificacoes() {
                 if (pai === content) {
                     content.removeView(this)
                     content.addView(this)
+                    if (!texto.equals("Voltar", ignoreCase = true)) {
+                        val voltar = (0 until content.childCount)
+                            .map { content.getChildAt(it) }
+                            .firstOrNull { it is Button && it.text.toString().equals("Voltar", ignoreCase = true) }
+                        if (voltar != null) {
+                            content.removeView(voltar)
+                            content.addView(voltar)
+                        }
+                    }
                 }
             }
         }
