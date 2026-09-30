@@ -330,7 +330,7 @@ class MainActivity : AppCompatActivity() {
 
         content.addView(botaoVoltar("Voltar") { abrirMenuPrincipal() })
 
-        val pesquisaCliente = campo("Pesquisar Cliente, Descrição, Data Ou Valor").apply {
+        val pesquisaCliente = campo("Pesquisar Cliente").apply {
             setText(filtroCliente)
             setSingleLine(true)
             setOnEditorActionListener { _, _, _ ->
