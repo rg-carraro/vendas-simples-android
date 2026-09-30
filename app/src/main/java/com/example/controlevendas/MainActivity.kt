@@ -53,6 +53,10 @@ class MainActivity : AppCompatActivity() {
     private val corBorda = Color.rgb(203, 213, 225)
     private val corQuitado = Color.rgb(226, 244, 235)
     private val corVencido = Color.rgb(253, 232, 229)
+    private val corStatusParcialTexto = Color.rgb(156, 82, 20)
+    private val corStatusParcialFundo = Color.rgb(252, 224, 184)
+    private val corStatusAbertoTexto = Color.rgb(125, 87, 32)
+    private val corStatusAbertoFundo = Color.rgb(244, 229, 197)
 
     private lateinit var content: LinearLayout
     private lateinit var statusText: TextView
@@ -534,8 +538,8 @@ class MainActivity : AppCompatActivity() {
                     when {
                         quitado -> corPrimariaEscura
                         vencido -> Color.rgb(153, 55, 47)
-                        venda.total_pago > 0.0 -> Color.rgb(156, 82, 20)
-                        else -> Color.rgb(125, 87, 32)
+                        venda.total_pago > 0.0 -> corStatusParcialTexto
+                        else -> corStatusAbertoTexto
                     }
             )
             gravity = Gravity.CENTER
@@ -544,8 +548,8 @@ class MainActivity : AppCompatActivity() {
                 when {
                     quitado -> Color.rgb(197, 231, 214)
                     vencido -> Color.rgb(248, 205, 199)
-                    venda.total_pago > 0.0 -> Color.rgb(252, 224, 184)
-                    else -> Color.rgb(244, 229, 197)
+                    venda.total_pago > 0.0 -> corStatusParcialFundo
+                    else -> corStatusAbertoFundo
                 },
                 18f
             )
