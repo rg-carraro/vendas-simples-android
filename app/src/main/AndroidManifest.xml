@@ -5,7 +5,7 @@
         android:label="Vendas Simples"
         android:icon="@drawable/ic_vendas_simples"
         android:roundIcon="@drawable/ic_vendas_simples"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:supportsRtl="true">
         <activity
             android:name=".MainActivity"
