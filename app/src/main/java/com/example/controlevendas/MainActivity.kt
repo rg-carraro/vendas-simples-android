@@ -2190,7 +2190,7 @@ private fun criarCanalNotificacoes() {
 
     private fun campo(hint: String): EditText = EditText(this).apply {
         this.hint = hint
-        textSize = 16f
+        textSize = if (hint.startsWith("Pesquisar", ignoreCase = true)) 14f else 16f
         setTextColor(corTexto)
         setHintTextColor(corTextoSecundario)
         backgroundTintList = android.content.res.ColorStateList.valueOf(corDestaque)
