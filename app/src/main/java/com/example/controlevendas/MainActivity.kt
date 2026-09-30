@@ -730,7 +730,6 @@ private fun abrirDashboardFinanceiro() {
             setPadding(0, dp(18), 0, dp(6))
         })
         content.addView(botaoVoltar("Relatório por período") { abrirFiltroResumoPeriodo() }, margemCard())
-        content.addView(botaoVoltar("Relatório por cliente") { abrirResumoClientes() }, margemCard())
         content.addView(botaoVoltar("Gerar PDF financeiro") {
             gerarPdfResumo(vendasDashboard, "resumo_vendas_simples_${mesSelecionado}.pdf", mesSelecionado)
         }, margemCard())
