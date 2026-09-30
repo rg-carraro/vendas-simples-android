@@ -2118,6 +2118,15 @@ private fun criarCanalNotificacoes() {
         minHeight = dp(50)
         setPadding(dp(16), dp(8), dp(16), dp(8))
         setOnClickListener { acao() }
+        if (texto.equals("Voltar", ignoreCase = true)) {
+            post {
+                val pai = parent
+                if (pai === content) {
+                    content.removeView(this)
+                    content.addView(this)
+                }
+            }
+        }
     }
 
     private fun adicionarCardResumo(
