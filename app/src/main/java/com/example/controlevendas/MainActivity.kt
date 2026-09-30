@@ -530,12 +530,13 @@ class MainActivity : AppCompatActivity() {
             }
             textSize = 11f
             typeface = Typeface.DEFAULT_BOLD
-            setTextColor(
-                when {
-                    quitado -> corPrimariaEscura
-                    vencido -> Color.rgb(153, 55, 47)
-                    else -> Color.rgb(125, 87, 32)
-                }
+                setTextColor(
+                    when {
+                        quitado -> corPrimariaEscura
+                        vencido -> Color.rgb(153, 55, 47)
+                        venda.total_pago > 0.0 -> Color.rgb(156, 82, 20)
+                        else -> Color.rgb(125, 87, 32)
+                    }
             )
             gravity = Gravity.CENTER
             setPadding(dp(10), dp(4), dp(10), dp(4))
@@ -543,6 +544,7 @@ class MainActivity : AppCompatActivity() {
                 when {
                     quitado -> Color.rgb(197, 231, 214)
                     vencido -> Color.rgb(248, 205, 199)
+                    venda.total_pago > 0.0 -> Color.rgb(252, 224, 184)
                     else -> Color.rgb(244, 229, 197)
                 },
                 18f
