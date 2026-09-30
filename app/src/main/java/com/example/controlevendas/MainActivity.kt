@@ -2120,7 +2120,10 @@ private fun criarCanalNotificacoes() {
         minHeight = dp(50)
         setPadding(dp(16), dp(8), dp(16), dp(8))
         setOnClickListener { acao() }
-        if (texto.equals("Voltar", ignoreCase = true)) {
+        val moverParaFim = texto.equals("Voltar", ignoreCase = true) ||
+                texto.equals("Selecionar Outro Mês", ignoreCase = true) ||
+                texto.equals("Gerar Extrato PDF", ignoreCase = true)
+        if (moverParaFim) {
             post {
                 val pai = parent
                 if (pai === content) {
