@@ -4,6 +4,7 @@
 
 # Gradle and build outputs
 .gradle/
+.gradle-user/
 build/
 **/build/
 
