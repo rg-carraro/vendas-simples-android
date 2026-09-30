@@ -365,6 +365,16 @@ class MainActivity : AppCompatActivity() {
             addView(aplicarPesquisa)
         })
 
+        if (filtroInicio != null || filtroFim != null || filtrarAReceber || filtroCliente.isNotBlank()) {
+            content.addView(botaoVoltar("Limpar Filtros") {
+                filtroInicio = null
+                filtroFim = null
+                filtrarAReceber = false
+                filtroCliente = ""
+                abrirListaVendas()
+            })
+        }
+
         val filtros = linhaBotoes()
         filtros.addView(botaoQuadrado("Data", "Filtrar", 1f) { abrirFiltroPeriodoVendas() })
         filtros.addView(botaoQuadrado(if (filtrarAReceber) "Todos" else "A Receber", "Cards", 1f) {
@@ -374,13 +384,6 @@ class MainActivity : AppCompatActivity() {
         content.addView(filtros)
 
         if (filtroInicio != null || filtroFim != null || filtrarAReceber || filtroCliente.isNotBlank()) {
-            content.addView(botaoVoltar("Limpar Filtros") {
-                filtroInicio = null
-                filtroFim = null
-                filtrarAReceber = false
-                filtroCliente = ""
-                abrirListaVendas()
-            })
             if (filtroInicio != null || filtroFim != null) {
                 content.addView(texto("Filtro: ${filtroInicio ?: "..."} até ${filtroFim ?: "..."}", 13f, false))
             }
@@ -984,11 +987,30 @@ private fun abrirResumoMes() {
                 true
             }
         }
-        content.addView(campoRotulado("Cliente:", pesquisaCliente), margemCard())
-
-        content.addView(botaoVoltar("Aplicar Pesquisa") {
+        val campoCliente = campoRotulado("Cliente:", pesquisaCliente).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
+            ).apply { setMargins(0, dp(5), dp(6), dp(5)) }
+        }
+        val aplicarCliente = botaoVoltar("Aplicar") {
             filtroClienteResumo = pesquisaCliente.text.toString()
             abrirResumoClientes()
+        }.apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(0, dp(5), 0, dp(5)) }
+            minWidth = 0
+            minHeight = dp(48)
+            setPadding(dp(10), dp(6), dp(10), dp(6))
+        }
+        content.addView(LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            addView(campoCliente)
+            addView(aplicarCliente)
         })
 
         if (filtroClienteResumo.isNotBlank()) {
@@ -2022,7 +2044,7 @@ private fun criarCanalNotificacoes() {
     }
 
     private fun linhaBotoes(): LinearLayout = LinearLayout(this).apply {
-        orientation = LinearLayout.VERTICAL
+        orientation = LinearLayout.HORIZONTAL
         setPadding(0, dp(4), 0, dp(4))
     }
 
@@ -2051,10 +2073,7 @@ private fun criarCanalNotificacoes() {
             setTextColor(corDestaque)
         })
 
-        val params = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            dp(96)
-        )
+        val params = LinearLayout.LayoutParams(0, dp(96), peso)
         params.setMargins(dp(5), dp(5), dp(5), dp(5))
         card.layoutParams = params
         return card
