@@ -14,7 +14,7 @@ class LocalDatabase(context: Context) : SQLiteOpenHelper(context, DB_NAME, null,
 
     companion object {
         const val DB_NAME = "vendas_simples.db"
-        private const val DB_VERSION = 2
+        private const val DB_VERSION = 3
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -32,7 +32,8 @@ class LocalDatabase(context: Context) : SQLiteOpenHelper(context, DB_NAME, null,
                 descricao TEXT,
                 data_venda TEXT,
                 data_vencimento TEXT,
-                valor_total REAL NOT NULL,
+                valor_total REAL,
+                valor_total_centavos INTEGER NOT NULL DEFAULT 0,
                 parcela_atual INTEGER NOT NULL DEFAULT 1,
                 parcelas INTEGER NOT NULL DEFAULT 1,
                 id_venda_pai TEXT
@@ -44,7 +45,8 @@ class LocalDatabase(context: Context) : SQLiteOpenHelper(context, DB_NAME, null,
                 id_pagamento TEXT PRIMARY KEY,
                 id_venda TEXT NOT NULL,
                 data_pagamento TEXT,
-                valor_pago REAL NOT NULL
+                valor_pago REAL,
+                valor_pago_centavos INTEGER NOT NULL DEFAULT 0
             )
         """.trimIndent())
 
@@ -72,6 +74,12 @@ class LocalDatabase(context: Context) : SQLiteOpenHelper(context, DB_NAME, null,
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         if (oldVersion < 2) criarTabelaFotos(db)
+        if (oldVersion < 3) {
+            db.execSQL("ALTER TABLE VENDAS ADD COLUMN valor_total_centavos INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE PAGAMENTOS ADD COLUMN valor_pago_centavos INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("UPDATE VENDAS SET valor_total_centavos = CAST(ROUND(COALESCE(valor_total, 0) * 100) AS INTEGER)")
+            db.execSQL("UPDATE PAGAMENTOS SET valor_pago_centavos = CAST(ROUND(COALESCE(valor_pago, 0) * 100) AS INTEGER)")
+        }
     }
 
     private fun criarTabelaFotos(db: SQLiteDatabase) {
@@ -126,22 +134,22 @@ class LocalDatabase(context: Context) : SQLiteOpenHelper(context, DB_NAME, null,
     fun getRelatorio(): List<VendaRelatorio> {
         val sql = """
             SELECT v.id_venda, v.id_cliente, c.nome, v.descricao, v.data_venda,
-                   v.data_vencimento, v.valor_total, v.parcela_atual, v.parcelas,
+                   v.data_vencimento, v.valor_total_centavos, v.parcela_atual, v.parcelas,
                    v.id_venda_pai,
-                   COALESCE(SUM(p.valor_pago), 0) AS total_pago,
+                   COALESCE(SUM(p.valor_pago_centavos), 0) AS total_pago,
                    MAX(CASE WHEN TRIM(COALESCE(p.data_pagamento,'')) <> '' THEN p.data_pagamento ELSE NULL END) AS data_pagamento
             FROM VENDAS v
             LEFT JOIN CLIENTES c ON c.id_cliente = v.id_cliente
             LEFT JOIN PAGAMENTOS p ON p.id_venda = v.id_venda
             GROUP BY v.id_venda, v.id_cliente, c.nome, v.descricao, v.data_venda,
-                     v.data_vencimento, v.valor_total, v.parcela_atual, v.parcelas, v.id_venda_pai
+                     v.data_vencimento, v.valor_total_centavos, v.parcela_atual, v.parcelas, v.id_venda_pai
         """.trimIndent()
 
         val result = mutableListOf<VendaRelatorio>()
         readableDatabase.rawQuery(sql, null).use { c ->
             while (c.moveToNext()) {
-                val valor = c.getDouble(c.getColumnIndexOrThrow("valor_total"))
-                val pago = c.getDouble(c.getColumnIndexOrThrow("total_pago"))
+                val valor = c.getLong(c.getColumnIndexOrThrow("valor_total_centavos"))
+                val pago = c.getLong(c.getColumnIndexOrThrow("total_pago"))
                 val idTexto = c.getString(c.getColumnIndexOrThrow("id_venda"))
                 result += VendaRelatorio(
                     id_venda = idTexto.toDoubleOrNull() ?: 0.0,
@@ -171,11 +179,11 @@ class LocalDatabase(context: Context) : SQLiteOpenHelper(context, DB_NAME, null,
             val qtd = request.parcelas.coerceAtLeast(1)
             val valorBase = request.valor_total / qtd
             val idPai = "VEN-${System.currentTimeMillis()}"
-            var acumulado = 0.0
+            var acumulado = 0L
 
             for (i in 1..qtd) {
                 val idVenda = gerarIdNumerico(db, "VENDAS", "id_venda", i)
-                val valorParcela = if (i == qtd) request.valor_total - acumulado else arredondar(valorBase)
+                val valorParcela = if (i == qtd) request.valor_total - acumulado else valorBase
                 acumulado += valorParcela
                 val cv = ContentValues().apply {
                     put("id_venda", idVenda)
@@ -183,7 +191,7 @@ class LocalDatabase(context: Context) : SQLiteOpenHelper(context, DB_NAME, null,
                     put("descricao", request.descricao)
                     put("data_venda", request.data_venda)
                     put("data_vencimento", somarDias(request.data_venda, i * 30))
-                    put("valor_total", valorParcela)
+                    put("valor_total_centavos", valorParcela)
                     put("parcela_atual", i)
                     put("parcelas", qtd)
                     put("id_venda_pai", idPai)
@@ -215,7 +223,7 @@ class LocalDatabase(context: Context) : SQLiteOpenHelper(context, DB_NAME, null,
                 put("descricao", request.descricao)
                 put("data_venda", request.data_venda)
                 put("data_vencimento", request.data_vencimento)
-                put("valor_total", request.valor_total)
+                put("valor_total_centavos", request.valor_total)
                 put("parcela_atual", request.parcela_atual)
                 put("parcelas", request.parcelas.coerceAtLeast(1))
             }
@@ -234,14 +242,14 @@ class LocalDatabase(context: Context) : SQLiteOpenHelper(context, DB_NAME, null,
             put("id_pagamento", id)
             put("id_venda", request.id_venda)
             put("data_pagamento", request.data_pagamento)
-            put("valor_pago", request.valor_pago)
+            put("valor_pago_centavos", request.valor_pago)
         }
         db.insertOrThrow("PAGAMENTOS", null, cv)
         markDirty(db, "PAGAMENTOS", id)
         return id
     }
 
-    fun corrigirPagamentoTotal(idVenda: String, dataPagamento: String, valorCorreto: Double) {
+    fun corrigirPagamentoTotal(idVenda: String, dataPagamento: String, valorCorreto: Long) {
         val db = writableDatabase
         db.beginTransaction()
         try {
@@ -252,13 +260,13 @@ class LocalDatabase(context: Context) : SQLiteOpenHelper(context, DB_NAME, null,
             idsAntigos.forEach { markDeletion(db, "PAGAMENTOS", it) }
             db.delete("PAGAMENTOS", "id_venda=?", arrayOf(idVenda))
 
-            if (valorCorreto > 0.0) {
+            if (valorCorreto > 0L) {
                 val novoId = gerarIdNumerico(db, "PAGAMENTOS", "id_pagamento", 0)
                 val cv = ContentValues().apply {
                     put("id_pagamento", novoId)
                     put("id_venda", idVenda)
                     put("data_pagamento", dataPagamento)
-                    put("valor_pago", valorCorreto)
+                    put("valor_pago_centavos", valorCorreto)
                 }
                 db.insertOrThrow("PAGAMENTOS", null, cv)
                 markDirty(db, "PAGAMENTOS", novoId)
@@ -341,8 +349,6 @@ class LocalDatabase(context: Context) : SQLiteOpenHelper(context, DB_NAME, null,
             fmt.format(cal.time)
         } catch (_: Exception) { dataTexto }
     }
-
-    private fun arredondar(v: Double): Double = kotlin.math.round(v * 100.0) / 100.0
 
     private fun normalizar(text: String): String = Normalizer.normalize(text.trim().lowercase(Locale.ROOT), Normalizer.Form.NFD)
         .replace("\\p{Mn}+".toRegex(), "")

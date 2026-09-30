@@ -95,7 +95,14 @@ class MainActivity : AppCompatActivity() {
     private var relatorioInicio: String? = null
     private var relatorioFim: String? = null
 
-    private val moeda = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+    private val moeda = CurrencyFormatter()
+
+    private fun parseCentavos(texto: String): Long? {
+        val normalizado = texto.trim().replace(".", "").replace(",", ".")
+        return normalizado.toBigDecimalOrNull()?.movePointRight(2)?.setScale(0, java.math.RoundingMode.HALF_UP)?.longValueExact()
+    }
+
+    private fun decimalText(cents: Long): String = java.math.BigDecimal(cents).movePointLeft(2).toPlainString().replace('.', ',')
     private val handler = Handler(Looper.getMainLooper())
 
     private val hoje: String
@@ -314,7 +321,7 @@ class MainActivity : AppCompatActivity() {
             val data = venda.data_venda ?: ""
             val okInicio = filtroInicio?.let { data >= it } ?: true
             val okFim = filtroFim?.let { data <= it } ?: true
-            val okReceber = if (filtrarAReceber) venda.saldo > 0.0 else true
+            val okReceber = if (filtrarAReceber) venda.saldo > 0L else true
             val termo = filtroCliente.trim()
             val okPesquisa = termo.isBlank() ||
                     (venda.nome_cliente ?: "").contains(termo, ignoreCase = true) ||
@@ -482,7 +489,7 @@ class MainActivity : AppCompatActivity() {
                     "Vencimento: ${venda.data_vencimento ?: "-"}\n" +
                     "Valor: ${moeda.format(venda.valor_total)}\n" +
                     "Pago: ${moeda.format(venda.total_pago)}\n" +
-                    (if (venda.total_pago > 0.0) "Data Pagamento: ${dataPagamentoLocal(venda)}\n" else "") +
+                    (if (venda.total_pago > 0L) "Data Pagamento: ${dataPagamentoLocal(venda)}\n" else "") +
                     "Faltante: ${moeda.format(venda.saldo)}"
             textSize = 13f
             setTextColor(corTextoSecundario)
@@ -529,7 +536,7 @@ class MainActivity : AppCompatActivity() {
             text = when {
                 quitado -> "QUITADO"
                 vencido -> "VENCIDO"
-                venda.total_pago > 0.0 -> "PAGO PARCIALMENTE"
+                venda.total_pago > 0L -> "PAGO PARCIALMENTE"
                 else -> "EM ABERTO"
             }
             textSize = 11f
@@ -538,7 +545,7 @@ class MainActivity : AppCompatActivity() {
                     when {
                         quitado -> corPrimariaEscura
                         vencido -> Color.rgb(153, 55, 47)
-                        venda.total_pago > 0.0 -> corStatusParcialTexto
+                        venda.total_pago > 0L -> corStatusParcialTexto
                         else -> corStatusAbertoTexto
                     }
             )
@@ -548,7 +555,7 @@ class MainActivity : AppCompatActivity() {
                 when {
                     quitado -> Color.rgb(197, 231, 214)
                     vencido -> Color.rgb(248, 205, 199)
-                    venda.total_pago > 0.0 -> corStatusParcialFundo
+                    venda.total_pago > 0L -> corStatusParcialFundo
                     else -> corStatusAbertoFundo
                 },
                 18f
@@ -629,7 +636,7 @@ class MainActivity : AppCompatActivity() {
             painel.addView(faixa)
         }
 
-        if (venda.total_pago > 0.0) {
+        if (venda.total_pago > 0L) {
             painel.addView(linhaDetalhe("Data do pagamento", dataPagamentoLocal(venda)))
         }
 
@@ -691,7 +698,7 @@ private fun abrirDashboardFinanceiro() {
         val totalRecebido = vendasDashboard.sumOf { it.total_pago }
         val totalReceber = vendasDashboard.sumOf { it.saldo }
         val clientesDebito = vendasDashboard
-            .filter { it.saldo > 0.0 }
+            .filter { it.saldo > 0L }
             .mapNotNull { it.nome_cliente }
             .distinct()
             .size
@@ -758,10 +765,10 @@ private fun abrirDashboardFinanceiro() {
 
         val lista = base.filter { venda ->
             when (metrica) {
-                "recebido" -> venda.total_pago > 0.0
-                "faltante", "abertos", "clientes_debito" -> venda.saldo > 0.0
+                "recebido" -> venda.total_pago > 0L
+                "faltante", "abertos", "clientes_debito" -> venda.saldo > 0L
                 "vencidos" -> estaVencida(venda)
-                "quitados" -> venda.total_pago >= venda.valor_total && venda.valor_total > 0.0
+                "quitados" -> venda.total_pago >= venda.valor_total && venda.valor_total > 0L
                 else -> true
             }
         }.sortedByDescending { it.data_vencimento ?: "" }
@@ -925,13 +932,13 @@ private fun abrirResumoMes() {
         adicionarCardResumo("Quantidade De Cards", vendasMes.size.toString()) {
             abrirDetalhamentoFinanceiro("mensal", "todos")
         }
-        adicionarCardResumo("Cards Em Aberto", vendasMes.count { it.saldo > 0.0 }.toString()) {
+        adicionarCardResumo("Cards Em Aberto", vendasMes.count { it.saldo > 0L }.toString()) {
             abrirDetalhamentoFinanceiro("mensal", "abertos")
         }
         adicionarCardResumo("Cards Vencidos", vendasMes.count { estaVencida(it) }.toString()) {
             abrirDetalhamentoFinanceiro("mensal", "vencidos")
         }
-        adicionarCardResumo("Cards Quitados", vendasMes.count { it.total_pago >= it.valor_total && it.valor_total > 0.0 }.toString()) {
+        adicionarCardResumo("Cards Quitados", vendasMes.count { it.total_pago >= it.valor_total && it.valor_total > 0L }.toString()) {
             abrirDetalhamentoFinanceiro("mensal", "quitados")
         }
         adicionarCardResumo("Total Vendido No Mês", moeda.format(vendasMes.sumOf { it.valor_total })) {
@@ -1158,7 +1165,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         val vencimento = venda.data_vencimento ?: "-"
         val saldo = venda.saldo
 
-        if (saldo <= 0.0) {
+        if (saldo <= 0L) {
             Toast.makeText(this, "Venda já está quitada.", Toast.LENGTH_SHORT).show()
             return
         }
@@ -1204,10 +1211,10 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
 
 
 
-    private fun adicionarGraficoDashboard(totalVendido: Double, totalRecebido: Double, totalReceber: Double) {
+    private fun adicionarGraficoDashboard(totalVendido: Long, totalRecebido: Long, totalReceber: Long) {
         val maxValor = maxOf(totalVendido, totalRecebido, totalReceber, 1.0)
 
-        fun barra(label: String, valor: Double): LinearLayout {
+        fun barra(label: String, valor: Long): LinearLayout {
             val wrapper = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 setPadding(dp(12), dp(8), dp(12), dp(8))
@@ -1483,7 +1490,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         val faltante = lista.sumOf { it.saldo }
         val clientes = lista.mapNotNull { it.nome_cliente }.filter { it.isNotBlank() }.distinct().size
         val vencidas = lista.count { estaVencida(it) }
-        val abertas = lista.count { it.saldo > 0.0 }
+        val abertas = lista.count { it.saldo > 0L }
         val valorMedio = if (lista.isNotEmpty()) totalVendido / lista.size else 0.0
         val tipoRelatorio = when {
             titulo == "Card de venda" -> "CARD DE VENDA"
@@ -1507,7 +1514,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         y += 18
         campo("Total De Clientes", clientes.toString())
         if (mesSelecionado != null) {
-            campo("Clientes Em Débito", lista.filter { it.saldo > 0.0 }.mapNotNull { it.nome_cliente }.distinct().size.toString())
+            campo("Clientes Em Débito", lista.filter { it.saldo > 0L }.mapNotNull { it.nome_cliente }.distinct().size.toString())
         }
         campo("Total De Vendas/Cards", lista.size.toString())
         campo("Valor Vendido", moeda.format(totalVendido))
@@ -1628,7 +1635,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         }
 
         val valor = campo("Valor Total").apply {
-            setText(vendaExistente?.valor_total?.takeIf { it > 0.0 }?.toString() ?: "")
+            setText(vendaExistente?.valor_total?.takeIf { it > 0L }?.let(::decimalText) ?: "")
         }
 
         val parcelas = campo("Parcelas").apply {
@@ -1685,10 +1692,10 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
             .apply {
                 setOnShowListener {
                     getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                        val valorVenda = valor.text.toString().replace(",", ".").toDoubleOrNull() ?: 0.0
+                        val valorVenda = parseCentavos(valor.text.toString()) ?: 0L
                         val qtParcelas = (parcelas.text.toString().toIntOrNull() ?: 1).coerceAtLeast(1)
 
-                        if (nomeCliente.text.toString().trim().isEmpty() || data.text.toString().trim().isEmpty() || valorVenda <= 0.0) {
+                        if (nomeCliente.text.toString().trim().isEmpty() || data.text.toString().trim().isEmpty() || valorVenda <= 0L) {
                             Toast.makeText(this@MainActivity, "Preencha Nome, Data E Valor.", Toast.LENGTH_LONG).show()
                             return@setOnClickListener
                         }
@@ -1855,7 +1862,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         layout.addView(texto("Valor Pago Atual: ${moeda.format(venda.total_pago)}", 15f, false))
         layout.addView(texto("Informe o valor total correto pago. Agora é possível aumentar ou reduzir.", 14f, false))
 
-        val valorCorreto = campo("Valor Correto Pago").apply { setText(venda.total_pago.toString()) }
+        val valorCorreto = campo("Valor Correto Pago").apply { setText(decimalText(venda.total_pago)) }
         val data = campo("Data Da Correção").apply {
             setText(dataPagamentoLocal(venda).takeIf { it != "Não informada" } ?: hoje)
             isFocusable = false
@@ -1870,8 +1877,8 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
             .setTitle("Corrigir Valor Pago")
             .setView(layout)
             .setPositiveButton("Salvar") { _, _ ->
-                val correto = valorCorreto.text.toString().replace(",", ".").toDoubleOrNull() ?: -1.0
-                if (correto < 0.0 || correto > venda.valor_total) {
+                val correto = parseCentavos(valorCorreto.text.toString()) ?: -1L
+                if (correto < 0L || correto > venda.valor_total) {
                     Toast.makeText(this, "Informe um valor entre zero e o valor da venda.", Toast.LENGTH_LONG).show()
                     return@setPositiveButton
                 }
@@ -1950,8 +1957,8 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
             .setTitle("Registrar Pagamento")
             .setView(layout)
             .setPositiveButton("Salvar") { _, _ ->
-                val valorPago = valor.text.toString().replace(",", ".").toDoubleOrNull() ?: 0.0
-                if (valorPago <= 0.0 || valorPago > venda.saldo + 0.001) {
+                val valorPago = parseCentavos(valor.text.toString()) ?: 0L
+                if (valorPago <= 0L || valorPago > venda.saldo) {
                     Toast.makeText(this, "Informe um valor válido de até ${moeda.format(venda.saldo)}.", Toast.LENGTH_LONG).show()
                     return@setPositiveButton
                 }
@@ -1989,7 +1996,7 @@ private fun criarCanalNotificacoes() {
     private fun notificarVencimentos() {
         val vencidas = vendasCache.filter { estaVencida(it) }
         val vencendoHoje = vendasCache.filter {
-            (it.data_vencimento ?: "") == hoje && it.saldo > 0.0
+            (it.data_vencimento ?: "") == hoje && it.saldo > 0L
         }
 
         val totalAlertas = vencidas.size + vencendoHoje.size
@@ -2228,3 +2235,10 @@ private fun criarCanalNotificacoes() {
 
     private fun dp(valor: Int): Int = (valor * resources.displayMetrics.density).toInt()
 }
+
+private class CurrencyFormatter {
+    private val formatter = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+    fun format(cents: Long): String = formatter.format(cents / 100.0)
+    fun format(value: Double): String = formatter.format(value)
+}
+
