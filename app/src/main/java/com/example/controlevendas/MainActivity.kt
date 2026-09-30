@@ -2003,7 +2003,7 @@ private fun criarCanalNotificacoes() {
     }
 
     private fun linhaBotoes(): LinearLayout = LinearLayout(this).apply {
-        orientation = LinearLayout.HORIZONTAL
+        orientation = LinearLayout.VERTICAL
         setPadding(0, dp(4), 0, dp(4))
     }
 
@@ -2032,7 +2032,10 @@ private fun criarCanalNotificacoes() {
             setTextColor(corDestaque)
         })
 
-        val params = LinearLayout.LayoutParams(0, dp(96), peso)
+        val params = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            dp(96)
+        )
         params.setMargins(dp(5), dp(5), dp(5), dp(5))
         card.layoutParams = params
         return card
