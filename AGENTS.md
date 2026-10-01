@@ -17,7 +17,7 @@
 ## Desenvolvimento futuro
 
 - Use `docs/MVP.md` e `docs/BACKLOG.md` como proposta de trabalho; registre alterações de escopo e decisões confirmadas.
-- As decisões comerciais confirmadas estão em `docs/DECISOES.md`, `docs/MONETIZACAO.md` e `docs/REGRAS_FINANCEIRAS.md`; não reabra FREE 30 vendas, LIFETIME R$ 49,90 ou ausência de assinatura como hipóteses.
+- As decisões comerciais confirmadas estão em `docs/DECISOES.md`, `docs/MONETIZACAO.md` e `docs/REGRAS_FINANCEIRAS.md`; não reabra FREE 30 vendas, Licença Completa (`FULL_ACCESS`) R$ 49,90 ou ausência de assinatura como hipóteses.
 - Preserve IDs e relações entre clientes, parcelas, pagamentos e fotos ao reaproveitar a base. Mudança de schema exige migração e validação com dados sintéticos.
 - Trate valores monetários, arredondamento, vencimentos e agregações como regras explícitas. Não refatore tipos monetários/IDs sem analisar persistência e compatibilidade.
 - Mantenha identidade, armazenamento e configuração independentes do AleJoias. Não reintroduza integrações da master por cópia acidental.
@@ -34,7 +34,7 @@ Leia a skill pertinente quando a tarefa exigir seu fluxo:
 | `.agents/skills/vendas-simples-planejar/SKILL.md` | Refinar MVP, critérios de aceite, backlog e decisões |
 | `.agents/skills/vendas-simples-referencia/SKILL.md` | Inspecionar ou planejar reaproveitamento da branch comercial |
 | `.agents/skills/vendas-simples-validar/SKILL.md` | Planejar ou executar validação financeira e de isolamento |
-| `.agents/skills/vendas-simples-monetizacao/SKILL.md` | FREE, LIFETIME, Google Play Billing e restauração |
+| `.agents/skills/vendas-simples-monetizacao/SKILL.md` | FREE, FULL_ACCESS, Google Play Billing e restauração |
 | `.agents/skills/vendas-simples-seguranca/SKILL.md` | Privacidade, licença, dados locais e migrações |
 | `.agents/skills/vendas-simples-release/SKILL.md` | Release, Play Store e checklist de publicação |
 

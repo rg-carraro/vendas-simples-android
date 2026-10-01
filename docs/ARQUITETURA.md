@@ -19,7 +19,7 @@ Configuração observada, não recomendação de versões atuais: Kotlin 1.9.24,
 | FileProvider | `${applicationId}.provider` | Manter derivado do identificador escolhido |
 | Rede | Sem INTERNET e backend próprio | Preservar proposta local |
 
-O manifesto de origem usa `allowBackup=true`: ausência de backend próprio não permite afirmar que o Android nunca fará backup externo. Definir política de backup do sistema e explicação ao usuário antes da distribuição.
+O manifesto do Vendas Simples usa `allowBackup=false` para evitar cópia automática de dados financeiros locais. O backup completo do produto é uma função da Licença Completa (`FULL_ACCESS`), enquanto CSV permanece disponível no FREE; ambos exigem ação explícita do usuário.
 
 ## Modelo conceitual de referência
 

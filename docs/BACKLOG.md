@@ -28,7 +28,7 @@ O primeiro ponto de integração conta compras distintas no SQLite e intercepta 
 
 ### B-04 — contrato de entitlement
 
-`BillingDomain.kt` define `EntitlementRepository`, implementação local provisória e o produto LIFETIME como compra única de 4.990 centavos. O adaptador Google Play Billing e a persistência de entitlement serão incrementos separados; nenhum acesso ao Play Console foi realizado.
+`BillingDomain.kt` define `EntitlementRepository`, implementação local provisória e a intenção de produto `FULL_ACCESS` como compra única de 4.990 centavos. O adaptador Google Play Billing e a persistência de entitlement serão incrementos separados; nenhum acesso ao Play Console foi realizado.
 
 ## Critério de pronto por entrega
 

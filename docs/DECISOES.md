@@ -12,10 +12,10 @@ Registro inicial: 29/09/2026. “Proposto” não significa aprovado nem impleme
 | D-04 | Criar documentação, AGENTS.md, skills e estruturar MVP antes de desenvolver |
 | D-05 | Não alterar o repositório original AleJoias |
 | D-06 | Produto offline-first e independente, sem marca, credenciais, endpoints, banco real ou Google Planilhas do AleJoias |
-| D-07 | Modelo comercial somente FREE + LIFETIME; FREE permite até 30 vendas; clientes não têm limite |
+| D-07 | Modelo comercial FREE + Licença Completa (`FULL_ACCESS`); FREE permite até 30 vendas; clientes não têm limite |
 | D-08 | Ao atingir 30 vendas, preservar leitura, histórico, saldo, relatórios e pagamentos existentes; a 31ª venda solicita desbloqueio |
-| D-09 | LIFETIME é compra única planejada em R$ 49,90, sem assinatura ou mensalidade |
-| D-10 | Compra vitalícia deve ser restaurável pelo Google Play; Billing isolado da UI por abstração de domínio |
+| D-09 | Licença Completa (`FULL_ACCESS`) é compra única planejada em R$ 49,90, sem assinatura ou mensalidade |
+| D-10 | A compra da Licença Completa deve ser restaurável pelo Google Play; Billing isolado da UI por abstração de domínio |
 | D-11 | MVP pode usar contador gratuito local, documentando que reinstalação poderá reiniciar o trial sem backend |
 | D-12 | Não criar conta/backend apenas para antifraude no MVP |
 | D-13 | Valores monetários novos usam centavos em `Long` ou tipo decimal seguro; nunca `Float`/`Double` |

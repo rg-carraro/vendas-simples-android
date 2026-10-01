@@ -4,7 +4,11 @@ Vendas Simples é um aplicativo Android independente do AleJoias, offline-first,
 
 O FREE permite até 30 vendas e clientes ilimitados. Ao chegar a 30, os dados continuam disponíveis para leitura, histórico, saldo, relatórios e pagamentos das vendas existentes. A tentativa de criar a 31ª venda abre o fluxo de desbloqueio; ela não apaga dados nem bloqueia o restante do app.
 
-O único plano pago planejado é LIFETIME, compra única de R$ 49,90. Não existe assinatura ou mensalidade. A compra é restaurável via Google Play.
+O único acesso pago planejado é a Licença Completa (`FULL_ACCESS`), compra única de R$ 49,90. Não existe assinatura ou mensalidade. A compra é restaurável via Google Play.
+
+Mensagem comercial: “30 vendas grátis. Gostou? Desbloqueie a versão completa com um único pagamento. Sem mensalidade.” A comunicação não usa “vitalício” ou “Lifetime” e não promete suporte ou atualizações eternas.
+
+O FREE oferece exportação CSV. O backup completo e a restauração de backup são benefícios da Licença Completa; a perda ou a validação pendente da licença nunca modifica nem apaga dados ou arquivos de backup.
 
 O produto não reutiliza marca, credenciais, endpoints, banco real ou Google Planilhas do AleJoias. Não há conta ou backend no MVP. O contador FREE é local e poderá resetar após reinstalação; essa limitação deve ser apresentada na documentação e não pode ser tratada como antifraude.
 

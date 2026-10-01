@@ -5,17 +5,17 @@
 | Estado | Regra |
 | --- | --- |
 | FREE | Até 30 vendas; clientes ilimitados; leitura, histórico, saldo, relatórios e pagamentos existentes continuam disponíveis após o limite |
-| LIFETIME | Compra única planejada de R$ 49,90, sem assinatura e sem mensalidade |
+| Licença Completa (`FULL_ACCESS`) | Compra única planejada de R$ 49,90, sem assinatura e sem mensalidade |
 
 A 31ª tentativa de criar venda solicita desbloqueio. O app não apaga nem oculta dados já existentes.
 
-No MVP, o backup local do SQLite é um benefício do LIFETIME. Usuários FREE não veem o menu de três pontos nem as ações de gerar/compartilhar backup; isso não impede consulta, relatórios ou pagamentos de vendas já registradas.
+No MVP, o backup local do SQLite é um benefício da Licença Completa. Usuários FREE não veem o menu de três pontos nem as ações de gerar/compartilhar backup, mas têm exportação CSV; isso não impede consulta, relatórios ou pagamentos de vendas já registradas.
 
 ## Arquitetura de cobrança
 
-Google Play Billing deve ser encapsulado por abstração de domínio. A UI conhece apenas estados como `FreeWithinLimit`, `FreeLimitReached`, `LifetimeEntitled`, `Pending` e `Unavailable`; SKU, tokens, conexão e callbacks ficam na infraestrutura.
+Google Play Billing deve ser encapsulado por abstração de domínio. A UI conhece apenas estados como `FreeWithinLimit`, `FreeLimitReached`, `FullAccessEntitled`, `Pending` e `Unavailable`; SKU, tokens, conexão e callbacks ficam na infraestrutura.
 
-A compra LIFETIME precisa ser restaurável pela ação de restaurar compras e quando o Billing estiver disponível. Falha temporária não revoga dados nem apaga licença ou conteúdo.
+A compra da Licença Completa precisa ser restaurável pela ação de restaurar compras quando o Billing estiver disponível. Restaurar a compra confirma o entitlement, mas não restaura automaticamente dados; restaurar backup é uma operação separada. Falha temporária não revoga dados nem apaga licença ou conteúdo.
 
 ## Contador local no MVP
 

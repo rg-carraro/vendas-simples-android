@@ -10,7 +10,7 @@ Implementar e validar vendas, clientes, parcelas, pagamentos, fotos, consultas e
 
 ## Fase 2 — entitlement e Billing
 
-Adicionar abstração de domínio para FREE/LIFETIME, contador local de 30 vendas e fluxo de desbloqueio. Integrar Google Play Billing atrás da abstração, com restauração e falhas não destrutivas.
+Adicionar abstração de domínio para FREE/FULL_ACCESS, contador local de 30 vendas e fluxo de desbloqueio. Integrar Google Play Billing atrás da abstração, com restauração de compra e falhas não destrutivas.
 
 ## Fase 3 — piloto e release
 
@@ -18,4 +18,4 @@ Testar aparelho/emulador, compra de teste, reinstalação, migrações, backup e
 
 ## Posterior, sem compromisso
 
-Backend antifraude, conta, sincronização, restauração de backup pela UI, planos adicionais, assinatura, estoque e recursos fiscais só entram após decisão explícita e escopo próprio.
+Backend antifraude, conta, sincronização automática em nuvem, restauração de backup pela UI, planos adicionais, assinatura, estoque e recursos fiscais só entram após decisão explícita e escopo próprio. Login e sincronização não fazem parte do roadmap atual.
