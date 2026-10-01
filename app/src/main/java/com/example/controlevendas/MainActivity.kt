@@ -133,9 +133,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        localDb = LocalDatabase(this)
         montarTela()
         criarCanalNotificacoes()
-        localDb = LocalDatabase(this)
         carregarRelatorio {
             abrirMenuPrincipal()
         }
