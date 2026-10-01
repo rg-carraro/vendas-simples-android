@@ -1217,7 +1217,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
 
 
     private fun adicionarGraficoDashboard(totalVendido: Long, totalRecebido: Long, totalReceber: Long) {
-        val maxValor = maxOf(totalVendido, totalRecebido, totalReceber, 1.0)
+        val maxValor = maxOf(totalVendido, totalRecebido, totalReceber, 1L)
 
         fun barra(label: String, valor: Long): LinearLayout {
             val wrapper = LinearLayout(this).apply {
@@ -1233,7 +1233,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
                 background = fundoArredondado(Color.rgb(226, 232, 240), 12f)
             }
 
-            val largura = ((resources.displayMetrics.widthPixels - dp(80)) * (valor / maxValor)).toInt().coerceAtLeast(dp(12))
+            val largura = ((resources.displayMetrics.widthPixels - dp(80)) * (valor.toDouble() / maxValor.toDouble())).toInt().coerceAtLeast(dp(12))
             val barra = LinearLayout(this).apply {
                 background = fundoArredondado(corPrimaria, 12f)
             }
@@ -1496,7 +1496,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         val clientes = lista.mapNotNull { it.nome_cliente }.filter { it.isNotBlank() }.distinct().size
         val vencidas = lista.count { estaVencida(it) }
         val abertas = lista.count { it.saldo > 0L }
-        val valorMedio = if (lista.isNotEmpty()) totalVendido / lista.size else 0.0
+        val valorMedio = if (lista.isNotEmpty()) totalVendido / lista.size else 0L
         val tipoRelatorio = when {
             titulo == "Card de venda" -> "CARD DE VENDA"
             mesReferencia() != "Múltiplos meses" -> "RELATÓRIO MENSAL"
