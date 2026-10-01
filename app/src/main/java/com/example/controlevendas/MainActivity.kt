@@ -61,6 +61,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var content: LinearLayout
     private lateinit var statusText: TextView
     private lateinit var localDb: LocalDatabase
+    // Até o Billing real, o repositório local permanece FREE; portanto o backup não é exposto.
+    private val entitlementRepository: EntitlementRepository = LocalEntitlementRepository()
     private val fotosRascunho = mutableListOf<ByteArray>()
     private var listaFotosRascunho: LinearLayout? = null
     private var arquivoCamera: File? = null
@@ -203,7 +205,7 @@ class MainActivity : AppCompatActivity() {
             addView(subtitulo)
         }
         header.addView(marca, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-        header.addView(TextView(this).apply {
+        val moreButton = TextView(this).apply {
             text = "⋮"
             textSize = 30f
             gravity = Gravity.CENTER
@@ -222,7 +224,10 @@ class MainActivity : AppCompatActivity() {
                     show()
                 }
             }
-        }, LinearLayout.LayoutParams(dp(48), dp(48)))
+        }
+        if (entitlementRepository.currentState(localDb.totalVendas()) == EntitlementState.LIFETIME_ENTITLED) {
+            header.addView(moreButton, LinearLayout.LayoutParams(dp(48), dp(48)))
+        }
 
 
 

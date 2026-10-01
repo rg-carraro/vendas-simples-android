@@ -9,6 +9,8 @@
 
 A 31ª tentativa de criar venda solicita desbloqueio. O app não apaga nem oculta dados já existentes.
 
+No MVP, o backup local do SQLite é um benefício do LIFETIME. Usuários FREE não veem o menu de três pontos nem as ações de gerar/compartilhar backup; isso não impede consulta, relatórios ou pagamentos de vendas já registradas.
+
 ## Arquitetura de cobrança
 
 Google Play Billing deve ser encapsulado por abstração de domínio. A UI conhece apenas estados como `FreeWithinLimit`, `FreeLimitReached`, `LifetimeEntitled`, `Pending` e `Unavailable`; SKU, tokens, conexão e callbacks ficam na infraestrutura.
