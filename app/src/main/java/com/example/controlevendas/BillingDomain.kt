@@ -26,6 +26,12 @@ class LocalEntitlementRepository(
 }
 
 object LifetimeProduct {
+    @Deprecated("Legado; use FullAccessProduct")
     const val PLANNED_PRICE_CENTS = 4_990L
+    const val PRODUCT_TYPE = "one_time"
+}
+
+object FullAccessProduct {
+    const val PRODUCT_ID = "full_access"
     const val PRODUCT_TYPE = "one_time"
 }
