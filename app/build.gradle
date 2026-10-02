@@ -17,27 +17,31 @@ android {
 
     // A assinatura é configurada somente a partir de arquivo local ignorado pelo Git.
     def signingPropertiesPath = System.getenv('VENDAS_KEYSTORE_PROPERTIES') ?: "${System.getProperty('user.home')}/keystore.properties"
-    def signingPropertiesFile = file(signingPropertiesPath)
-    if (signingPropertiesFile.exists()) {
-        def signingProperties = new Properties()
-        def signingText = signingPropertiesFile.getText('UTF-8').replace('\uFEFF', '')
-        signingProperties.load(new StringReader(signingText))
-        def signingStoreFile = signingProperties.getProperty('storeFile')
-        def signingStorePassword = signingProperties.getProperty('storePassword')
-        def signingKeyAlias = signingProperties.getProperty('keyAlias')
-        def signingKeyPassword = signingProperties.getProperty('keyPassword')
-        signingConfigs {
-            release {
-                storeFile project.file(signingStoreFile)
-                storePassword signingStorePassword
-                keyAlias signingKeyAlias
-                keyPassword signingKeyPassword
-            }
+    def signingPropertiesFile = new File(signingPropertiesPath)
+    if (!signingPropertiesFile.isFile()) {
+        throw new GradleException("Release signing configuration not found: ${signingPropertiesFile.absolutePath}")
+    }
+    def signingProperties = new Properties()
+    def signingText = signingPropertiesFile.getText('UTF-8').replace('\uFEFF', '')
+    signingProperties.load(new StringReader(signingText))
+    def signingStoreFile = signingProperties.getProperty('storeFile')
+    def signingStorePassword = signingProperties.getProperty('storePassword')
+    def signingKeyAlias = signingProperties.getProperty('keyAlias')
+    def signingKeyPassword = signingProperties.getProperty('keyPassword')
+    if (![signingStoreFile, signingStorePassword, signingKeyAlias, signingKeyPassword].every { it }) {
+        throw new GradleException("Incomplete release signing configuration in ${signingPropertiesFile.absolutePath}")
+    }
+    signingConfigs {
+        release {
+            storeFile new File(signingStoreFile)
+            storePassword signingStorePassword
+            keyAlias signingKeyAlias
+            keyPassword signingKeyPassword
         }
-        buildTypes {
-            release {
-                signingConfig signingConfigs.release
-            }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
         }
     }
 
