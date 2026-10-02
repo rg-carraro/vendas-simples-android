@@ -66,6 +66,8 @@ class MainActivity : AppCompatActivity() {
     private val billingEntitlement = BillingEntitlementRepository()
     private lateinit var billingGateway: PlayBillingGateway
     private val entitlementRepository: EntitlementRepository = billingEntitlement
+    private var fullAccessPrice: String? = null
+    private lateinit var backupManager: BackupManager
     private val fotosRascunho = mutableListOf<ByteArray>()
     private var listaFotosRascunho: LinearLayout? = null
     private var arquivoCamera: File? = null
@@ -82,6 +84,21 @@ class MainActivity : AppCompatActivity() {
             adicionarFotoRascunho(Uri.fromFile(arquivo))
         }
         arquivo?.delete()
+    }
+    private val criarArquivoBackup = registerForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
+        if (uri == null) return@registerForActivityResult
+        backupManager.createBackup(uri, localDb).onSuccess { Toast.makeText(this, "Backup realizado com sucesso.", Toast.LENGTH_LONG).show() }
+            .onFailure { Toast.makeText(this, "Não foi possível realizar o backup: ${it.message}", Toast.LENGTH_LONG).show() }
+    }
+    private val abrirArquivoBackup = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@registerForActivityResult
+        backupManager.validate(uri).onFailure { Toast.makeText(this, "Backup inválido ou incompatível.", Toast.LENGTH_LONG).show(); return@registerForActivityResult }
+        AlertDialog.Builder(this).setTitle("Restaurar backup")
+            .setMessage("Restaurar este backup substituirá os dados atuais do Vendas Simples. Deseja continuar?")
+            .setNegativeButton("Cancelar", null).setPositiveButton("Restaurar") { _, _ ->
+                backupManager.restore(uri, localDb).onSuccess { localDb = LocalDatabase(this); carregarRelatorio { abrirMenuPrincipal() }; Toast.makeText(this, "Backup restaurado com sucesso.", Toast.LENGTH_LONG).show() }
+                    .onFailure { localDb = LocalDatabase(this); Toast.makeText(this, "A restauração não foi realizada.", Toast.LENGTH_LONG).show() }
+            }.show()
     }
 
     private var vendasCache: List<VendaRelatorio> = emptyList()
@@ -137,13 +154,14 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         localDb = LocalDatabase(this)
+        backupManager = BackupManager(this)
         billingGateway = PlayBillingGateway(this, object : PlayBillingGateway.Events {
             override fun onState(state: EntitlementState) {
                 Log.d("PlayBillingGateway", "entitlement=$state")
                 billingEntitlement.billingState = state
                 runOnUiThread { if (telaAtual == "menu") abrirMenuPrincipal() }
             }
-            override fun onProduct(details: com.android.billingclient.api.ProductDetails?) {}
+            override fun onProduct(details: com.android.billingclient.api.ProductDetails?) { fullAccessPrice = details?.oneTimePurchaseOfferDetails?.formattedPrice }
             override fun onMessage(message: String) { runOnUiThread { Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show() } }
         })
         billingGateway.connect()
@@ -230,23 +248,41 @@ class MainActivity : AppCompatActivity() {
             isFocusable = true
             setOnClickListener { ancora ->
                 PopupMenu(this@MainActivity, ancora).apply {
-                    menu.add("Dados e backup")
-                    setOnMenuItemClickListener {
-                        abrirBackupLocal()
+                    val state = entitlementRepository.currentState(localDb.totalVendas())
+                    menu.add("Exportar CSV").setOnMenuItemClickListener {
+                        exportarCsvResumo(vendasCache, "vendas_simples.csv")
                         true
+                    }
+                    if (state == EntitlementState.FULL_ACCESS) {
+                        menu.add("Fazer backup").setOnMenuItemClickListener {
+                            criarArquivoBackup.launch("VendasSimples_Backup_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.db")
+                            true
+                        }
+                        menu.add("Restaurar backup").setOnMenuItemClickListener {
+                            abrirArquivoBackup.launch(arrayOf("application/octet-stream", "application/x-sqlite3", "application/vnd.sqlite3"))
+                            true
+                        }
+                        menu.add("Licença Completa — Ativada")
+                    } else {
+                        val preco = fullAccessPrice ?: "preço indisponível"
+                        menu.add("Licença Completa — $preco").setOnMenuItemClickListener {
+                            billingGateway.buy(this@MainActivity)
+                            true
+                        }
+                    }
+                    setOnMenuItemClickListener {
+                        false
                     }
                     show()
                 }
             }
         }
-        if (entitlementRepository.currentState(localDb.totalVendas()) == EntitlementState.FULL_ACCESS) {
-            header.addView(moreButton, LinearLayout.LayoutParams(dp(48), dp(48)))
-        }
+        header.addView(moreButton, LinearLayout.LayoutParams(dp(48), dp(48)))
 
 
 
         statusText = TextView(this).apply {
-            text = ""
+            text = if (entitlementRepository.currentState(localDb.totalVendas()) == EntitlementState.FULL_ACCESS) "" else "Até 30 vendas grátis • Sem mensalidade"
             textSize = 14f
             setTextColor(corTextoSecundario)
             setPadding(dp(4), dp(12), dp(4), dp(8))
@@ -2260,4 +2296,5 @@ private class CurrencyFormatter {
     fun format(cents: Long): String = formatter.format(cents / 100.0)
     fun format(value: Double): String = formatter.format(value)
 }
+
 
