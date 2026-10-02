@@ -28,6 +28,7 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.util.Log
 import android.os.Handler
 import android.os.Looper
 import android.text.InputType
@@ -137,7 +138,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         localDb = LocalDatabase(this)
         billingGateway = PlayBillingGateway(this, object : PlayBillingGateway.Events {
-            override fun onState(state: EntitlementState) { billingEntitlement.billingState = state; runOnUiThread { montarTela() } }
+            override fun onState(state: EntitlementState) {
+                Log.d("PlayBillingGateway", "entitlement=$state")
+                billingEntitlement.billingState = state
+                runOnUiThread { if (telaAtual == "menu") abrirMenuPrincipal() }
+            }
             override fun onProduct(details: com.android.billingclient.api.ProductDetails?) {}
             override fun onMessage(message: String) { runOnUiThread { Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show() } }
         })
@@ -2255,7 +2260,4 @@ private class CurrencyFormatter {
     fun format(cents: Long): String = formatter.format(cents / 100.0)
     fun format(value: Double): String = formatter.format(value)
 }
-
-
-
 
