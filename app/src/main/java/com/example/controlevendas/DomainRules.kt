@@ -20,33 +20,26 @@ value class MoneyCents(val value: Long) {
     }
 }
 
-enum class EntitlementState {
-    FREE_WITHIN_LIMIT,
-    FREE_LIMIT_REACHED,
-    LIFETIME_ENTITLED,
-    PENDING,
-    UNAVAILABLE
-}
-
 /** Regra local do MVP: somente a criação da 31ª venda é bloqueada. */
 class FreeSalesGate(private val freeLimit: Int = FREE_SALES_LIMIT) {
     init {
         require(freeLimit > 0) { "O limite FREE deve ser positivo" }
     }
 
-    fun state(totalSales: Int, lifetimeEntitled: Boolean): EntitlementState {
+    fun state(totalSales: Int, fullAccess: Boolean): EntitlementState {
         require(totalSales >= 0) { "A quantidade de vendas não pode ser negativa" }
         return when {
-            lifetimeEntitled -> EntitlementState.LIFETIME_ENTITLED
+            fullAccess -> EntitlementState.FULL_ACCESS
             totalSales < freeLimit -> EntitlementState.FREE_WITHIN_LIMIT
             else -> EntitlementState.FREE_LIMIT_REACHED
         }
     }
 
-    fun canCreateSale(totalSales: Int, lifetimeEntitled: Boolean): Boolean =
-        state(totalSales, lifetimeEntitled) != EntitlementState.FREE_LIMIT_REACHED
+    fun canCreateSale(totalSales: Int, fullAccess: Boolean): Boolean =
+        state(totalSales, fullAccess) != EntitlementState.FREE_LIMIT_REACHED
 
     companion object {
         const val FREE_SALES_LIMIT = 30
     }
 }
+

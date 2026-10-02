@@ -11,7 +11,7 @@ android {
         applicationId 'com.vendassimples.app'
         minSdk 24
         targetSdk 36
-        versionCode 5
+        versionCode 6
         versionName '1.0.0'
     }
 
@@ -62,3 +62,4 @@ dependencies {
     implementation 'com.android.billingclient:billing:9.1.0'
     testImplementation 'junit:junit:4.13.2'
 }
+

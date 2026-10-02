@@ -62,7 +62,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var statusText: TextView
     private lateinit var localDb: LocalDatabase
     // Até o Billing real, o repositório local permanece FREE; portanto o backup não é exposto.
-    private val entitlementRepository: EntitlementRepository = LocalEntitlementRepository()
+    private val billingEntitlement = BillingEntitlementRepository()
+    private lateinit var billingGateway: PlayBillingGateway
+    private val entitlementRepository: EntitlementRepository = billingEntitlement
     private val fotosRascunho = mutableListOf<ByteArray>()
     private var listaFotosRascunho: LinearLayout? = null
     private var arquivoCamera: File? = null
@@ -134,6 +136,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         localDb = LocalDatabase(this)
+        billingGateway = PlayBillingGateway(this, object : PlayBillingGateway.Events {
+            override fun onState(state: EntitlementState) { billingEntitlement.billingState = state; runOnUiThread { montarTela() } }
+            override fun onProduct(details: com.android.billingclient.api.ProductDetails?) {}
+            override fun onMessage(message: String) { runOnUiThread { Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show() } }
+        })
+        billingGateway.connect()
         montarTela()
         criarCanalNotificacoes()
         carregarRelatorio {
@@ -144,6 +152,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         handler.removeCallbacks(autoRefreshRunnable)
+        if (::billingGateway.isInitialized) billingGateway.disconnect()
         super.onDestroy()
     }
 
@@ -225,7 +234,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        if (entitlementRepository.currentState(localDb.totalVendas()) == EntitlementState.LIFETIME_ENTITLED) {
+        if (entitlementRepository.currentState(localDb.totalVendas()) == EntitlementState.FULL_ACCESS) {
             header.addView(moreButton, LinearLayout.LayoutParams(dp(48), dp(48)))
         }
 
@@ -1755,15 +1764,15 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
 
     private fun abrirNovaVendaOuDesbloqueio() {
         val gate = FreeSalesGate()
-        if (gate.canCreateSale(localDb.totalVendas(), lifetimeEntitled = false)) {
+        if (billingEntitlement.currentState(localDb.totalVendas()) == EntitlementState.FULL_ACCESS || gate.canCreateSale(localDb.totalVendas(), fullAccess = false)) {
             abrirDialogVenda(null)
             return
         }
         AlertDialog.Builder(this)
             .setTitle("Desbloqueie novas vendas")
-            .setMessage("O plano FREE permite até 30 vendas. Seus dados, consultas, relatórios e pagamentos continuam disponíveis. Desbloqueie o plano LIFETIME para cadastrar a próxima venda.")
+            .setMessage("O plano FREE permite até 30 vendas. Seus dados, consultas, relatórios e pagamentos continuam disponíveis. Desbloqueie a Licença Completa para cadastrar a próxima venda.")
             .setPositiveButton("Ver opções") { _, _ ->
-                Toast.makeText(this, "Compra LIFETIME será integrada em uma próxima fase.", Toast.LENGTH_LONG).show()
+                billingGateway.buy(this)
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -2246,4 +2255,7 @@ private class CurrencyFormatter {
     fun format(cents: Long): String = formatter.format(cents / 100.0)
     fun format(value: Double): String = formatter.format(value)
 }
+
+
+
 

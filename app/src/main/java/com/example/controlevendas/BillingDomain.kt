@@ -1,37 +1,11 @@
 package com.example.controlevendas
 
-/** Contrato de domínio; nenhuma tela conhece SKU, token ou API do Play Billing. */
-interface EntitlementRepository {
-    fun currentState(totalSales: Int): EntitlementState
-    fun purchaseLifetime()
-    fun restorePurchases()
+enum class EntitlementState { UNKNOWN, FREE_WITHIN_LIMIT, FREE_LIMIT_REACHED, FULL_ACCESS, PENDING, UNAVAILABLE }
+interface EntitlementRepository { fun currentState(totalSales: Int): EntitlementState; fun requestFullAccess(); fun restorePurchases() }
+class BillingEntitlementRepository(private val gate: FreeSalesGate = FreeSalesGate()) : EntitlementRepository {
+    @Volatile var billingState = EntitlementState.UNKNOWN
+    override fun currentState(totalSales: Int) = when (billingState) { EntitlementState.FULL_ACCESS -> EntitlementState.FULL_ACCESS; EntitlementState.PENDING, EntitlementState.UNKNOWN, EntitlementState.UNAVAILABLE -> billingState; else -> gate.state(totalSales, false) }
+    override fun requestFullAccess() {}
+    override fun restorePurchases() {}
 }
-
-/** Implementação local provisória enquanto o Billing Play não está integrado. */
-class LocalEntitlementRepository(
-    private val lifetimeEntitled: () -> Boolean = { false }
-) : EntitlementRepository {
-    private val gate = FreeSalesGate()
-
-    override fun currentState(totalSales: Int): EntitlementState =
-        gate.state(totalSales, lifetimeEntitled())
-
-    override fun purchaseLifetime() {
-        // O fluxo real será implementado pelo adaptador Google Play Billing.
-    }
-
-    override fun restorePurchases() {
-        // O fluxo real será implementado pelo adaptador Google Play Billing.
-    }
-}
-
-object LifetimeProduct {
-    @Deprecated("Legado; use FullAccessProduct")
-    const val PLANNED_PRICE_CENTS = 4_990L
-    const val PRODUCT_TYPE = "one_time"
-}
-
-object FullAccessProduct {
-    const val PRODUCT_ID = "full_access"
-    const val PRODUCT_TYPE = "one_time"
-}
+object FullAccessProduct { const val PRODUCT_ID = "full_access"; const val PURCHASE_OPTION_ID = "full-access"; const val PRODUCT_TYPE = "one_time" }
