@@ -1,6 +1,6 @@
 # Plano de validação
 
-Status: cenários do aplicativo **não executados neste repositório**, que ainda não contém código Android. Não reaproveitar marcações de sucesso da origem.
+Status atualizado em 07/10/2026: há aplicativo Android neste repositório. O usuário informou 19 cenários aprovados no Alpha. A validação da alteração atual está no [relatório de UI/UX e Billing](ATUALIZACAO_ALPHA_UI_BILLING.md); não reaproveitar marcações da origem nem tratar testes anteriores como aprovação desta atualização.
 
 O build Android já foi executado com sucesso em 29/09/2026 usando o JDK bundled do Android Studio. Isso valida compilação, não os fluxos funcionais; os achados estão em [AUDITORIA_PRE_BILLING.md](AUDITORIA_PRE_BILLING.md).
 
@@ -36,4 +36,4 @@ Backup: inspeção estrutural do arquivo não é teste de restauração pela UI.
 
 ## Registro de execução
 
-Cada execução deve informar data, responsável, commit, ambiente, IDs dos cenários, resultado (passou/falhou/não executado), evidências e limitações. Nesta fase não há build, APK ou homologação funcional para registrar.
+Cada execução deve informar data, responsável, commit, ambiente, IDs dos cenários, resultado (passou/falhou/não executado), evidências e limitações. Resultados de build e testes desta atualização estão no relatório vinculado acima. Homologação manual deve registrar dispositivo, Android e evidências.

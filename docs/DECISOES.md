@@ -14,7 +14,7 @@ Registro inicial: 29/09/2026. “Proposto” não significa aprovado nem impleme
 | D-06 | Produto offline-first e independente, sem marca, credenciais, endpoints, banco real ou Google Planilhas do AleJoias |
 | D-07 | Modelo comercial FREE + Licença Completa (`FULL_ACCESS`); FREE permite até 30 vendas; clientes não têm limite |
 | D-08 | Ao atingir 30 vendas, preservar leitura, histórico, saldo, relatórios e pagamentos existentes; a 31ª venda solicita desbloqueio |
-| D-09 | Licença Completa (`FULL_ACCESS`) é compra única planejada em R$ 49,90, sem assinatura ou mensalidade |
+| D-09 | Licença Completa (`FULL_ACCESS`) é compra única sem assinatura ou mensalidade, com preço exibido exclusivamente do Google Play (revisão de 07/10/2026) |
 | D-10 | A compra da Licença Completa deve ser restaurável pelo Google Play; Billing isolado da UI por abstração de domínio |
 | D-11 | MVP pode usar contador gratuito local, documentando que reinstalação poderá reiniciar o trial sem backend |
 | D-12 | Não criar conta/backend apenas para antifraude no MVP |
@@ -46,3 +46,16 @@ Registro inicial: 29/09/2026. “Proposto” não significa aprovado nem impleme
 | Q-10 | Conteúdo adicional da conversa vinculada | Quando disponibilizado; reconciliar sem inventar decisões |
 
 Atualize este registro quando houver decisão do usuário ou constatação técnica. Registre data, origem da decisão e documentos afetados. Não transforme uma hipótese em requisito apenas por repetição no backlog.
+
+## Revisão de 07/10/2026
+
+Solicitação do usuário: implementar melhorias de navegação, Nova Venda e preço dinâmico no aplicativo existente. A fase de desenvolvimento está autorizada. O preço anterior deixa de ser requisito; o teste comercial pretendido será configurado manualmente no Play Console. Preservar `full_access`, opção `full-access`, FREE 30 e direitos já adquiridos. Não autoriza commit, push ou publicação.
+
+## Revisão de 10/10/2026 — V10 beta da Store
+
+O usuário identifica esta versão como V10 do teste beta da Store e autoriza
+revisar documentação/skills e publicar todas as alterações pendentes no GitHub
+com a label `v10-beta-store`. Nesta revisão não alterar código. A autorização
+não inclui upload ou mudança no Play Console. O histórico Alpha é preservado;
+a identificação beta vem do usuário, sem verificação do Console.
+Ver [marco V10](MARCO_V10_BETA_STORE.md).

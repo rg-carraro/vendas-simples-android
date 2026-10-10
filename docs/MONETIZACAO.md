@@ -5,7 +5,7 @@
 | Estado | Regra |
 | --- | --- |
 | FREE | Até 30 vendas; clientes ilimitados; leitura, histórico, saldo, relatórios e pagamentos existentes continuam disponíveis após o limite |
-| Licença Completa (`FULL_ACCESS`) | Compra única planejada de R$ 49,90, sem assinatura e sem mensalidade |
+| Licença Completa (`FULL_ACCESS`) | Compra única com preço consultado no Google Play, sem assinatura e sem mensalidade |
 
 A 31ª tentativa de criar venda solicita desbloqueio. O app não apaga nem oculta dados já existentes.
 
@@ -29,3 +29,5 @@ O contador FREE pode ser local, sem conta ou backend antifraude. A reinstalaçã
 - Erro de restauração: informar e permitir nova tentativa; nunca apagar dados.
 
 Preço e produto no Play Console ainda exigem configuração e revisão antes da publicação. Este documento não autoriza criar produto, cobrar ou publicar.
+
+Preço na UI: usar apenas `ProductDetails`, sem valor de fallback. Produto/preço indisponíveis desabilitam a compra; restauração e reconhecimento permanecem no fluxo existente. Revisão solicitada em 07/10/2026.

@@ -2,7 +2,7 @@
 
 Produto Android independente para controle local de vendas, parcelas e recebimentos.
 
-**Fase atual: documentação e definição do MVP.** Este repositório ainda não contém aplicativo, Gradle ou APK. Nenhuma funcionalidade está implementada aqui.
+**Fase atual: desenvolvimento Android e versão V10 do teste beta da Store, identificada pelo usuário em 10/10/2026.** O repositório contém aplicativo, Gradle, testes locais e integração Google Play Billing. O usuário informou 19 cenários aprovados no Alpha; essa informação não substitui a validação das alterações atuais.
 
 A referência é a branch `comercial` de `alejoiasvendasapp`, fixada no commit `ce112c40c4f79368042555e451338b5f318077bd`. O repositório original é somente leitura e não será alterado.
 
@@ -27,6 +27,9 @@ A referência é a branch `comercial` de `alejoiasvendasapp`, fixada no commit `
 
 As skills ficam em `.agents/skills/`, com instruções locais versionadas:
 
+- [vendas-simples-interface](.agents/skills/vendas-simples-interface/SKILL.md): UI, navegação, filtros, cards e diálogos.
+- [vendas-simples-backup](.agents/skills/vendas-simples-backup/SKILL.md): destino, cópia e restauração SQLite.
+
 - [vendas-simples-planejar](.agents/skills/vendas-simples-planejar/SKILL.md): evoluir escopo, backlog e decisões.
 - [vendas-simples-referencia](.agents/skills/vendas-simples-referencia/SKILL.md): consultar a origem e preparar reaproveitamento rastreável.
 - [vendas-simples-validar](.agents/skills/vendas-simples-validar/SKILL.md): validar regras financeiras e independência do produto.
@@ -36,4 +39,9 @@ As skills ficam em `.agents/skills/`, com instruções locais versionadas:
 
 ## Próxima etapa
 
-Consolidar as decisões abertas do MVP e, quando solicitado o desenvolvimento, trazer seletivamente a base comercial para este repositório. Não há comando de build aplicável nesta fase. O histórico de builds da referência não comprova validação deste produto.
+Validar as melhorias de UI/UX e Billing em atualização pela Play. Usar `gradlew.bat testDebugUnitTest assembleDebug bundleRelease` com JDK/SDK e assinatura locais configurados. Consulte [relatório da atualização](docs/ATUALIZACAO_ALPHA_UI_BILLING.md).
+
+## Marco V10 beta da Store
+
+Identificação solicitada pelo usuário: `v10-beta-store`, versionCode 10 e
+versionName 1.0.0. Consulte [registro do marco](docs/MARCO_V10_BETA_STORE.md).

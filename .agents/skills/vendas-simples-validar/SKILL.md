@@ -14,3 +14,5 @@ Use dados sintéticos. Não fixe resultado para regra aberta: registre a decisã
 Na implementação, execute build com wrapper do destino e testes pertinentes. Inclua cancelamentos, reinício e permissões nos fluxos afetados. Não execute build na origem nem trate compilação como homologação.
 
 Registre commit, ambiente, cenários, resultados e limitações. Verifique independência do AleJoias e compatibilidade pretendida com APK comercial anterior. Não confunda arquivo de backup com recuperação validada. Após os checks pertinentes passarem, amplie testes apenas por novas falhas ou alterações.
+
+Para navegação/layout, consulte [interface](../vendas-simples-interface/SKILL.md); para cópia e recuperação SQLite, consulte [backup](../vendas-simples-backup/SKILL.md). Não execute a ferramenta de UI contra aparelho real ou base com dados existentes.
