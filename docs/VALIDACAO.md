@@ -37,3 +37,7 @@ Backup: inspeção estrutural do arquivo não é teste de restauração pela UI.
 ## Registro de execução
 
 Cada execução deve informar data, responsável, commit, ambiente, IDs dos cenários, resultado (passou/falhou/não executado), evidências e limitações. Resultados de build e testes desta atualização estão no relatório vinculado acima. Homologação manual deve registrar dispositivo, Android e evidências.
+
+## Versão 11 — 11/10/2026
+
+Preparação solicitada de versionCode 11 / versionName 1.0.11. Consulte [relatório e checklist da versão 11](RELEASE_V11.md). Resultados da V10 não homologam esta versão. Upload na Play Console e validação manual permanecem separados da geração do bundle.

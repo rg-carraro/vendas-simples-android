@@ -2,7 +2,7 @@
 
 ## Estado e direção proposta
 
-Este repositório contém apenas documentação. A proposta é derivar seletivamente a base Android local da referência, preservando comportamento antes de refatorações amplas. Não há decisão de migrar para Compose, Room ou backend.
+Este repositório contém aplicativo Android, testes e documentação. A UI é programática em MainActivity, com SQLiteOpenHelper, saídas locais e Billing encapsulado por abstração de domínio. Não houve migração para Compose, Room ou backend. As observações da referência abaixo são históricas e não representam a configuração atual do destino.
 
 Na referência: UI programática em `MainActivity.kt` → operações/modelos locais → `LocalDatabase.kt` com SQLiteOpenHelper → saídas PDF, CSV e backup. Compartilhamentos usam Intents para aplicativos externos.
 
@@ -47,3 +47,7 @@ Preservar IDs e relações na importação futura do código. Não converter IDs
 Primeiro reproduzir a base no destino e estabelecer validação. Depois extrair regras de cálculo e persistência da Activity conforme necessidade demonstrada. Schema, identificador de aplicativo e semântica financeira são decisões explícitas em [DECISOES.md](DECISOES.md).
 
 Usar somente dados sintéticos em testes e exemplos. Falha ao compartilhar, cancelamento de câmera ou permissão negada não pode gerar registro parcial ou perda silenciosa. Logs e fixtures não devem conter dados reais de clientes.
+
+## Estado do destino — versão 11
+
+`com.vendassimples.app`, namespace legado `com.example.controlevendas`, minSdk 24 e compileSdk/targetSdk 36. Preferência de identidade do negócio em `BusinessPreferences` (SharedPreferences), normalização e textos em `BusinessIdentity`, conversão de datas em `BrazilianDates`. SQLite e cálculos não são alterados por essa personalização; datas completas permanecem ISO internamente. O backup SQLite não inclui preferências. Ver [relatório](RELEASE_V11.md).

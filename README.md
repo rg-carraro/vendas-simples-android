@@ -2,7 +2,7 @@
 
 Produto Android independente para controle local de vendas, parcelas e recebimentos.
 
-**Fase atual: desenvolvimento Android e versão V10 do teste beta da Store, identificada pelo usuário em 10/10/2026.** O repositório contém aplicativo, Gradle, testes locais e integração Google Play Billing. O usuário informou 19 cenários aprovados no Alpha; essa informação não substitui a validação das alterações atuais.
+**Fase atual: desenvolvimento Android e preparação da versão 11 (1.0.11), solicitada em 11/10/2026.** O repositório contém aplicativo, Gradle, testes locais e integração Google Play Billing. O usuário informou 19 cenários aprovados no Alpha; essa informação não substitui a validação das alterações atuais.
 
 A referência é a branch `comercial` de `alejoiasvendasapp`, fixada no commit `ce112c40c4f79368042555e451338b5f318077bd`. O repositório original é somente leitura e não será alterado.
 
@@ -45,3 +45,9 @@ Validar as melhorias de UI/UX e Billing em atualização pela Play. Usar `gradle
 
 Identificação solicitada pelo usuário: `v10-beta-store`, versionCode 10 e
 versionName 1.0.0. Consulte [registro do marco](docs/MARCO_V10_BETA_STORE.md).
+
+## Versão 11 — personalização
+
+Nome do negócio configurável offline, oferecido uma vez no primeiro acesso à nova funcionalidade e editável no menu principal em Configurações. Nome na tela inicial, cobrança/agradecimento e resumo compartilhado, além dos três PDFs existentes. Datas completas apresentadas em `dd/MM/yyyy`, com persistência ISO preservada, e espaço de 16 dp entre miniatura e Remover foto.
+
+Consulte [relatório da versão 11](docs/RELEASE_V11.md) para artefato, verificações e homologação pendente. O marco V10 permanece como histórico.
