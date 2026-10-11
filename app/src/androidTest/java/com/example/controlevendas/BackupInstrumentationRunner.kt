@@ -7,12 +7,33 @@ import android.os.Bundle
 /** Runner Android nativo, sem dependências de produção ou bibliotecas adicionais. */
 class BackupInstrumentationRunner : Instrumentation() {
     private var restartPhase = false
+    private var finalUiPhase = false
     override fun onCreate(arguments: Bundle?) {
         super.onCreate(arguments)
         restartPhase = arguments?.getString("phase") == "restart"
+        finalUiPhase = arguments?.getString("phase") == "final-ui"
         start()
     }
     override fun onStart() {
+        if (finalUiPhase) {
+            val tests = FinalUiInstrumentedTests(this)
+            var failures = 0
+            val methods = tests.javaClass.declaredMethods.filter { it.name.startsWith("test") && it.parameterCount == 0 }.sortedBy { it.name }
+            methods.forEach { method ->
+                try {
+                    tests.prepare()
+                    method.invoke(tests)
+                    sendStatus(0, Bundle().apply { putString("stream", "${method.name}: PASSOU\n") })
+                } catch (failure: Throwable) {
+                    failures++
+                    sendStatus(-2, Bundle().apply { putString("stream", "${method.name}: ${(failure.cause ?: failure).stackTraceToString()}\n") })
+                } finally { tests.close() }
+            }
+            finish(Activity.RESULT_OK, Bundle().apply {
+                putString("stream", if (failures == 0) "\nOK (${methods.size} tests)\n" else "\nFAILURES: $failures\n")
+            })
+            return
+        }
         val tests = BackupInstrumentedTests(BackupTestContext(targetContext))
         val methods = tests.javaClass.declaredMethods.filter {
             it.name.startsWith("test") && it.parameterCount == 0 &&

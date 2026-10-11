@@ -24,3 +24,11 @@ description: Padrões de usabilidade validados no Vendas Simples, adaptáveis a 
 
 ## Aplicação no AleJoias
 Antes de qualquer mudança, mapear telas, recursos, tema, fluxos, entidades e componentes reais do AleJoias. Fazer correspondência de padrões, implementar em etapas, manter recursos exclusivos e solicitar homologação visual comparativa.
+
+
+## Padrões solicitados na homologação V11
+- Separar marca fixa do aplicativo e identidade opcional do negócio. Manter a frase de apoio; restringir a linha secundária quando necessário, com nome completo acessível na configuração. Testar nomes longos, acentos e fonte ampliada sem invadir Voltar ou outras ações.
+- Colocar configurações secundárias no menu de três pontos existente, preservando suas opções e reutilizando edição/salvar/cancelar. Atualizar a apresentação imediatamente e manter a persistência existente.
+- Miniaturas com ação contextual: imagem à esquerda, remover à direita, cerca de 16 dp de intervalo, ícone e texto, alvo mínimo de 48 dp. Identificar a foto por índice acessível e reconstruir índices após remover. Empilhar se largura/fonte impedirem composição horizontal; evitar botão de largura total. Preservar visualização e rodapé Salvar/Cancelar.
+
+Esses padrões são candidatos à futura aplicação no AleJoias Vendas; a implementação V11 e seus testes ficam em docs/RELEASE_V11.md. Não implicam portabilidade automática nem autorização para alterar o AleJoias. Adaptar à marca, tema, componentes e funcionalidades próprios e homologar separadamente.

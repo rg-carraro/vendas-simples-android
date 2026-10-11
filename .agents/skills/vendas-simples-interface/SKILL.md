@@ -28,3 +28,7 @@ fonte ampliada, tela estreita, paisagem e retorno. A ferramenta
 `--seed` requer base vazia e usa apenas dados sintéticos, sem mudar schema.
 Evidências ficam em `.gradle-user/ui-refinement/`, fora do Git.
 Registre limites de smoke tests e execute o build proporcional à alteração.
+
+
+No cabeçalho compartilhado, mantenha a marca Vendas Simples separada do nome opcional do negócio e preserve a frase de apoio. Personalizar negócio pertence ao menu de três pontos, disponível também no FREE, reutilizando a configuração.
+Em fotos de rascunho, priorize miniatura/ação lado a lado com 16 dp, índice acessível e remoção isolada; empilhe quando necessário sem botão de largura total. Os padrões e a candidatura ao AleJoias estão na [skill de UI/UX](../ui-ux-android/SKILL.md); não autorizam editar a origem.

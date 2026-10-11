@@ -31,7 +31,7 @@ A primeira tentativa de build falhou ao acessar `C:\.android`. A execução foi 
 
 ## Artefato e assinatura
 
-Entrega atual, após o refinamento das telas financeiras: `app/build/outputs/bundle/release/vendas-simples-v11.aab`, cópia idêntica de `app-release.aab`. Tamanho: **5.317.731 bytes**. SHA-256: `60b876756d77d0ecbc47e3c805d8b5574530297c00dca21e967f67709fd23b7b`.
+Entrega atual, após os ajustes finais de homologação: `app/build/outputs/bundle/release/vendas-simples-v11.aab`, cópia idêntica de `app-release.aab`. Tamanho: **5.318.133 bytes**. SHA-256: `8b2cc45d2950e08922a549da9aaa7674a350f89199797f3e74a77c5a0c6c657b`.
 
 Assinado pela configuração release local existente. `jarsigner -verify -verbose -certs` retornou código 0 e `jar verified.`; certificado válido até 15/02/2054. A ferramenta avisa sobre certificado autoassinado/cadeia não reconhecida pelo truststore Java, ausência de timestamp e diferença de leitura JarFile/JarInputStream. O manifesto ZIP está na posição 931, após o conteúdo; uma verificação independente conferiu os hashes SHA-256 dos **929 arquivos de conteúdo**, todos cobertos pelo manifesto assinado. A assinatura criptográfica passou; a correspondência do certificado com a chave de upload cadastrada na Play ainda exige conferência no Console.
 
@@ -158,3 +158,40 @@ Limites preservados: rolagem, rascunhos e seleção em memória não ganham gara
 - Capturas automatizadas de Financeiro e cliente na configuração normal e Financeiro/pesquisa com fonte 150% foram inspecionadas. Valores visíveis completos e sem sobreposição nos cenários capturados; em tela pequena o conteúdo usa rolagem vertical. Nenhum teste manual no celular foi realizado. O smoke confirmou a seleção do único mês da fixture (2026-10), não a troca entre dois meses distintos, nomes longos, valores extremos, paisagem ou API 24; esses cenários permanecem no checklist.
 - Ocorrências do ambiente/teste: convite inicial de personalização, diálogo de lentidão do System UI e acesso temporariamente negado a `/sdcard` interromperam tentativas iniciais. O smoke trata o convite/aviso do sistema e captura em `/data/local/tmp` com validação/repetição da árvore XML. Uma seleção inicial encontrou a pesquisa em vez do card por texto semelhante; o alvo do card foi corrigido e a abertura do histórico passou a ser explicitamente conferida. Configurações originais de tamanho/densidade/fonte restauradas ao terminar. Nenhuma dessas tentativas alterou registros financeiros.
 - `git diff --check` e sintaxe Python aprovados. Sem push, publicação ou alteração de funcionalidades fora das telas afetadas. Resultados de CSV/backup anteriores permanecem históricos; o AAB atual inclui todos os complementos V11.
+
+## Ajustes finais após homologação informada pelo usuário
+
+O usuário informa homologação manual da V11 no celular e solicita exclusivamente três ajustes. Essa informação não representa execução manual pelo Codex nem aprovação do APK com os ajustes finais.
+
+- Cabeçalho compartilhado mantém **Vendas Simples** como marca fixa. Nome opcional aparece abaixo, em linha secundária, seguido de **Seu controle de vendas**, inclusive em paisagem. A linha do negócio é ocultada sem nome; nome longo tem reticências para conter altura e descrição acessível completa, além da edição existente. Título/fonte menores e largura ponderada preservam as áreas de 48 dp de Voltar e três pontos. Atualização ao salvar e restaurar backup usa o mesmo helper, sem alterar nome exportado, PDFs ou WhatsApp.
+- Removido o botão Configurações — Nome do negócio do menu principal. **Personalizar negócio** foi acrescentado ao menu de três pontos antes das opções existentes, fora da condição FULL_ACCESS. Reutiliza diálogo, preferência, salvar/cancelar e convite inicial opcional; persistência e regras comerciais preservadas.
+- Fotos do rascunho usam miniatura à esquerda e botão contextual à direita, com 16 dp, ícone de lixeira, texto e identificação acessível por índice. Área mínima de 48 dp, miniatura de 72 dp, sem botão de largura total. Tela menor que 360 dp ou fonte acima de 130% empilha os elementos. Após remoção, índices são reconstruídos; visualização, compressão, câmera/galeria, salvamento e Cancelar continuam nos componentes existentes.
+
+Arquivos: `MainActivity.kt`; novo `FinalUiInstrumentedTests.kt` e fase optativa `final-ui` do runner de testes existente; novo `tools/validar_ajustes_finais_v11.py`; README, este relatório e skills `ui-ux-android`/`vendas-simples-interface`. O runner padrão de backup permanece com sua seleção anterior. Sem alteração em SQLite, cálculos, filtros, relatórios, CSV, PDFs, WhatsApp, formato de backup, Billing, preço, permissões ou versão 11 / 1.0.11.
+
+As skills registram marca separada do negócio, configurações secundárias no menu e ações compactas por miniatura como candidatos ao AleJoias Vendas. O repositório AleJoias não foi modificado e eventual portabilidade exige adaptação à identidade/funcionalidades próprias e homologação separada.
+
+### Checklist final no celular
+
+- [ ] Atualizar com o APK final e conferir banco, licença e dados já homologados; validar também instalação limpa e convite opcional.
+- [ ] Sem nome: marca e slogan. Com nome: marca, nome secundário e slogan em todas as telas. Usar acentos, 120 caracteres, fonte ampliada, retrato/paisagem e conferir seta/menu sem sobreposição.
+- [ ] Personalizar negócio em FREE/FULL_ACCESS; editar, salvar, cancelar e reabrir o app. Ausência do botão antigo e todas as opções anteriores do menu preservadas.
+- [ ] Anexar uma e várias fotos por câmera/galeria; ampliar e remover primeira, última e única; conferir índices, somente a foto selecionada removida e nenhum registro existente afetado ao cancelar.
+- [ ] Nova Venda/edição em 320 dp e fonte ampliada, teclado e paisagem; acessar Salvar/Cancelar e ações de foto por rolagem quando necessário.
+- [ ] Reconfirmar WhatsApp, PDFs, CSV, backup/restauração do nome e compras pela Play com contas de teste, sem inferir aprovação desses fluxos a partir dos testes visuais.
+
+Limites: linha secundária longa usa reticências na UI, mantendo nome completo acessível/configurável e nas saídas existentes. Homologação final no celular e envio Alpha continuam separados; não houve push nem upload.
+
+
+### Resultados dos ajustes finais
+
+- Testes unitários: **27 por variante**, debug e release, zero falhas/erros/skips. `test assembleDebug assembleDebugAndroidTest assembleRelease bundleRelease --offline --no-daemon`: **BUILD SUCCESSFUL em 1m33s** na confirmação separada. APKs e AAB gerados com versão 11 / 1.0.11.
+- `lint` completo foi executado e **falhou com 3 erros e 68 avisos** em debug: `NewApi` em `styles.xml` (`windowLightNavigationBar`, API 27 versus minSdk 24), `NotificationPermission` em `manager.notify` e `SuspiciousIndentation` em `etiquetaStatus`. Os três trechos foram conferidos em `git show HEAD` anterior aos ajustes e são preexistentes. Não houve supressão, baseline ou mudança fora dos três ajustes autorizados. Logs: `.gradle-user/v11-final-build.log`, `v11-final-build-confirm.log`; relatório `app/build/reports/lint-results-debug.html`. Lint completo permanece pendência explícita, portanto não declarar todos os checks de release aprovados.
+- Bundletool validou o AAB e confirmou app/versão/SDKs. Jarsigner aprovou assinatura; verificação independente conferiu os 929 hashes de conteúdo. Configuração de assinatura local preservada sem exposição de credenciais; caminho/tamanho/SHA-256 na seção de assinatura.
+
+- AVD Build10, Android 15/API 35: `tools/validar_ajustes_finais_v11.py --serial emulator-5556` terminou com código 0, **16 checks aprovados**, incluindo **5 testes nativos em cada uma de 3 configurações** (normal, 320 dp/fonte 200%, paisagem/fonte 200%): marca e slogan sem nome; nome longo com acentos/caracteres especiais e descrição acessível; preferência em nova Activity; ausência do botão antigo; adição de três imagens sintéticas por URI/compressão e remoção primeira/última/única, preservando bytes e índices das demais e espaçamento do componente.
+- Smoke pela UI real: acesso pelo menu, ações Salvar/Cancelar, atualização imediata, persistência após encerramento/reinício do processo, cancelamento sem alterar nome, Nova Venda com ações de rodapé acessíveis em retrato/paisagem e fonte 200%. Banco comparado por SHA-256 antes/depois, byte a byte preservado; arquivo original da identidade e configurações de tamanho/densidade/fonte restaurados. Evidências em `.gradle-user/final-ui-v11/` e `v11-final-ui.log`, ignoradas pelo Git. Primeira tentativa excedeu timeout de 45 s para os cinco ciclos de Activity; tempo específico da instrumentação ampliado para 180 s, nova execução aprovada. Aviso de lentidão do System UI tratado pelo smoke.
+- Capturas do cabeçalho normal/com nome e 320 dp/fonte 200%, além do rodapé de Nova Venda em paisagem/fonte 200%, foram inspecionadas. Isso é inspeção de capturas automatizadas, não homologação manual no celular. Testes de fotos exercitam compressão e views do componente com dados sintéticos; não homologam os seletores reais de câmera/galeria nem a disposição visual de fotos no formulário completo. Esses fluxos, pré-visualização, API 24, teclado nos formulários finais e transações Google Play permanecem no checklist manual.
+- Parser CSV padrão executado novamente: aprovado, 7 registros com 8 colunas, textos preservados e valores/datas exatos. Sintaxe Python e `git diff --check` aprovados. Skills preservam frontmatter e conteúdo anterior, com novos padrões documentados em português; nenhuma alteração no AleJoias.
+
+- Regressão instrumentada existente: `tools/validar_backup_v11.py --adb <adb-local> --serial emulator-5556` aprovada novamente: **11 cenários + 1 em novo processo**, banco e preferência operacionais preservados por hash. A fase padrão do runner manteve a seleção anterior. Log `.gradle-user/v11-final-backup.log`.

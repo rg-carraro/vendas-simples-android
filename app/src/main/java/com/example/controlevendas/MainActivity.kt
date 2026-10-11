@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton("Cancelar", null).setPositiveButton("Restaurar") { _, _ ->
                 backupManager.restore(uri, localDb, entitlementRepository.currentState(localDb.totalVendas())).onSuccess {
                     localDb = LocalDatabase(this)
-                    businessTitle.text = businessPreferences.displayName
+                    atualizarCabecalhoNegocio()
                     carregarRelatorio { abrirMenuPrincipal() }
                     Toast.makeText(this, "Backup restaurado com sucesso.", Toast.LENGTH_LONG).show()
                 }.onFailure {
@@ -112,7 +112,7 @@ class MainActivity : AppCompatActivity() {
                         finish()
                     } else {
                         localDb = LocalDatabase(this)
-                        businessTitle.text = businessPreferences.displayName
+                        atualizarCabecalhoNegocio()
                         Toast.makeText(this, "A restauração não foi realizada.", Toast.LENGTH_LONG).show()
                     }
                 }
@@ -259,21 +259,26 @@ class MainActivity : AppCompatActivity() {
         header.addView(setaVoltar, LinearLayout.LayoutParams(dp(48), dp(48)))
 
         val titulo = TextView(this).apply {
-            text = businessPreferences.displayName
+            text = "Vendas Simples"
             maxLines = 2
             ellipsize = android.text.TextUtils.TruncateAt.END
-            textSize = if (resources.configuration.screenWidthDp < 360 || resources.configuration.fontScale > 1.3f) 20f else 24f
+            textSize = if (resources.configuration.screenWidthDp < 360 || resources.configuration.fontScale > 1.3f) 18f else 22f
             typeface = Typeface.DEFAULT_BOLD
             gravity = Gravity.CENTER
             setTextColor(corPrimariaEscura)
         }
 
-        businessTitle = titulo
+        businessTitle = texto("", 14f, false).apply {
+            gravity = Gravity.CENTER
+            maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.END
+            setTextColor(corPrimariaEscura)
+        }
+        atualizarCabecalhoNegocio()
 
         val subtitulo = TextView(this).apply {
             text = "Seu controle de vendas"
-            visibility = if (resources.configuration.screenHeightDp < 400) View.GONE else View.VISIBLE
-            textSize = 14f
+            textSize = 12f
             gravity = Gravity.CENTER
             setTextColor(corDestaque)
         }
@@ -282,6 +287,7 @@ class MainActivity : AppCompatActivity() {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             addView(titulo)
+            addView(businessTitle)
             addView(subtitulo)
         }
         header.addView(marca, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
@@ -297,6 +303,10 @@ class MainActivity : AppCompatActivity() {
             setOnClickListener { ancora ->
                 PopupMenu(this@MainActivity, ancora).apply {
                     val state = entitlementRepository.currentState(localDb.totalVendas())
+                    menu.add("Personalizar negócio").setOnMenuItemClickListener {
+                        abrirConfiguracaoNegocio()
+                        true
+                    }
                     menu.add("Exportar CSV").setOnMenuItemClickListener {
                         exportarCsvResumo(vendasCache, "vendas_simples.csv")
                         true
@@ -399,8 +409,14 @@ class MainActivity : AppCompatActivity() {
         linha2.addView(botaoQuadrado("Financeiro", "Relatórios", 1f) { abrirDashboardFinanceiro() })
         linha2.addView(botaoQuadrado("Clientes", "Histórico", 1f) { abrirResumoClientes() })
         content.addView(linha2)
-        content.addView(botaoVoltar("Configurações — Nome do negócio") { abrirConfiguracaoNegocio() }, margemCard())
 
+    }
+
+    private fun atualizarCabecalhoNegocio() {
+        val nome = businessPreferences.businessName
+        businessTitle.text = nome
+        businessTitle.contentDescription = if (nome.isEmpty()) null else "Nome do negócio: $nome"
+        businessTitle.visibility = if (nome.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun abrirConfiguracaoNegocio(primeiroUso: Boolean = false) {
@@ -420,7 +436,7 @@ class MainActivity : AppCompatActivity() {
             .setView(ScrollView(this).apply { addView(layout) })
             .setPositiveButton("Salvar") { _, _ ->
                 businessPreferences.businessName = nome.text.toString()
-                businessTitle.text = businessPreferences.displayName
+                atualizarCabecalhoNegocio()
             }
             .setNegativeButton(if (primeiroUso) "Agora não" else "Cancelar", null)
             .show()
@@ -2007,17 +2023,34 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         val lista = listaFotosRascunho ?: return
         lista.removeAllViews()
         fotosRascunho.forEachIndexed { indice, bytes ->
-            val linha = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL }
+            val horizontal = resources.configuration.screenWidthDp >= 360 && resources.configuration.fontScale <= 1.3f
+            val linha = LinearLayout(this).apply {
+                orientation = if (horizontal) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(0, dp(4), 0, dp(4))
+            }
             linha.addView(ImageView(this).apply {
                 setImageBitmap(decodificarMiniatura(bytes))
                 scaleType = ImageView.ScaleType.CENTER_CROP
                 contentDescription = "Ver foto ${indice + 1}"
+                isFocusable = true
                 setOnClickListener { mostrarFoto(bytes) }
             }, LinearLayout.LayoutParams(dp(72), dp(72)))
             linha.addView(botaoVoltar("Remover foto ${indice + 1}") {
                 fotosRascunho.removeAt(indice)
                 atualizarFotosRascunho()
-            }, margemCard().apply { topMargin = dp(16) })
+            }.apply {
+                minWidth = dp(48)
+                minHeight = dp(48)
+                setCompoundDrawablesWithIntrinsicBounds(android.R.drawable.ic_menu_delete, 0, 0, 0)
+                compoundDrawablePadding = dp(6)
+                compoundDrawableTintList = android.content.res.ColorStateList.valueOf(Color.WHITE)
+                contentDescription = "Remover foto ${indice + 1} de ${fotosRascunho.size}"
+            }, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                if (horizontal) leftMargin = dp(16) else topMargin = dp(16)
+            })
             lista.addView(linha)
         }
     }
