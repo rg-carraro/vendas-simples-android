@@ -91,7 +91,7 @@ class MainActivity : AppCompatActivity() {
     }
     private val criarArquivoBackup = registerForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         if (uri == null) return@registerForActivityResult
-        backupManager.createBackup(uri, localDb).onSuccess { Toast.makeText(this, "Backup realizado com sucesso.", Toast.LENGTH_LONG).show() }
+        backupManager.createBackup(uri, localDb, entitlementRepository.currentState(localDb.totalVendas())).onSuccess { Toast.makeText(this, "Backup realizado com sucesso.", Toast.LENGTH_LONG).show() }
             .onFailure { Toast.makeText(this, "Não foi possível realizar o backup: ${it.message}", Toast.LENGTH_LONG).show() }
     }
     private val abrirArquivoBackup = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -100,8 +100,22 @@ class MainActivity : AppCompatActivity() {
         AlertDialog.Builder(this).setTitle("Restaurar backup")
             .setMessage("Restaurar este backup substituirá os dados atuais do Vendas Simples. Deseja continuar?")
             .setNegativeButton("Cancelar", null).setPositiveButton("Restaurar") { _, _ ->
-                backupManager.restore(uri, localDb).onSuccess { localDb = LocalDatabase(this); carregarRelatorio { abrirMenuPrincipal() }; Toast.makeText(this, "Backup restaurado com sucesso.", Toast.LENGTH_LONG).show() }
-                    .onFailure { localDb = LocalDatabase(this); Toast.makeText(this, "A restauração não foi realizada.", Toast.LENGTH_LONG).show() }
+                backupManager.restore(uri, localDb, entitlementRepository.currentState(localDb.totalVendas())).onSuccess {
+                    localDb = LocalDatabase(this)
+                    businessTitle.text = businessPreferences.displayName
+                    carregarRelatorio { abrirMenuPrincipal() }
+                    Toast.makeText(this, "Backup restaurado com sucesso.", Toast.LENGTH_LONG).show()
+                }.onFailure {
+                    localDb.close()
+                    if (backupManager.recoverPendingRestore().isFailure) {
+                        Toast.makeText(this, "Não foi possível recuperar a restauração. Libere espaço e reabra o aplicativo.", Toast.LENGTH_LONG).show()
+                        finish()
+                    } else {
+                        localDb = LocalDatabase(this)
+                        businessTitle.text = businessPreferences.displayName
+                        Toast.makeText(this, "A restauração não foi realizada.", Toast.LENGTH_LONG).show()
+                    }
+                }
             }.show()
     }
 
@@ -165,8 +179,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         onBackPressedDispatcher.addCallback(this, voltarCallback)
-        localDb = LocalDatabase(this)
         backupManager = BackupManager(this)
+        if (backupManager.recoverPendingRestore().isFailure) {
+            Toast.makeText(this, "Não foi possível recuperar a restauração. Libere espaço e reabra o aplicativo.", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
+        localDb = LocalDatabase(this)
         billingGateway = PlayBillingGateway(this, object : PlayBillingGateway.Events {
             override fun onState(state: EntitlementState) {
                 Log.d("PlayBillingGateway", "entitlement=$state")
@@ -1433,15 +1452,11 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
 
     private fun fazerBackupBancoSqlite(): File? {
         return try {
-            localDb.close()
-            val origem = getDatabasePath(LocalDatabase.DB_NAME)
             val destino = File(filesDir, "backup_vendas_simples_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.db")
-            origem.copyTo(destino, overwrite = true)
-            localDb = LocalDatabase(this)
+            backupManager.createBackup(Uri.fromFile(destino), localDb, entitlementRepository.currentState(localDb.totalVendas())).getOrThrow()
             Toast.makeText(this, "Backup SQLite salvo.", Toast.LENGTH_SHORT).show()
             destino
         } catch (e: Exception) {
-            localDb = LocalDatabase(this)
             Toast.makeText(this, "Erro ao fazer backup: ${e.message}", Toast.LENGTH_LONG).show()
             null
         }

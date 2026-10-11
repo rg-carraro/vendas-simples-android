@@ -5,7 +5,7 @@ import org.junit.Test
 
 class BackupFormatTest {
     @Test fun formatIsVersionedAndDoesNotContainEntitlement() {
-        assertEquals(1, BackupManager.FORMAT_VERSION)
+        assertEquals(2, BackupManager.FORMAT_VERSION)
         assertEquals(3, BackupManager.SCHEMA_VERSION)
         assertEquals(false, BackupManager.METADATA_TABLE.contains("ENTITLEMENT", true))
     }

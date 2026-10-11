@@ -51,3 +51,5 @@ versionName 1.0.0. Consulte [registro do marco](docs/MARCO_V10_BETA_STORE.md).
 Nome do negócio configurável offline, oferecido uma vez no primeiro acesso à nova funcionalidade e editável no menu principal em Configurações. Nome na tela inicial, cobrança/agradecimento e resumo compartilhado, além dos três PDFs existentes. Datas completas apresentadas em `dd/MM/yyyy`, com persistência ISO preservada, e espaço de 16 dp entre miniatura e Remover foto.
 
 Consulte [relatório da versão 11](docs/RELEASE_V11.md) para artefato, verificações e homologação pendente. O marco V10 permanece como histórico.
+
+O backup completo FULL_ACCESS inclui o nome no mesmo arquivo SQLite. Backups anteriores continuam restauráveis e preservam o nome do aparelho quando não contêm essa informação. Personalização permanece disponível no FREE.

@@ -26,4 +26,4 @@ Nome do negócio ou do usuário persistido localmente em preferências, disponí
 
 O nome identifica a tela inicial, a assinatura da cobrança e o texto do resumo compartilhado, os compartilhamentos de PDF/CSV e os cabeçalhos dos PDFs de card, resumo financeiro e extrato do cliente. Nomes longos quebram linha no cabeçalho PDF. Datas completas usam `dd/MM/yyyy` na UI e saídas; meses de referência continuam mensais.
 
-Essa preferência não integra o backup SQLite existente: restaurar backup não transfere o nome, e reinstalar exige configurá-lo novamente. Não há conta, backend ou sincronização.
+O backup completo FULL_ACCESS inclui o nome nos metadados do mesmo arquivo SQLite (formato 2). A restauração recupera o nome e preserva o nome atual quando o backup antigo/formato 1 não contém essa informação ou o nome importado está vazio/nulo. Personalização continua gratuita; backup não concede licença. Não há conta, backend ou sincronização.
