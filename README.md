@@ -53,3 +53,9 @@ Nome do negócio configurável offline, oferecido uma vez no primeiro acesso à 
 Consulte [relatório da versão 11](docs/RELEASE_V11.md) para artefato, verificações e homologação pendente. O marco V10 permanece como histórico.
 
 O backup completo FULL_ACCESS inclui o nome no mesmo arquivo SQLite. Backups anteriores continuam restauráveis e preservam o nome do aparelho quando não contêm essa informação. Personalização permanece disponível no FREE.
+
+# Pacote de skills — Vendas Simples / AleJoias
+
+Copie `.agents/skills/` para o repositório que utilizará o Codex (ou adapte à estrutura de skills já adotada no projeto). Leia `docs/GUIA_MIGRACAO_ALEJOIAS.md` antes de portar melhorias ao AleJoias.
+
+Este pacote registra decisões e evidências relatadas em conversa, não uma auditoria do código atual. Não substitui AGENTS.md, relatórios de release nem homologação real.
