@@ -1479,23 +1479,8 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
 
     private fun exportarCsvResumo(lista: List<VendaRelatorio>, nomeArquivo: String) {
         try {
-            val header = "Cliente;Descrição;Data Compra;Vencimento;Valor;Pago;Faltante;Parcela\n"
-            val linhas = lista.joinToString(separator = "\n") { venda ->
-                val parcela = "${venda.parcela_atual ?: 1}/${venda.parcelas ?: 1}"
-                listOf(
-                    venda.nome_cliente ?: "",
-                    venda.descricao ?: "",
-                    BrazilianDates.display(venda.data_venda ?: ""),
-                    BrazilianDates.display(venda.data_vencimento ?: ""),
-                    venda.valor_total.toString(),
-                    venda.total_pago.toString(),
-                    venda.saldo.toString(),
-                    parcela
-                ).joinToString(";")
-            }
-
             val file = File(cacheDir, nomeArquivo)
-            file.writeText(header + linhas)
+            file.writeBytes(SalesCsvExporter.encode(lista))
 
             val uri = FileProvider.getUriForFile(this, "${packageName}.provider", file)
             val intent = Intent(Intent.ACTION_SEND).apply {

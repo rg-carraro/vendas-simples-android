@@ -31,7 +31,7 @@ A primeira tentativa de build falhou ao acessar `C:\.android`. A execução foi 
 
 ## Artefato e assinatura
 
-Entrega atual, após o complemento de backup: `app/build/outputs/bundle/release/vendas-simples-v11.aab`, cópia idêntica de `app-release.aab`. Tamanho: **5.315.773 bytes**. SHA-256: `3f033e78b2ed97ac291ac4519bb3e20419fa20c901eff75fa8e65cc9dd6ba538`.
+Entrega atual, após as correções de CSV: `app/build/outputs/bundle/release/vendas-simples-v11.aab`, cópia idêntica de `app-release.aab`. Tamanho: **5.316.932 bytes**. SHA-256: `4f3560f4fa429ce1f3d32c9b3e670623c34ef7dbc6d60a2da6203cc9d6a18002`.
 
 Assinado pela configuração release local existente. `jarsigner -verify -verbose -certs` retornou código 0 e `jar verified.`; certificado válido até 15/02/2054. A ferramenta avisa sobre certificado autoassinado/cadeia não reconhecida pelo truststore Java, ausência de timestamp e diferença de leitura JarFile/JarInputStream. O manifesto ZIP está na posição 931, após o conteúdo; uma verificação independente conferiu os hashes SHA-256 dos **929 arquivos de conteúdo**, todos cobertos pelo manifesto assinado. A assinatura criptográfica passou; a correspondência do certificado com a chave de upload cadastrada na Play ainda exige conferência no Console.
 
@@ -97,3 +97,31 @@ Limites: testes instrumentados usam arquivos locais e namespace sintético, não
 - [ ] Backup corrompido, versão incompatível, cancelamento do seletor/confirmação, provedor indisponível e espaço insuficiente: nenhum sucesso indevido nem perda de banco/nome.
 - [ ] Interromper em ambiente sintético e reabrir; verificar recuperação conjunta e ausência de convite repetido após nome restaurado.
 - [ ] FREE: personalização funciona, backup/restauração bloqueados; FULL_ACCESS e restauração de compras devem permanecer independentes do arquivo restaurado.
+
+## Complemento — correções da exportação CSV
+
+Os campos financeiros de `VendaRelatorio` são `Long` em centavos, confirmados pela leitura de `valor_total_centavos` e soma de `valor_pago_centavos` em `LocalDatabase.getRelatorio`. O exportador anterior usava `Long.toString()`, expondo centavos sem escala. Agora `BigDecimal.valueOf(cents, 2)` produz reais com exatamente duas casas e vírgula decimal, sem `R$`, ponto flutuante ou arredondamento. Valor, pago e saldo são os mesmos recebidos do relatório; nenhum cálculo ou dado persistido foi alterado.
+
+O exportador anterior concatenava campos com `;` e registros com quebra de linha sem escaping. Isso reproduz deslocamento de colunas com ponto e vírgula e divisão do registro com quebras de linha no texto. O registro original “tutu — brinco” não foi disponibilizado para inspeção: a falha estrutural foi identificada no código e reproduzida com dados sintéticos, sem atribuir conteúdo específico ao registro real. Agora campos contendo `;`, vírgula, aspas, CR ou LF são delimitados por aspas; aspas internas são duplicadas e todo o texto original é preservado.
+
+Formato escolhido: **UTF-8 com BOM**, separador **ponto e vírgula**, término de registros **CRLF**, oito colunas originais na mesma ordem. Cada parcela da lista recebida ocupa um registro lógico, mesmo quando uma célula contém várias linhas físicas. Não há linha extra `sep=;`. O arquivo anterior já era UTF-8, mas não tinha BOM: detecção incorreta da codificação por aplicativos é uma causa provável dos acentos corrompidos, não confirmada com o arquivo da homologação. Datas ISO válidas continuam apresentadas em `dd/MM/yyyy` pelo conversor existente; campos ausentes ficam vazios e textos legados não reconhecidos são preservados, sem inventar datas.
+
+Arquivos deste complemento: `MainActivity.kt` (delegação da escrita), novo `SalesCsvExporter.kt`, novo `SalesCsvExporterTest.kt`, novo `tools/validar_csv_v11.py` e este relatório. As três chamadas de exportação mantêm suas listas, filtros, critérios, ordem e compartilhamento. Nenhuma alteração em SQLite, cálculos financeiros, backup/restauração, Billing, FREE/FULL_ACCESS ou versão; sem novas dependências.
+
+### Homologação do CSV em planilhas
+
+- [ ] No Google Planilhas, importar o arquivo com separador `;` e localidade Brasil; conferir as oito colunas, acentos e valores numéricos sem `R$`.
+- [ ] No Excel, usar Dados → De Texto/CSV, codificação UTF-8 e delimitador `;`; conferir números com localidade portuguesa/Brasil e datas `dd/MM/yyyy`.
+- [ ] Exportar cliente e descrição com acentos, `;`, vírgulas, aspas e múltiplas linhas, incluindo o caso “tutu — brinco”; conferir que uma parcela continua em uma linha lógica e as quebras ficam dentro da célula.
+- [ ] Conferir centavos, zero, pagamento parcial, quitação e compra de R$ 100,00 em três parcelas; comparar com o relatório e os filtros selecionados.
+
+Limites: CSV não incorpora estilo monetário nem tipos de célula; a inferência de números/datas depende da localidade e das opções de importação. Abrir diretamente pode selecionar outro delimitador conforme configuração do aplicativo. Um leitor que divide simplesmente por linhas não suporta textos multilinha; deve usar parser CSV com aspas. Testes manuais no Google Planilhas, Excel e celular não foram realizados nesta etapa.
+
+
+### Resultados das correções de CSV
+
+- `test assembleDebug assembleRelease bundleRelease --no-daemon`: **BUILD SUCCESSFUL em 2m30s**, incluindo lint vital release. **27 testes por variante**, debug e release, zero falhas/erros/skips; os 21 anteriores e 6 novos testes de CSV. Cobertura: centavos e pagamentos parciais, zero, saldo negativo, precisão de Long, acentos/BOM, datas, textos com separadores/aspas/CR/LF, ausência de campos, relatório vazio e uma/várias parcelas.
+- `python tools/validar_csv_v11.py`: aprovado. Parser padrão `csv.reader` em modo estrito leu o arquivo efetivamente produzido pelo exportador Kotlin: cabeçalho e 7 registros, todos com 8 colunas. Textos especiais preservados integralmente, datas válidas e igualdade de valores em centavos conferida com `Decimal`, incluindo soma de três parcelas igual a R$ 100,00.
+- A primeira execução offline passou nos testes e produziu APK debug, mas falhou no lint do release por `lint-gradle:31.5.2` ausente do cache. A execução com resolução pela rede concluiu todos os builds e testes; nenhuma checagem foi desabilitada. Uma tentativa do parser antes de a fixture existir foi repetida após os testes e aprovada.
+- Bundletool validou o AAB; manifesto confirmou `com.vendassimples.app`, `11 / 1.0.11`, minSdk 24 e targetSdk 36. Jarsigner confirmou a assinatura e a verificação independente aprovou os 929 hashes de conteúdo. Caminho, tamanho e SHA-256 atuais na seção de assinatura. Configuração e credenciais de assinatura preservadas.
+- `git diff --check` aprovado. Logs locais ignorados: `.gradle-user/v11-csv-build.log`, `v11-csv-build-online.log`, além das evidências de assinatura; fixture sintética em `app/build/test-artifacts/sales-v11.csv`. Não houve push nem publicação. Os resultados de backup anteriores são históricos, e nenhum fluxo de backup foi alterado nesta correção.
