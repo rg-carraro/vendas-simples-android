@@ -31,7 +31,7 @@ A primeira tentativa de build falhou ao acessar `C:\.android`. A execução foi 
 
 ## Artefato e assinatura
 
-Entrega atual, após as correções de CSV: `app/build/outputs/bundle/release/vendas-simples-v11.aab`, cópia idêntica de `app-release.aab`. Tamanho: **5.316.932 bytes**. SHA-256: `4f3560f4fa429ce1f3d32c9b3e670623c34ef7dbc6d60a2da6203cc9d6a18002`.
+Entrega atual, após o refinamento das telas financeiras: `app/build/outputs/bundle/release/vendas-simples-v11.aab`, cópia idêntica de `app-release.aab`. Tamanho: **5.317.731 bytes**. SHA-256: `60b876756d77d0ecbc47e3c805d8b5574530297c00dca21e967f67709fd23b7b`.
 
 Assinado pela configuração release local existente. `jarsigner -verify -verbose -certs` retornou código 0 e `jar verified.`; certificado válido até 15/02/2054. A ferramenta avisa sobre certificado autoassinado/cadeia não reconhecida pelo truststore Java, ausência de timestamp e diferença de leitura JarFile/JarInputStream. O manifesto ZIP está na posição 931, após o conteúdo; uma verificação independente conferiu os hashes SHA-256 dos **929 arquivos de conteúdo**, todos cobertos pelo manifesto assinado. A assinatura criptográfica passou; a correspondência do certificado com a chave de upload cadastrada na Play ainda exige conferência no Console.
 
@@ -125,3 +125,36 @@ Limites: CSV não incorpora estilo monetário nem tipos de célula; a inferênci
 - A primeira execução offline passou nos testes e produziu APK debug, mas falhou no lint do release por `lint-gradle:31.5.2` ausente do cache. A execução com resolução pela rede concluiu todos os builds e testes; nenhuma checagem foi desabilitada. Uma tentativa do parser antes de a fixture existir foi repetida após os testes e aprovada.
 - Bundletool validou o AAB; manifesto confirmou `com.vendassimples.app`, `11 / 1.0.11`, minSdk 24 e targetSdk 36. Jarsigner confirmou a assinatura e a verificação independente aprovou os 929 hashes de conteúdo. Caminho, tamanho e SHA-256 atuais na seção de assinatura. Configuração e credenciais de assinatura preservadas.
 - `git diff --check` aprovado. Logs locais ignorados: `.gradle-user/v11-csv-build.log`, `v11-csv-build-online.log`, além das evidências de assinatura; fixture sintética em `app/build/test-artifacts/sales-v11.csv`. Não houve push nem publicação. Os resultados de backup anteriores são históricos, e nenhum fluxo de backup foi alterado nesta correção.
+
+## Complemento — Financeiro e Relatório por Cliente compactos
+
+Financeiro e Relatórios mantém a tela única com mês, vendido, recebido, a receber, clientes com saldo, cards/parcelas do mês, vencidas, gráfico, relatório por período e PDF financeiro. O mês aparece uma vez em seletor compacto no início do conteúdo, próximo ao título, com toque mínimo de 48 dp. A escolha continua reconstruindo todos os indicadores e ações com a lista do mês selecionado. “Clientes com saldo” explicita a contagem anterior de clientes com débito, sem mudar a população.
+
+Indicadores usam duas colunas quando largura e fonte permitem; fonte ampliada, tela estreita ou valores largos empilham os componentes. A largura mínima considera a medida real dos textos, e a altura passa de fixa a conteúdo com mínimo de 64 dp. Gráfico tem margens menores e rótulos sem repetição visual dos totais; descrição acessível mantém cada valor. PDF e relatório por período compartilham uma faixa responsiva com alvos de pelo menos 48 dp.
+
+Relatório por Cliente remove o rótulo duplicado da pesquisa e organiza pesquisa/Aplicar em faixa responsiva. Cards têm margens e padding menores, nome completo com altura livre, quantidade de cards/vendas, vendido/recebido em colunas responsivas e a receber/faltante destacado por rótulo, negrito e posição, além da cor. Sem ellipsize ou limite de linhas para nomes e valores. Aplicar, ação do teclado, limpar pesquisa, ordenação, agrupamento e toque para histórico mantêm os comportamentos anteriores.
+
+Cabeçalho fixo, seta, callback do Voltar Android, menu de três pontos e ScrollView existentes preservados. Nenhum botão redundante de retorno foi acrescentado. Filtros de relatório, somas, vencimentos, pagamentos, SQL/schema, PDFs, CSV, backup, personalização e Billing não foram modificados. `versionCode 11`, `versionName 1.0.11` mantidos.
+
+Arquivos deste complemento: `MainActivity.kt`, novo `tools/validar_financeiro_v11.py` e este relatório. O script exige APK debug no AVD Build10 e fixture sintética UI existente; não cria nem modifica registros. Compara totais financeiros com consultas SQLite independentes, testa pesquisa/navegação e restaura configurações de tela/fonte ao terminar. Evidências locais em `.gradle-user/finance-v11/`, fora do Git.
+
+### Homologação adicional das telas
+
+- [ ] No celular, comparar todos os indicadores e detalhamentos com a mesma população do mês; trocar entre dois meses com valores diferentes e conferir gráfico, retorno e PDF.
+- [ ] Confirmar que Clientes com saldo conserva a contagem de clientes com débito; conferir cards/parcelas e vencidas sem confundir compras com parcelas.
+- [ ] Testar pesquisa vazia, parcial, sem resultados, caixa diferente, Aplicar, ação do teclado e limpar; entrar no histórico e retornar pela seta e pelo Android.
+- [ ] Usar nomes longos, valores altos, fonte ampliada, tela pequena e paisagem; conferir texto completo, ausência de sobreposição e acesso aos controles com teclado aberto.
+- [ ] Conferir PDF financeiro e relatório por período, menu de três pontos e demais funcionalidades com dados sintéticos antes da distribuição.
+
+Limites preservados: rolagem, rascunhos e seleção em memória não ganham garantia após rotação/process death. Resultados automatizados não equivalem à homologação manual no celular nem à atualização pela Play.
+
+
+### Resultados do refinamento financeiro
+
+- `test assembleDebug assembleRelease bundleRelease --offline --no-daemon`: **BUILD SUCCESSFUL em 3m38s**, incluindo lint vital. **27 testes por variante**, debug e release, zero falhas/erros/skips. Sem novas dependências ou alteração da configuração comercial/assinatura.
+- Bundletool validou o AAB e confirmou applicationId, versão 11 / 1.0.11 e SDKs. Jarsigner confirmou a assinatura e a verificação independente aprovou os 929 hashes de conteúdo. Artefato atual e hash na seção de assinatura; logs em `.gradle-user/v11-finance-build.log` e evidências locais de assinatura.
+
+- `python tools/validar_financeiro_v11.py --serial emulator-5556`: **16 checks aprovados** no AVD Build10, Android 15/API 35, APK debug atualizado sem apagar dados. Cenários: totais financeiros e do cliente iguais às somas independentes SQLite; grade em duas colunas; remoção do mês duplicado; seleção do mês e retorno do detalhe; filtro sem distinção de caixa; teclado; abertura do histórico; seta preservando pesquisa; limpar pesquisa; Voltar Android para Financeiro; menu de três pontos; indicadores empilhados em 320 dp/fonte 150%; acesso ao PDF após rolagem e pesquisa/retorno com teclado. Banco operacional sintético preservado byte a byte por SHA-256 antes/depois.
+- Capturas automatizadas de Financeiro e cliente na configuração normal e Financeiro/pesquisa com fonte 150% foram inspecionadas. Valores visíveis completos e sem sobreposição nos cenários capturados; em tela pequena o conteúdo usa rolagem vertical. Nenhum teste manual no celular foi realizado. O smoke confirmou a seleção do único mês da fixture (2026-10), não a troca entre dois meses distintos, nomes longos, valores extremos, paisagem ou API 24; esses cenários permanecem no checklist.
+- Ocorrências do ambiente/teste: convite inicial de personalização, diálogo de lentidão do System UI e acesso temporariamente negado a `/sdcard` interromperam tentativas iniciais. O smoke trata o convite/aviso do sistema e captura em `/data/local/tmp` com validação/repetição da árvore XML. Uma seleção inicial encontrou a pesquisa em vez do card por texto semelhante; o alvo do card foi corrigido e a abertura do histórico passou a ser explicitamente conferida. Configurações originais de tamanho/densidade/fonte restauradas ao terminar. Nenhuma dessas tentativas alterou registros financeiros.
+- `git diff --check` e sintaxe Python aprovados. Sem push, publicação ou alteração de funcionalidades fora das telas afetadas. Resultados de CSV/backup anteriores permanecem históricos; o AAB atual inclui todos os complementos V11.

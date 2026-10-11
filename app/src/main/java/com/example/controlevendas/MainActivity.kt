@@ -863,11 +863,15 @@ private fun abrirDashboardFinanceiro() {
         content.removeAllViews()
         val mesSelecionado = mesDashboardSelecionado ?: mesAtual
         val vendasDashboard = vendasCache.filter { (it.data_venda ?: "").startsWith(mesSelecionado) }
-        statusText.text = "Financeiro e Relatórios | $mesSelecionado"
+        statusText.text = "Financeiro e Relatórios"
 
         configurarRetorno { abrirMenuPrincipal() }
-        content.addView(botaoVoltar("Selecionar Outro Mês") { abrirSelecionarMesDashboard() })
-        adicionarCardResumo("Mês Selecionado", mesSelecionado)
+        content.addView(linhaResponsiva(
+            texto("Mês do relatório", 14f, true).apply { gravity = Gravity.CENTER_VERTICAL; minHeight = dp(48) },
+            botaoRelatorio("$mesSelecionado ▾") { abrirSelecionarMesDashboard() }.apply {
+                contentDescription = "Selecionar mês do financeiro: $mesSelecionado"
+            }
+        ), margemCardResumo())
 
         val totalVendido = vendasDashboard.sumOf { it.valor_total }
         val totalRecebido = vendasDashboard.sumOf { it.total_pago }
@@ -879,42 +883,27 @@ private fun abrirDashboardFinanceiro() {
             .size
         val vendasVencidas = vendasDashboard.count { estaVencida(it) }
 
-        val linha1 = linhaBotoes()
-        linha1.addView(cardDashboard("Total Vendido", moeda.format(totalVendido), 1f) {
-            abrirDetalhamentoFinanceiro("dashboard", "vendido")
-        })
-        linha1.addView(cardDashboard("Total Recebido", moeda.format(totalRecebido), 1f) {
-            abrirDetalhamentoFinanceiro("dashboard", "recebido")
-        })
-        content.addView(linha1)
-
-        val linha2 = linhaBotoes()
-        linha2.addView(cardDashboard("A Receber", moeda.format(totalReceber), 1f) {
-            abrirDetalhamentoFinanceiro("dashboard", "faltante")
-        })
-        linha2.addView(cardDashboard("Clientes", clientesDebito.toString(), 1f) {
-            abrirDetalhamentoFinanceiro("dashboard", "clientes_debito")
-        })
-        content.addView(linha2)
-
-        val linha3 = linhaBotoes()
-        linha3.addView(cardDashboard("Vencidas", vendasVencidas.toString(), 1f) {
-            abrirDetalhamentoFinanceiro("dashboard", "vencidos")
-        })
-        linha3.addView(cardDashboard("Cards Do Mês", vendasDashboard.size.toString(), 1f) {
-            abrirDetalhamentoFinanceiro("dashboard", "todos")
-        })
-        content.addView(linha3)
+        content.addView(linhaIndicadores(
+            cardDashboard("Total vendido", moeda.format(totalVendido), 1f) { abrirDetalhamentoFinanceiro("dashboard", "vendido") },
+            cardDashboard("Total recebido", moeda.format(totalRecebido), 1f) { abrirDetalhamentoFinanceiro("dashboard", "recebido") }
+        ))
+        content.addView(linhaIndicadores(
+            cardDashboard("A receber", moeda.format(totalReceber), 1f) { abrirDetalhamentoFinanceiro("dashboard", "faltante") },
+            cardDashboard("Clientes com saldo", clientesDebito.toString(), 1f) { abrirDetalhamentoFinanceiro("dashboard", "clientes_debito") }
+        ))
+        content.addView(linhaIndicadores(
+            cardDashboard("Vencidas", vendasVencidas.toString(), 1f) { abrirDetalhamentoFinanceiro("dashboard", "vencidos") },
+            cardDashboard("Cards do mês", vendasDashboard.size.toString(), 1f) { abrirDetalhamentoFinanceiro("dashboard", "todos") }
+        ))
 
         adicionarGraficoDashboard(totalVendido, totalRecebido, totalReceber)
 
-        content.addView(texto("Relatórios", 18f, true).apply {
-            setPadding(0, dp(18), 0, dp(6))
-        })
-        content.addView(botaoVoltar("Relatório por período") { abrirFiltroResumoPeriodo() }, margemCard())
-        content.addView(botaoVoltar("Gerar PDF financeiro") {
-            gerarPdfResumo(vendasDashboard, "resumo_vendas_simples_${mesSelecionado}.pdf", mesSelecionado)
-        }, margemCard())
+        content.addView(linhaResponsiva(
+            botaoRelatorio("Relatório por período") { abrirFiltroResumoPeriodo() },
+            botaoRelatorio("Gerar PDF financeiro") {
+                gerarPdfResumo(vendasDashboard, "resumo_vendas_simples_${mesSelecionado}.pdf", mesSelecionado)
+            }
+        ), margemCardResumo())
     }
 
     private fun abrirDetalhamentoFinanceiro(origem: String, metrica: String) {
@@ -1013,13 +1002,32 @@ private fun abrirDashboardFinanceiro() {
             .show()
     }
 
+    private fun botaoRelatorio(rotulo: String, acao: () -> Unit): Button = botaoVoltar(rotulo, acao).apply {
+        minHeight = dp(48)
+        minWidth = dp(48)
+        setPadding(dp(10), dp(6), dp(10), dp(6))
+    }
+
+    // Values stay complete: choose one column when the measured text needs more space.
+    private fun linhaIndicadores(vararg indicadores: LinearLayout): LinearLayout {
+        val larguraTexto = indicadores.maxOfOrNull { indicador ->
+            (0 until indicador.childCount).mapNotNull { indicador.getChildAt(it) as? TextView }
+                .maxOfOrNull { android.text.Layout.getDesiredWidth(it.text, it.paint) } ?: 0f
+        } ?: 0f
+        val larguraMinima = maxOf(360, kotlin.math.ceil(larguraTexto / resources.displayMetrics.density * 2 + 96).toInt())
+        return linhaResponsiva(*indicadores, larguraMinima = larguraMinima).apply {
+            setPadding(0, dp(3), 0, dp(3))
+        }
+    }
+
     private fun cardDashboard(
         titulo: String, valor: String, peso: Float, acao: (() -> Unit)? = null
     ): LinearLayout {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
-            setPadding(dp(10), dp(12), dp(10), dp(12))
+            setPadding(dp(10), dp(8), dp(10), dp(8))
+            minimumHeight = dp(64)
             background = fundoArredondadoComBorda(corSuperficie, 24f, corBorda)
         }
 
@@ -1028,12 +1036,11 @@ private fun abrirDashboardFinanceiro() {
             setTextColor(corTextoSecundario)
         })
 
-        card.addView(texto(valor, if (resources.displayMetrics.widthPixels < 900) 14f else 16f, true).apply {
+        card.addView(texto(valor, 16f, true).apply {
             gravity = Gravity.CENTER
         })
 
-        val params = LinearLayout.LayoutParams(0, dp(86), peso)
-        params.setMargins(dp(5), dp(5), dp(5), dp(5))
+        val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, peso)
         card.layoutParams = params
         if (acao != null) {
             card.isClickable = true
@@ -1174,34 +1181,16 @@ private fun abrirResumoMes() {
                 true
             }
         }
-        val campoCliente = campoRotulado("Cliente:", pesquisaCliente).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            ).apply { setMargins(0, dp(5), dp(6), dp(5)) }
-        }
-        val aplicarCliente = botaoVoltar("Aplicar") {
+        pesquisaCliente.minHeight = dp(48)
+        pesquisaCliente.contentDescription = "Pesquisar cliente"
+        val aplicarCliente = botaoRelatorio("Aplicar") {
             filtroClienteResumo = pesquisaCliente.text.toString()
             abrirResumoClientes()
-        }.apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { setMargins(0, dp(5), 0, dp(5)) }
-            minWidth = 0
-            minHeight = dp(48)
-            setPadding(dp(10), dp(6), dp(10), dp(6))
         }
-        content.addView(LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            addView(campoCliente)
-            addView(aplicarCliente)
-        })
+        content.addView(linhaResponsiva(pesquisaCliente, aplicarCliente), margemCardResumo())
 
         if (filtroClienteResumo.isNotBlank()) {
-            content.addView(botaoVoltar("Limpar Pesquisa") {
+            content.addView(botaoRelatorio("Limpar Pesquisa") {
                 filtroClienteResumo = ""
                 abrirResumoClientes()
             })
@@ -1236,18 +1225,22 @@ private fun abrirResumoMes() {
 
             val card = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
-                setPadding(dp(22), dp(18), dp(22), dp(18))
+                setPadding(dp(12), dp(10), dp(12), dp(10))
+                minimumHeight = dp(48)
                 background = fundoArredondadoComBorda(cor, 26f, corBorda)
                 isClickable = true
+                isFocusable = true
                 setOnClickListener { abrirHistoricoCliente(cliente, vendas) }
             }
 
-            card.addView(texto(cliente, 19f, true))
-            card.addView(texto("Cards: ${vendas.size}", 14f, false))
-            card.addView(texto("Vendido: ${moeda.format(vendido)}", 15f, false))
-            card.addView(texto("Recebido: ${moeda.format(recebido)}", 15f, false))
-            card.addView(texto("Faltante: ${moeda.format(faltante)}", 16f, true))
-            content.addView(card, margemCard())
+            card.addView(texto(cliente, 17f, true))
+            card.addView(texto("${vendas.size} cards/vendas", 12f, false).apply { setTextColor(corTextoSecundario) })
+            card.addView(linhaIndicadores(
+                linhaDetalhe("Vendido", moeda.format(vendido)),
+                linhaDetalhe("Recebido", moeda.format(recebido))
+            ))
+            card.addView(linhaDetalhe("A receber / faltante", moeda.format(faltante), destaque = true))
+            content.addView(card, margemCardResumo())
         }
     }
 
@@ -1392,11 +1385,11 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         fun barra(label: String, valor: Long): LinearLayout {
             val wrapper = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
-                setPadding(dp(12), dp(8), dp(12), dp(8))
+                setPadding(dp(10), dp(5), dp(10), dp(5))
                 background = fundoArredondadoComBorda(corSuperficie, 22f, corBorda)
             }
 
-            wrapper.addView(texto("$label: ${moeda.format(valor)}", 13f, true))
+            wrapper.addView(texto(label, 13f, true).apply { contentDescription = "$label: ${moeda.format(valor)}" })
 
             val fundo = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -1419,9 +1412,9 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         content.addView(texto("Gráfico Financeiro", 18f, true).apply {
             setPadding(0, dp(12), 0, dp(4))
         })
-        content.addView(barra("Vendido", totalVendido), margemCard())
-        content.addView(barra("Recebido", totalRecebido), margemCard())
-        content.addView(barra("A Receber", totalReceber), margemCard())
+        content.addView(barra("Vendido", totalVendido), margemCardResumo())
+        content.addView(barra("Recebido", totalRecebido), margemCardResumo())
+        content.addView(barra("A Receber", totalReceber), margemCardResumo())
     }
 
     private fun abrirBackupLocal() {
