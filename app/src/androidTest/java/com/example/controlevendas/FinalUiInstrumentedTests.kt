@@ -113,13 +113,47 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
         field("vendasCache").set(activity, listOf(
             VendaRelatorio(1.0, nome_cliente = "João", data_venda = "2026-10-11", valor_total = 10000, total_pago = 5000, saldo = 5000),
             VendaRelatorio(2.0, nome_cliente = "Maria", data_venda = "2026-09-11", valor_total = 3500, total_pago = 500, saldo = 3000)))
-        listOf("2026-10" to listOf("R$ 100,00", "R$ 50,00"), "2026-09" to listOf("R$ 35,00", "R$ 5,00", "R$ 30,00")).forEach { (month, values) ->
+        listOf("2026-10" to listOf("R$ 100,00", "R$ 50,00", "R$ 100,00 · 100,0%", "R$ 50,00 · 50,0%"),
+            "2026-09" to listOf("R$ 35,00", "R$ 5,00", "R$ 30,00", "R$ 5,00 · 14,3%", "R$ 30,00 · 85,7%"),
+            "2026-08" to listOf("R$ 0,00", "R$ 0,00 · 0,0%")).forEach { (month, values) ->
             field("mesDashboardSelecionado").set(activity, month)
             call("abrirDashboardFinanceiro")
             val texts = descendants(field("content").get(activity) as View).filterIsInstance<TextView>()
                 .map { it.text.toString().replace('\u00A0', ' ') }
             check(values.all { it in texts })
             check("$month ▾" in texts)
+            val chart = descendants(field("content").get(activity) as View).filterIsInstance<FinancialChartLabel>()
+            check(chart.size == 3)
+            if (month == "2026-08") check(chart.all { descendants(it).filterIsInstance<TextView>().any {
+                label -> label.text.toString().replace('\u00A0', ' ') == "R$ 0,00 · 0,0%"
+            } })
+        }
+    }
+
+    fun testFinancialChartLabelsResponsive() = instrumentation.runOnMainSync {
+        val density = activity.resources.displayMetrics.density
+        listOf("R$ 3.050,00 · 100,0%", "R$ 238,00 · 7,8%", "R$ 0,00 · 0,0%",
+            "R$ 92.233.720.368.547.758,07 · 100,0%").forEach { value ->
+            listOf(268, 288, 608).forEach { width ->
+                val view = FinancialChartLabel(activity, "A Receber", value, Color.BLACK)
+                val pixels = (width * density).toInt()
+                view.measure(View.MeasureSpec.makeMeasureSpec(pixels, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+                view.layout(0, 0, pixels, view.measuredHeight)
+                val texts = descendants(view).filterIsInstance<TextView>()
+                check(texts.map { it.text.toString() } == listOf("A Receber", value))
+                texts.forEach { text ->
+                    check(text.ellipsize == null && text.width <= pixels)
+                    check(text.layout.getLineEnd(text.layout.lineCount - 1) == text.text.length)
+                    check((0 until text.layout.lineCount).all { text.layout.getEllipsisCount(it) == 0 })
+                    check((0 until text.layout.lineCount).all { text.layout.getLineWidth(it) <= text.width + 1f })
+                }
+                check(if (view.orientation == LinearLayout.HORIZONTAL) texts[1].left >= texts[0].right
+                    else texts[1].top >= texts[0].bottom)
+                if (width == 608 && value == "R$ 238,00 · 7,8%" && activity.resources.configuration.fontScale <= 1.3f) {
+                    check(view.orientation == LinearLayout.HORIZONTAL)
+                }
+            }
         }
     }
 

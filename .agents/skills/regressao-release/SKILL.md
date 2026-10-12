@@ -40,3 +40,8 @@ Foram validados manualmente: limite FREE e desbloqueio FULL; parcelas; clientes;
 - Checklist é preparação: upload, preço/produto, envio para análise e distribuição dependem de autorização explícita. Testes de entitlement local não comprovam compras/restauração Google Play reais.
 
 Os padrões são candidatos à adaptação no AleJoias Vendas, preservando marca/cores, funcionalidades, dados e regras comerciais próprios; não autorizam modificar a origem.
+
+
+## Percentuais no gráfico financeiro
+- Conferir vendido positivo 100%, denominador zero 0%, recebido/vendido e saldo/vendido com decimal seguro. Testar centavos e extremos sem overflow; não ajustar artificialmente percentuais ou alterar totais.
+- Validar atualização dos três textos ao trocar mês, valores completos em tela estreita/fonte ampliada/paisagem e preservação do banco. Distinguir testes de views/estado de seleção manual no celular.

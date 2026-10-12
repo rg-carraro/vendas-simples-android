@@ -31,7 +31,7 @@ A primeira tentativa de build falhou ao acessar `C:\.android`. A execução foi 
 
 ## Artefato e assinatura
 
-Entrega atual, após a revisão integrada de 12/10/2026: `app/build/outputs/bundle/release/vendas-simples-v11.aab`, cópia idêntica de `app-release.aab`. Tamanho: **5.319.121 bytes**. SHA-256: `3132674d924bdafa29267c1fffe3ceb284be4a7bfc5dcc2ff5d19ffaba24ea58`.
+Entrega atual, após o refinamento dos rótulos do gráfico de 12/10/2026: `app/build/outputs/bundle/release/vendas-simples-v11.aab`, cópia idêntica de `app-release.aab`. Tamanho: **5.319.844 bytes**. SHA-256: `b0d0dffcce2c40497639a0c212c3068cf69419e761c49e394b1fa11a45b4d8fe`.
 
 Assinado pela configuração release local existente. `jarsigner -verify -verbose -certs` retornou código 0 e `jar verified.`; certificado válido até 15/02/2054. A ferramenta avisa sobre certificado autoassinado/cadeia não reconhecida pelo truststore Java, ausência de timestamp e diferença de leitura JarFile/JarInputStream. O manifesto ZIP está na posição 931, após o conteúdo; uma verificação independente conferiu os hashes SHA-256 dos **929 arquivos de conteúdo**, todos cobertos pelo manifesto assinado. A assinatura criptográfica passou; a correspondência do certificado com a chave de upload cadastrada na Play ainda exige conferência no Console.
 
@@ -253,3 +253,31 @@ Para homologar atualização, usar APK/instalação com assinatura compatível; 
 
 - Build final após singular/plural: **BUILD SUCCESSFUL em 4m12s**, 30 testes unitários por variante novamente aprovados; debug, androidTest, release e bundle regenerados. Parser CSV novamente aprovado. --views-only repetiu **21 execuções nativas** do código final nas três configurações, incluindo cabeçalho singular/plural e layout/valores altos; 3 checks de grupo e 2 de preservação aprovados. Evidências .gradle-user/final-values-v11/, v11-integrated-final-values.log, v11-integrated-final-build.log.
 - AAB final copiado do bundle recém-gerado e verificado após essa correção: **5.319.121 bytes**, SHA-256 `3132674d924bdafa29267c1fffe3ceb284be4a7bfc5dcc2ff5d19ffaba24ea58`; assinatura/integridade e manifesto novamente aprovados. Nenhum código de produção foi alterado após o build final. O lint completo citado acima antecede apenas a correção de singular/plural; os três trechos com erros permanecem inalterados.
+
+
+## Gráfico financeiro: valores e percentuais — 12/10/2026
+
+Refinamento restrito ao texto das três barras existentes. Nome à esquerda, moeda e percentual à direita, fonte 13 sp; largura real dos textos determina linha única ou empilhamento, com altura livre e sem reticências. Cores, barras, margens e filtros preservados. Ao selecionar outro mês, o dashboard reconstrói os rótulos com os mesmos totais já calculados.
+
+Percentuais usam o total vendido como denominador, uma casa decimal e HALF_UP, sem conversão para ponto flutuante. Vendido positivo mostra 100,0%; denominador zero (ou negativo defensivamente) mostra 0,0%. Recebido e a receber são independentes: nenhum ajuste, limitação a 100% ou residual artificial. Arredondamento independente pode produzir diferença de 0,1 ponto em empates; investigar divergências nos totais originais antes de corrigir dados. A população do mês e as somas permanecem iguais.
+
+O formatador monetário anterior passa por Double. Exclusivamente os novos textos do gráfico usam BigDecimal.valueOf(centavos, 2) e NumberFormat pt-BR, preservando centavos inclusive em Long.MAX_VALUE; nenhum outro formatador ou saída foi modificado. SQLite, relatórios/PDFs, CSV, backup, Billing e personalização permanecem intactos. Versão 11 / 1.0.11; sem push ou publicação.
+
+Arquivos: MainActivity.kt; novos FinancialChartLabel.kt, FinancialChartPercentage.kt e FinancialChartPercentageTest.kt; FinalUiInstrumentedTests.kt; tools/validar_ajustes_finais_v11.py; este relatório e skills ui-ux-android/regressao-release.
+
+Checklist de homologação no celular: conferir exemplo 3.050,00 / 238,00 / 2.812,00 (100,0% / 7,8% / 92,2%), mês vazio, troca de mês, valores altos, 320 dp, paisagem, fonte ampliada, rótulos acessíveis e ausência de cortes. Homologação anterior não comprova os novos textos.
+
+
+### Verificações do refinamento do gráfico
+
+- Build final `test assembleDebug assembleDebugAndroidTest assembleRelease bundleRelease --offline --no-daemon`: BUILD SUCCESSFUL em 4m36s; **35 testes unitários por variante**, zero falhas/erros/skips. Cinco novos casos cobrem exemplo de homologação, denominador zero, extremos sem overflow, valores inconsistentes/arredondamento independente e preservação de todos os centavos. Log `.gradle-user/v11-chart-final-build.log`.
+- Inspeção de LocalDatabase.getRelatorio confirma valor_total_centavos, soma de pagamentos e saldo = valor - pago; o dashboard agrega esses três campos sobre o mesmo filtro. Sem inconsistência de regra encontrada; dados reais de homologação não foram inspecionados.
+- Bundletool e jarsigner aprovaram o AAB final, manifesto 11 / 1.0.11 confirmado e 929 hashes de conteúdo assinado verificados. Artefato atual na seção de assinatura.
+- Lint vital release passou no build. Lint completo não foi repetido neste refinamento; os 3 erros e 70 avisos registrados na revisão anterior permanecem pendência, sem supressão ou alteração fora do escopo.
+
+- Confirmação final após limitar atualizações de LayoutParams à mudança horizontal/vertical: BUILD SUCCESSFUL em **3m08s**, novamente 35 testes por variante sem falhas. Todos os APKs/AAB regenerados; assinatura/manifesto/929 hashes novamente aprovados. Log `.gradle-user/v11-chart-confirm-build.log`.
+- Primeira execução de views passou normal e 320 dp/fonte 200%; paisagem foi interrompida deliberadamente para incorporar a revisão de medição. O wrapper confirmou banco byte a byte e identidade restaurados. Não contabilizar essa execução interrompida como aprovação completa. Evidências `.gradle-user/chart-initial-v11/` e `v11-chart-views.log`.
+- Sintaxe da ferramenta Python, links locais das skills e git diff --check aprovados. Validador quick_validate.py não executou por PyYAML ausente; os frontmatters foram comparados com HEAD e permanecem idênticos, sem novos placeholders. Conteúdo revisado conforme skill-creator, sem novas dependências ou alteração da política de invocação.
+
+- Repetição final no AVD Build10/API 35: **24 execuções nativas aprovadas** (8 normal, 8 em 320 dp/fonte 200%, 8 paisagem/fonte 200%). Verificados moeda/percentual completos, largura das linhas, ausência de reticências/sobreposição e disposição horizontal quando os textos cabem; valores normais, zero e extremos. Estado/renderização de dois meses distintos e mês vazio conferem atualização dos rótulos. Seletor preservado por inspeção; não houve homologação manual de seleção desses meses no celular.
+- Wrapper terminou com 5 checks aprovados: três grupos, banco byte a byte preservado e identidade original restaurada; tamanho/densidade/fonte do AVD restaurados. Evidências `.gradle-user/final-values-v11/` e `v11-chart-confirm-views.log`. Nenhum teste visual manual no celular ou API 24 foi realizado neste refinamento. Pendências: checklist dos novos textos no aparelho e lint completo já registrado.

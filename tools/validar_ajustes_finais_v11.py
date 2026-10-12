@@ -17,7 +17,7 @@ def native_tests(device, label):
     output = subprocess.check_output(device.prefix + ["shell", "am", "instrument", "-w", "-e", "phase", "final-ui",
         "com.vendassimples.app.test/com.example.controlevendas.BackupInstrumentationRunner"], timeout=180).decode("utf-8", errors="replace")
     (ui.OUT / (label + ".log")).write_text(output, encoding="utf-8")
-    device.check(label, "OK (7 tests)" in output and "FAILURES" not in output)
+    device.check(label, "OK (8 tests)" in output and "FAILURES" not in output)
 
 
 def edit_name(device, value):

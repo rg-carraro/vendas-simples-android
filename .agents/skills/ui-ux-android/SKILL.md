@@ -38,3 +38,10 @@ Esses padrões são candidatos à futura aplicação no AleJoias Vendas; a imple
 - Cards de cliente: nome/quantidade em um cabeçalho; Vendido, Recebido e Faltante com rótulos menores e três colunas quando couberem. Somente o valor Faltante em negrito; não alterar somas ou população para obter esse layout.
 - Medir os textos com a fonte efetiva e a largura disponível do componente. Reorganizar em duas/uma coluna antes de cortar valores; altura livre e nomes completos. Em uma coluna, permitir quebra de valores extremos sem sobreposição ou reticências.
 - Validar valores pequenos/grandes, nomes longos, 320 dp, fonte ampliada, paisagem, pesquisa e retorno. Evidências do Vendas Simples não homologam o AleJoias; adaptar identidade e regras próprias separadamente.
+
+
+## Valores e percentuais em barras financeiras
+- Usar os totais já calculados pelo painel, sem nova consulta, soma ou regra financeira. Nome à esquerda; moeda brasileira e percentual com uma casa decimal à direita, separados por ponto médio.
+- Percentuais decimais independentes sobre vendido; denominador zero mostra zero. Não forçar soma 100% nem esconder inconsistências; conferir origem dos totais.
+- Dinheiro formatado diretamente dos centavos inteiros com decimal exato. Medir largura real com fonte efetiva; empilhar e permitir quebra antes de cortar valores. Preservar barras, paleta, margens e acessibilidade textual.
+- Testar normal/zero/extremos, troca de mês, 320 dp, paisagem e fonte 200%. Candidato ao AleJoias: adaptar sem modificar identidade, filtros, banco ou regras próprias; não implica homologação desse produto.

@@ -1406,7 +1406,8 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
                 background = fundoArredondadoComBorda(corSuperficie, 22f, corBorda)
             }
 
-            wrapper.addView(texto(label, 13f, true).apply { contentDescription = "$label: ${moeda.format(valor)}" })
+            val valueLabel = "${FinancialChartPercentage.money(valor)} · ${FinancialChartPercentage.format(valor, totalVendido)}"
+            wrapper.addView(FinancialChartLabel(this, label, valueLabel, corTexto))
 
             val fundo = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
