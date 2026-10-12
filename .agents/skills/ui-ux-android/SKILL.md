@@ -32,3 +32,9 @@ Antes de qualquer mudança, mapear telas, recursos, tema, fluxos, entidades e co
 - Miniaturas com ação contextual: imagem à esquerda, remover à direita, cerca de 16 dp de intervalo, ícone e texto, alvo mínimo de 48 dp. Identificar a foto por índice acessível e reconstruir índices após remover. Empilhar se largura/fonte impedirem composição horizontal; evitar botão de largura total. Preservar visualização e rodapé Salvar/Cancelar.
 
 Esses padrões são candidatos à futura aplicação no AleJoias Vendas; a implementação V11 e seus testes ficam em docs/RELEASE_V11.md. Não implicam portabilidade automática nem autorização para alterar o AleJoias. Adaptar à marca, tema, componentes e funcionalidades próprios e homologar separadamente.
+
+
+## Relatórios financeiros compactos
+- Cards de cliente: nome/quantidade em um cabeçalho; Vendido, Recebido e Faltante com rótulos menores e três colunas quando couberem. Somente o valor Faltante em negrito; não alterar somas ou população para obter esse layout.
+- Medir os textos com a fonte efetiva e a largura disponível do componente. Reorganizar em duas/uma coluna antes de cortar valores; altura livre e nomes completos. Em uma coluna, permitir quebra de valores extremos sem sobreposição ou reticências.
+- Validar valores pequenos/grandes, nomes longos, 320 dp, fonte ampliada, paisagem, pesquisa e retorno. Evidências do Vendas Simples não homologam o AleJoias; adaptar identidade e regras próprias separadamente.

@@ -2,12 +2,12 @@ package com.example.controlevendas
 
 import java.math.BigDecimal
 
-/** CSV brasileiro: UTF-8 com BOM, delimitador ; e registros terminados por CRLF. */
+/** CSV brasileiro: UTF-8 explícito, delimitador ; e registros terminados por CRLF. */
 object SalesCsvExporter {
     private val headers = listOf("Cliente", "Descrição", "Data Compra", "Vencimento", "Valor", "Pago", "Faltante", "Parcela")
 
-    fun encode(sales: List<VendaRelatorio>): ByteArray = buildString {
-        append('\uFEFF')
+    fun encode(sales: List<VendaRelatorio>, withBom: Boolean = false): ByteArray = buildString {
+        if (withBom) append('\uFEFF')
         appendRecord(headers)
         sales.forEach { sale ->
             appendRecord(listOf(

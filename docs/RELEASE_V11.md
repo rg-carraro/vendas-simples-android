@@ -4,12 +4,12 @@ Data: 11/10/2026. Solicitação: pedido anexado pelo usuário. Base: marco V10 b
 
 ## Melhorias implementadas
 
-- Preferência `businessName` local, normalizada, até 120 caracteres e acentos preservados. Primeiro acesso à funcionalidade oferece configuração uma vez, inclusive em atualização V10; Agora não, Voltar ou fechamento não repetem o convite. Configurações no menu principal permitem editar/remover o nome também no FREE.
-- Cabeçalho usa o nome, mantendo o slogan e o fallback Vendas Simples. Na UI o título tem até duas linhas com reticências para preservar espaço em tela estreita/fonte ampliada; o nome completo permanece nas Configurações, assinatura e PDF. Persistência em SharedPreferences independente do SQLite e da licença.
+- Preferência `businessName` local, normalizada, até 120 caracteres e acentos preservados. Primeiro acesso à funcionalidade oferece configuração uma vez, inclusive em atualização V10; Agora não, Voltar ou fechamento não repetem o convite. Personalizar negócio no menu de três pontos permite editar/remover o nome também no FREE.
+- Cabeçalho mantém a marca Vendas Simples, nome opcional em linha secundária e slogan. Nome secundário longo usa reticências/descrição acessível completa; configuração, assinatura e PDF mantêm o nome. Persistência em SharedPreferences independente do SQLite e da licença.
 - Cobrança WhatsApp mantém valores, parcelas e saldos existentes; agradecimento usa uma única assinatura com o nome. Resumo em imagem recebe texto personalizado, incluindo o fallback de compartilhamento. PDF/CSV compartilhados recebem identificação no texto do Intent; backup continua no fluxo anterior.
 - Os três documentos (card, resumo financeiro/mensal e extrato de cliente) usam o gerador PDF comum com nome no cabeçalho, quebrado por largura medida inclusive sem espaços. Valores e cálculos preservados.
 - Datas completas apresentadas em `dd/MM/yyyy` em cards, detalhes, histórico, filtros, formulários, cobrança, PDF e CSV. Conversão de volta a ISO ao aplicar filtros ou salvar venda/pagamento/correção. Sem alteração dos registros, schema, ordenação e consultas. Referências mensais e nomes técnicos de arquivos preservados.
-- Miniatura do formulário fica acima de Remover foto, com 16 dp entre eles, botão alinhado aos demais e toque na miniatura para ampliar. Galeria, câmera e remoção preservadas.
+- Miniatura à esquerda e Remover foto contextual à direita, com 16 dp e índice acessível; reorganização vertical quando largura/fonte exigem. Toque para ampliar, galeria, câmera e remoção individual preservados.
 
 ## Arquivos modificados
 
@@ -31,7 +31,7 @@ A primeira tentativa de build falhou ao acessar `C:\.android`. A execução foi 
 
 ## Artefato e assinatura
 
-Entrega atual, após os ajustes finais de homologação: `app/build/outputs/bundle/release/vendas-simples-v11.aab`, cópia idêntica de `app-release.aab`. Tamanho: **5.318.133 bytes**. SHA-256: `8b2cc45d2950e08922a549da9aaa7674a350f89199797f3e74a77c5a0c6c657b`.
+Entrega atual, após a revisão integrada de 12/10/2026: `app/build/outputs/bundle/release/vendas-simples-v11.aab`, cópia idêntica de `app-release.aab`. Tamanho: **5.319.121 bytes**. SHA-256: `3132674d924bdafa29267c1fffe3ceb284be4a7bfc5dcc2ff5d19ffaba24ea58`.
 
 Assinado pela configuração release local existente. `jarsigner -verify -verbose -certs` retornou código 0 e `jar verified.`; certificado válido até 15/02/2054. A ferramenta avisa sobre certificado autoassinado/cadeia não reconhecida pelo truststore Java, ausência de timestamp e diferença de leitura JarFile/JarInputStream. O manifesto ZIP está na posição 931, após o conteúdo; uma verificação independente conferiu os hashes SHA-256 dos **929 arquivos de conteúdo**, todos cobertos pelo manifesto assinado. A assinatura criptográfica passou; a correspondência do certificado com a chave de upload cadastrada na Play ainda exige conferência no Console.
 
@@ -195,3 +195,61 @@ Limites: linha secundária longa usa reticências na UI, mantendo nome completo 
 - Parser CSV padrão executado novamente: aprovado, 7 registros com 8 colunas, textos preservados e valores/datas exatos. Sintaxe Python e `git diff --check` aprovados. Skills preservam frontmatter e conteúdo anterior, com novos padrões documentados em português; nenhuma alteração no AleJoias.
 
 - Regressão instrumentada existente: `tools/validar_backup_v11.py --adb <adb-local> --serial emulator-5556` aprovada novamente: **11 cenários + 1 em novo processo**, banco e preferência operacionais preservados por hash. A fase padrão do runner manteve a seleção anterior. Log `.gradle-user/v11-final-backup.log`.
+
+## Revisão integrada — 12/10/2026
+
+Pedido: compactação final por cliente, investigação do CSV no Google Planilhas Android, regressão e preparação Alpha. Estado inicial: branch `release/v11-personalizacao`, árvore limpa. Preservados `11 / 1.0.11`, applicationId e assinatura existentes. Não houve push, upload, alteração de preço/produto no Console ou modificação do AleJoias.
+
+### Cards por cliente
+
+Cabeçalho único com nome completo e quantidade de vendas, mantendo a contagem anterior de registros/cards (cada parcela é um registro). As somas e a população não foram alteradas. `ClientReportValues` recebe os valores já calculados/formatados e organiza Vendido, Recebido e Faltante em três colunas quando couberem; largura real e fonte efetiva determinam duas/uma coluna. Rótulos menores, fonte normal em Vendido/Recebido, somente o valor Faltante em negrito. Sem altura fixa, reticências ou limite de linhas para nomes/valores; em uma coluna, valores extremos podem quebrar linha. Padding e margens menores.
+
+### CSV: causa e tratamento
+
+O arquivo anterior era UTF-8 com BOM. Os exemplos informados pelo usuário são reproduzidos byte a byte ao decodificar UTF-8 como Latin-1: `EF BB BF` vira `ï»¿`, e os bytes de Descrição viram `DescriÃ§Ã£o`. O mecanismo está comprovado em teste; não houve inspeção do arquivo original nem do decodificador interno do Google Planilhas da homologação.
+
+O exportador único agora oferece **CSV padrão — UTF-8**, sem BOM, e **CSV para Excel — com BOM**. Mesmos registros/colunas, escaping, delimitador `;`, CRLF, datas brasileiras e decimais exatos; somente o prefixo difere. Unicode completo preservado, incluindo emoji/ideogramas; nenhum texto do usuário é substituído e nenhuma conversão ANSI com perda de caracteres foi introduzida. A escolha de formato é acrescentada às ações existentes, preservando filtros e compartilhamento.
+
+Remover o BOM elimina o prefixo no arquivo padrão, mas **não obriga um leitor que escolhe outra codificação a reconhecer acentos**. Compatibilidade de abertura direta no Google Planilhas Android/Excel reais não foi executada. Procedimento de importação, diferenças entre perfis e fontes oficiais em [EXPORTACAO_CSV.md](EXPORTACAO_CSV.md). Não declarar “compatibilidade definitiva no celular” apenas porque o parser passou; conferir o novo arquivo na última homologação. Se o Android continuar interpretando incorretamente, importar o original pelo Planilhas no computador, verificar cabeçalhos/separador/localidade e abrir a planilha convertida no Android.
+
+### Integração e preservação
+
+Inspeção comparou 12 funções protegidas da Activity com o HEAD anterior: configuração/cabeçalho/fotos, formulário, Financeiro/detalhes/período, histórico, WhatsApp, PDF, backup e pagamento permanecem iguais. Evidência `.gradle-user/v11-integrated-audit.json` é inspeção de código, não teste funcional. SQLite, cálculos, IDs, fotos persistidas, Billing 9.1.0, produto `full_access`, preço dinâmico e limite FREE 30 não foram alterados.
+
+Arquivos: `MainActivity.kt`, novo `ClientReportValues.kt`, `SalesCsvExporter.kt`, `SalesCsvExporterTest.kt`, `FinalUiInstrumentedTests.kt`, ferramentas `validar_csv_v11.py`, `validar_financeiro_v11.py`, `validar_ajustes_finais_v11.py`; este relatório, novo `EXPORTACAO_CSV.md`, monetização, README e skills `ui-ux-android`, `regressao-release`, `vendas-simples-release`. A skill de regressão ganhou frontmatter consistente, checks de bytes/Unicode, formatos CSV e distinção de evidências. Padrões de cards, preservação e release ficam candidatos ao AleJoias, com identidade e dados próprios preservados.
+
+### Preparação Alpha — execução manual futura
+
+- [ ] Homologar APK final no celular sobre a versão anterior, comparando clientes, vendas/parcelas, pagamentos, saldos, fotos e licença antes/depois.
+- [ ] Cliente/quantidade no cabeçalho e três valores em colunas; somente Faltante em negrito. Testar valores altos, nomes longos, fonte 200%, 320 dp, paisagem, teclado, pesquisa e retorno.
+- [ ] No Google Planilhas Android, abrir CSV padrão recém-exportado e registrar versão do app, cabeçalhos, acentos no conteúdo, datas, números e colunas. Se falhar, usar a importação documentada; não avaliar arquivo antigo/regravado com mojibake.
+- [ ] No Excel, testar opção com BOM e importação UTF-8/`;`/Brasil. Conferir aspas, delimitadores, quebra dentro da célula, pagamento parcial e várias parcelas.
+- [ ] Conferir marca/nome/slogan, menu, convite opcional, salvar/cancelar/reiniciar; nome em WhatsApp/PDF e backup/restauração em aparelho novo/arquivo legado.
+- [ ] Câmera/galeria, várias fotos, remoção primeira/última/única, ampliação, persistência e PDF; Salvar/Cancelar, confirmação de descarte e navegação.
+- [ ] Mês/período no Financeiro, totais do mesmo conjunto e PDF; testar offline e Android 24.
+- [ ] Pela Play com contas de teste: FREE bloqueia 31ª tentativa, FULL_ACCESS mantém acesso, preço vem da Play, compra/restauração/pendente/cancelamento e atualização preservam licença/dados. Testes de domínio não comprovam transação real.
+- [ ] Resolver ou avaliar formalmente erros de lint ainda pendentes antes do envio. Conferir código 11 disponível, chave de upload correta, política/ficha de dados/classificação e notas V11.
+- [ ] Após aprovação explícita, responsável prepara release no teste fechado Alpha com o AAB de hash informado e registra notas/testadores. Upload/envio para análise/distribuição não foram executados nem autorizados nesta tarefa.
+
+Notas candidatas para Alpha: cards por cliente mais compactos, personalização gratuita com marca preservada, nome no backup completo e opções de CSV em português brasileiro. Sem promessa de sincronização ou nova regra comercial.
+
+
+### Evidências desta revisão integrada
+
+- `test assembleDebug assembleDebugAndroidTest assembleRelease bundleRelease --offline --no-daemon`: **BUILD SUCCESSFUL em 4m52s**. **30 testes por variante**, zero falhas/erros/skips; 3 novos casos CSV verificam diferença exclusiva do BOM, reprodução do decodificador incorreto e preservação integral de Unicode/textos do usuário. `tools/validar_csv_v11.py`: aprovado em ambos os arquivos realmente gerados pelo Kotlin, 7 registros e 8 colunas, datas/centavos/parcelas e textos especiais intactos.
+- Lint completo executado em debug e release separadamente: **3 erros e 70 avisos em cada variante**. Os erros permanecem nos trechos preexistentes `NewApi` (styles.xml/API 27), `NotificationPermission` (notify) e `SuspiciousIndentation` (etiquetaStatus). `lint --continue` falhou em 2m16s; `lintRelease` falhou em 4m11s. Lint vital/build release passaram. Não houve supressão/baseline ou alteração dessas funcionalidades fora do escopo. Relatórios em `app/build/reports/lint-results-debug.html` e `lint-results-release.html`; logs `.gradle-user/v11-integrated-lint*.log`. Essa pendência continua impedindo declarar todas as checagens de release aprovadas.
+- `tools/validar_ajustes_finais_v11.py`: **16 checks aprovados**, incluindo **21 execuções nativas** (7 em normal, 7 em 320 dp/fonte 200%, 7 em paisagem/fonte 200%). Novos casos medem os valores pequenos/extremos em larguras distintas, verificam fonte normal/negrito somente em Faltante, ausência de reticências, nome longo completo e totais de dois meses distintos com cache sintético. Os casos anteriores de marca/nome, menu, preferência, fotos e rodapé continuam aprovados. Banco byte a byte preservado e identidade/configurações originais restauradas. Uma tentativa parou por diálogo de lentidão do Pixel Launcher; helper passou a tratar somente avisos de System UI/Pixel Launcher com repetição limitada e captura de evidência, sem ocultar falhas do app. Repetição terminou com código 0.
+- Bundletool validou AAB e manifesto `com.vendassimples.app`, `11 / 1.0.11`, minSdk 24, targetSdk 36. Jarsigner aprovou assinatura e 929 hashes de conteúdo foram conferidos independentemente. Artefato, tamanho e SHA-256 atuais na seção de assinatura. O artefato foi regenerado novamente após o ajuste de singular/plural descrito abaixo.
+- Google Planilhas (`com.google.android.apps.docs.editors.sheets`) e Excel (`com.microsoft.office.excel`) não instalados no AVD. Não houve teste real nesses leitores nem teste manual no celular. Valores altos/nome longo são testes de views e cache sintético; dados financeiros operacionais não foram substituídos. A seleção UI da fixture usa seu único mês, enquanto dois meses com totais diferentes são verificados no teste nativo de estado/renderização.
+
+Preparação de faixa fechada Alpha segue o [guia oficial de releases da Play](https://support.google.com/googleplay/android-developer/answer/9859348?hl=pt-BR), após aprovação explícita e avaliação das pendências; não houve acesso/mutação no Console. O preço R$ 19,90 é informação comercial confirmada pelo usuário, não conferência da configuração atual na Play.
+
+- `tools/validar_financeiro_v11.py`: **21 checks aprovados**, com Wi-Fi e dados móveis desativados e restaurados ao finalizar. Conferência independente das somas SQLite, pesquisa/retorno/teclado, grade, mês, gráfico e acesso às ações. Os dois CSVs foram gerados pela Activity, lidos diretamente do cache Android e comparados: padrão sem BOM/cabeçalho UTF-8, Excel igual ao padrão mais EF BB BF, 29 registros lógicos (cabeçalho + 28 parcelas) com 8 colunas. Choosers foram cancelados sem selecionar destinatário. Banco permaneceu idêntico por hash. Evidências em `.gradle-user/finance-v11/` e `v11-integrated-finance-ui.log`.
+- `--discard-only`: **6 checks aprovados**; Cancelar e Voltar Android solicitam confirmação com alterações, Continuar editando mantém rascunho e Descartar retorna ao menu sem gravação. Banco e identidade preservados. Evidências `.gradle-user/discard-v11/`, `v11-integrated-discard.log`.
+- Regressão de backup: **11 testes + 1 em outro processo**, todos aprovados; parcelas/pagamentos/fotos e identidade operacional preservados. Log `.gradle-user/v11-integrated-backup.log`. Os testes unitários de compatibilidade mantêm bloqueio da 31ª tentativa FREE e domínio FULL_ACCESS/pendente/indisponível; compra/restauração real da licença pela Play permanece manual.
+- Captura de cliente filtrado inspecionada: três valores completos na mesma faixa e somente Faltante em negrito. A conferência revelou o texto “1 vendas”; ajuste final usa “1 venda” e “2 vendas” etc., com teste nativo dos dois ramos. As suítes de views são repetidas após essa alteração e o AAB é regenerado para refletir o código final.
+
+Para homologar atualização, usar APK/instalação com assinatura compatível; o APK debug é destinado ao ambiente debug. Upgrade de instalação obtida na Store e preservação da licença devem ser verificados pela faixa Play autorizada, com o certificado correto.
+
+- Build final após singular/plural: **BUILD SUCCESSFUL em 4m12s**, 30 testes unitários por variante novamente aprovados; debug, androidTest, release e bundle regenerados. Parser CSV novamente aprovado. --views-only repetiu **21 execuções nativas** do código final nas três configurações, incluindo cabeçalho singular/plural e layout/valores altos; 3 checks de grupo e 2 de preservação aprovados. Evidências .gradle-user/final-values-v11/, v11-integrated-final-values.log, v11-integrated-final-build.log.
+- AAB final copiado do bundle recém-gerado e verificado após essa correção: **5.319.121 bytes**, SHA-256 `3132674d924bdafa29267c1fffe3ceb284be4a7bfc5dcc2ff5d19ffaba24ea58`; assinatura/integridade e manifesto novamente aprovados. Nenhum código de produção foi alterado após o build final. O lint completo citado acima antecede apenas a correção de singular/plural; os três trechos com erros permanecem inalterados.

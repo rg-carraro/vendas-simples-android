@@ -4,7 +4,9 @@ Requer APK debug e a fixture sintética UI do build 10 já instalada.
 Uso: python tools/validar_financeiro_v11.py --serial emulator-5556
 """
 import argparse
+import csv
 import hashlib
+import io
 import json
 from pathlib import Path
 import re
@@ -23,6 +25,12 @@ class Device(ui.Device):
             xml = self.adb("exec-out", "cat", remote)
             try:
                 self.nodes = list(ui.ET.fromstring(xml).iter("node"))
+                system_alerts = {"System UI isn't responding", "Pixel Launcher isn't responding"}
+                if any(node.get("text") in system_alerts for node in self.nodes):
+                    (ui.OUT / (name + f"-system-anr-{attempt}.png")).write_bytes(self.adb("exec-out", "screencap", "-p"))
+                    self.click("Wait")
+                    ui.time.sleep(2)
+                    continue
                 break
             except ui.ET.ParseError:
                 ui.time.sleep(2)
@@ -56,7 +64,8 @@ def currency(cents):
 
 
 def texts(device):
-    return [n.get("text", "").replace("\xa0", " ") for n in device.nodes]
+    raw = [n.get("text", "").replace("\xa0", " ") for n in device.nodes]
+    return raw + [re.sub(r" — \d+ vendas?$", "", text) for text in raw]
 
 
 def run(device, db):
@@ -114,7 +123,7 @@ def run(device, db):
     client_values = [sum(v[0] for v in client), sum(v[1] for v in client), sum(v[0]-v[1] for v in client)]
     device.check("Totais do cliente preservados", all(currency(v) in texts(device) for v in client_values))
     # The case-insensitive helper would match the search input before the card.
-    client_name = next(n for n in device.nodes if n.get("text") == "UI Fotos" and n.get("class") == "android.widget.TextView")
+    client_name = next(n for n in device.nodes if n.get("text", "").startswith("UI Fotos — ") and n.get("class") == "android.widget.TextView")
     x1, y1, x2, y2 = bounds(client_name)
     device.shell("input", "tap", str((x1+x2)//2), str((y1+y2)//2))
     device.snapshot("historico")
@@ -131,6 +140,27 @@ def run(device, db):
     device.click("Mais opções", "content-desc")
     device.snapshot("opcoes")
     device.check("Menu de três pontos preservado", "Exportar CSV" in texts(device))
+    device.click("Exportar CSV")
+    device.snapshot("csv-formatos")
+    device.check("Dois formatos do mesmo CSV disponíveis", "CSV padrão — UTF-8" in texts(device) and "CSV para Excel — com BOM" in texts(device))
+    device.click("CSV padrão — UTF-8")
+    device.snapshot("csv-compartilhamento-padrao")
+    standard = device.adb("exec-out", "run-as", ui.PACKAGE, "cat", "cache/vendas_simples.csv")
+    device.check("CSV padrão real sem BOM e com acentos UTF-8", standard.startswith(b"Cliente;") and "Descrição" in standard.decode("utf-8"))
+    device.back()  # Não selecionar destinatário nem enviar arquivo.
+    device.snapshot("csv-retorno-padrao")
+    device.click("Mais opções", "content-desc")
+    device.snapshot("csv-opcoes-excel")
+    device.click("Exportar CSV")
+    device.snapshot("csv-formato-excel")
+    device.click("CSV para Excel — com BOM")
+    device.snapshot("csv-compartilhamento-excel")
+    excel = device.adb("exec-out", "run-as", ui.PACKAGE, "cat", "cache/vendas_simples.csv")
+    device.check("CSV Excel real difere somente pelo BOM", excel == b"\xef\xbb\xbf" + standard)
+    rows = list(csv.reader(io.StringIO(standard.decode("utf-8"), newline=""), delimiter=";", strict=True))
+    device.check("CSV Android mantém registros e oito colunas", len(rows) == db.execute("SELECT COUNT(*) FROM VENDAS").fetchone()[0] + 1 and all(len(row) == 8 for row in rows))
+    (ui.OUT / "csv-padrao.csv").write_bytes(standard)
+    (ui.OUT / "csv-excel.csv").write_bytes(excel)
     device.back()
 
     # 320 dp e fonte 150%; mudanças apenas nas configurações do AVD isolado.
@@ -168,18 +198,25 @@ if __name__ == "__main__":
     original_font = device.shell("settings", "get", "system", "font_scale").strip()
     original_size = device.shell("wm", "size")
     original_density = device.shell("wm", "density")
+    original_wifi = device.shell("settings", "get", "global", "wifi_on").strip()
+    original_data = device.shell("settings", "get", "global", "mobile_data").strip()
     try:
         with sqlite3.connect(fixture) as db:
             assert db.execute("SELECT COUNT(*) FROM CLIENTES WHERE nome='UI Fotos'").fetchone()[0] == 1, "Requer fixture sintética Build10 existente"
             device.shell("wm", "size", "reset")
             device.shell("wm", "density", "reset")
             device.shell("settings", "put", "system", "font_scale", "1.0")
+            device.shell("svc", "wifi", "disable")
+            device.shell("svc", "data", "disable")
             ui.time.sleep(5)
+            device.check("Wi-Fi e dados móveis desativados na regressão", device.shell("settings", "get", "global", "mobile_data").strip() == "0" and device.shell("settings", "get", "global", "wifi_on").strip() in ["0", "3"])
             run(device, db)
     except Exception as error:
         device.results.append({"cenario": "Execução completa", "passou": False, "erro": str(error)})
         raise
     finally:
+        device.shell("svc", "wifi", "enable" if original_wifi == "1" else "disable")
+        device.shell("svc", "data", "enable" if original_data == "1" else "disable")
         device.shell("settings", "put", "system", "font_scale", original_font if original_font != "null" else "1.0")
         for setting, original_config in [("size", original_size), ("density", original_density)]:
             override = re.search(r"Override.*?:\s*(\S+)", original_config)

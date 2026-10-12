@@ -9,7 +9,7 @@
 
 A 31ª tentativa de criar venda solicita desbloqueio. O app não apaga nem oculta dados já existentes.
 
-No MVP, o backup local do SQLite é um benefício da Licença Completa. Usuários FREE não veem o menu de três pontos nem as ações de gerar/compartilhar backup, mas têm exportação CSV; isso não impede consulta, relatórios ou pagamentos de vendas já registradas.
+No MVP, o backup local do SQLite é um benefício da Licença Completa. O menu de três pontos mantém Personalizar negócio e CSV também no FREE, enquanto as ações de backup/restauração exigem FULL_ACCESS; isso não impede consulta, relatórios ou pagamentos de vendas já registradas.
 
 ## Arquitetura de cobrança
 
@@ -31,3 +31,6 @@ O contador FREE pode ser local, sem conta ou backend antifraude. A reinstalaçã
 Preço e produto no Play Console ainda exigem configuração e revisão antes da publicação. Este documento não autoriza criar produto, cobrar ou publicar.
 
 Preço na UI: usar apenas `ProductDetails`, sem valor de fallback. Produto/preço indisponíveis desabilitam a compra; restauração e reconhecimento permanecem no fluxo existente. Revisão solicitada em 07/10/2026.
+
+
+Em 12/10/2026, o usuário confirmou preço comercial de R$ 19,90 para a compra única. A configuração efetiva no Console não foi verificada nesta sessão; o aplicativo permanece exibindo o preço retornado por ProductDetails/Google Play, sem preço fixo no código. Preparação de release não autoriza alterar o preço ou produto no Console.

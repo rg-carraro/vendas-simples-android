@@ -10,6 +10,7 @@ A referência é a branch `comercial` de `alejoiasvendasapp`, fixada no commit `
 
 - [Visão e escopo do MVP](docs/MVP.md): público proposto, fluxos, limites e critérios de aceite.
 - [Referência AleJoias](docs/REFERENCIA.md): evidências, procedência e limites da análise.
+- [Formato e importação CSV](docs/EXPORTACAO_CSV.md): UTF-8 padrão/Excel, precisão financeira e limitações de leitores.
 - [Arquitetura e dados](docs/ARQUITETURA.md): base técnica e cuidados para a futura derivação.
 - [Backlog](docs/BACKLOG.md): etapas, dependências e entregas verificáveis.
 - [Validação](docs/VALIDACAO.md): cenários para futura homologação.

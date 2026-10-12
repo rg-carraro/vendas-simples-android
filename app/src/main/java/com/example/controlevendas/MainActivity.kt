@@ -1241,7 +1241,7 @@ private fun abrirResumoMes() {
 
             val card = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
-                setPadding(dp(12), dp(10), dp(12), dp(10))
+                setPadding(dp(10), dp(8), dp(10), dp(8))
                 minimumHeight = dp(48)
                 background = fundoArredondadoComBorda(cor, 26f, corBorda)
                 isClickable = true
@@ -1249,14 +1249,15 @@ private fun abrirResumoMes() {
                 setOnClickListener { abrirHistoricoCliente(cliente, vendas) }
             }
 
-            card.addView(texto(cliente, 17f, true))
-            card.addView(texto("${vendas.size} cards/vendas", 12f, false).apply { setTextColor(corTextoSecundario) })
-            card.addView(linhaIndicadores(
-                linhaDetalhe("Vendido", moeda.format(vendido)),
-                linhaDetalhe("Recebido", moeda.format(recebido))
+            val quantidade = if (vendas.size == 1) "1 venda" else "${vendas.size} vendas"
+            card.addView(texto("$cliente — $quantidade", 15f, false))
+            card.addView(ClientReportValues(this,
+                moeda.format(vendido), moeda.format(recebido), moeda.format(faltante),
+                corTexto, corTextoSecundario
             ))
-            card.addView(linhaDetalhe("A receber / faltante", moeda.format(faltante), destaque = true))
-            content.addView(card, margemCardResumo())
+            content.addView(card, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(0, dp(4), 0, dp(4)) })
         }
     }
 
@@ -1487,9 +1488,19 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
     }
 
     private fun exportarCsvResumo(lista: List<VendaRelatorio>, nomeArquivo: String) {
+        AlertDialog.Builder(this)
+            .setTitle("Exportar CSV")
+            .setItems(arrayOf("CSV padrão — UTF-8", "CSV para Excel — com BOM")) { _, which ->
+                compartilharCsvResumo(lista, nomeArquivo, withBom = which == 1)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun compartilharCsvResumo(lista: List<VendaRelatorio>, nomeArquivo: String, withBom: Boolean) {
         try {
             val file = File(cacheDir, nomeArquivo)
-            file.writeBytes(SalesCsvExporter.encode(lista))
+            file.writeBytes(SalesCsvExporter.encode(lista, withBom))
 
             val uri = FileProvider.getUriForFile(this, "${packageName}.provider", file)
             val intent = Intent(Intent.ACTION_SEND).apply {

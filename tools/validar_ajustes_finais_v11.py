@@ -17,7 +17,7 @@ def native_tests(device, label):
     output = subprocess.check_output(device.prefix + ["shell", "am", "instrument", "-w", "-e", "phase", "final-ui",
         "com.vendassimples.app.test/com.example.controlevendas.BackupInstrumentationRunner"], timeout=180).decode("utf-8", errors="replace")
     (ui.OUT / (label + ".log")).write_text(output, encoding="utf-8")
-    device.check(label, "OK (5 tests)" in output and "FAILURES" not in output)
+    device.check(label, "OK (7 tests)" in output and "FAILURES" not in output)
 
 
 def edit_name(device, value):
@@ -93,11 +93,46 @@ def run(device):
     device.click("Cancelar")
 
 
+def run_discard(device):
+    device.start()
+    device.snapshot("menu")
+    device.click("Nova")
+    device.snapshot("formulario")
+    device.click("Nome Do Cliente")
+    device.shell("input", "text", "Rascunho")
+    device.back()
+    device.snapshot("rascunho")
+    device.click("Cancelar")
+    device.snapshot("confirmacao-cancelar")
+    device.check("Cancelar solicita confirmação de descarte", "Descartar alterações?" in texts(device))
+    device.click("Continuar editando")
+    device.snapshot("continuar-editando")
+    device.check("Continuar editando preserva rascunho", "Rascunho" in texts(device))
+    device.back()
+    device.snapshot("confirmacao-android")
+    device.check("Voltar Android solicita confirmação", "Descartar alterações?" in texts(device))
+    device.click("Descartar")
+    device.snapshot("retorno-menu")
+    device.check("Descartar retorna ao menu", "Menu Principal" in texts(device))
+
+
+def run_views(device):
+    native_tests(device, "views-normal")
+    device.shell("wm", "size", "640x1280")
+    device.shell("wm", "density", "320")
+    device.shell("settings", "put", "system", "font_scale", "2.0")
+    native_tests(device, "views-320dp-fonte200")
+    device.shell("wm", "size", "1280x640")
+    native_tests(device, "views-paisagem-fonte200")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--serial", required=True)
+    parser.add_argument("--discard-only", action="store_true", help="Verifica rascunho/confirmar descarte sem gravar venda")
+    parser.add_argument("--views-only", action="store_true", help="Repete apenas os testes nativos nas três configurações")
     args = parser.parse_args()
-    ui.OUT = Path(".gradle-user/final-ui-v11")
+    ui.OUT = Path(".gradle-user/discard-v11" if args.discard_only else ".gradle-user/final-values-v11" if args.views_only else ".gradle-user/final-ui-v11")
     ui.OUT.mkdir(parents=True, exist_ok=True)
     device = Device(args.serial)
     device.shell("am", "force-stop", ui.PACKAGE)
@@ -113,7 +148,12 @@ if __name__ == "__main__":
         device.shell("wm", "density", "reset")
         device.shell("settings", "put", "system", "font_scale", "1.0")
         ui.time.sleep(5)
-        run(device)
+        if args.discard_only:
+            run_discard(device)
+        elif args.views_only:
+            run_views(device)
+        else:
+            run(device)
     except Exception as error:
         device.results.append({"cenario": "Execução completa", "passou": False, "erro": str(error)})
         raise
