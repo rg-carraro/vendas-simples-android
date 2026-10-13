@@ -614,27 +614,26 @@ class MainActivity : AppCompatActivity() {
 
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(12), dp(8), dp(12), dp(8))
+            setPadding(dp(10), dp(6), dp(10), dp(6))
             background = fundoArredondadoComBorda(corCard, 20f, corBorda)
             isClickable = true
             setOnClickListener { abrirOpcoesCard(venda) }
         }
 
-        card.addView(texto(nome, 17f, true))
-        card.addView(etiquetaStatus(venda))
-        adicionarFotoNoCard(card, venda)
-        card.addView(TextView(this).apply {
-            text = "$parcelaInfo • " +
-                    "Compra: ${BrazilianDates.display(venda.data_venda ?: "-")}\n" +
-                    "Vencimento: ${BrazilianDates.display(venda.data_vencimento ?: "-")}\n" +
-                    "Valor: ${moeda.format(venda.valor_total)} • " +
-                    "Pago: ${moeda.format(venda.total_pago)}\n" +
-                    (if (venda.total_pago > 0L) "Data Pagamento: ${dataPagamentoLocal(venda)}\n" else "") +
-                    "Faltante: ${moeda.format(venda.saldo)}"
-            textSize = 13f
+        card.addView(SaleCardHeader(this, texto(nome, 15f, true), etiquetaStatus(venda)))
+        card.addView(texto(parcelaInfo, 12f, false).apply { setTextColor(corTextoSecundario) })
+        card.addView(texto("Compra: ${BrazilianDates.display(venda.data_venda ?: "-")} | " +
+            "Vencimento: ${BrazilianDates.display(venda.data_vencimento ?: "-")}", 12f, false).apply {
             setTextColor(corTextoSecundario)
-            setPadding(0, dp(6), 0, 0)
         })
+        card.addView(ClientReportValues(this, FinancialChartPercentage.money(venda.valor_total), FinancialChartPercentage.money(venda.total_pago),
+            FinancialChartPercentage.money(venda.saldo), corTexto, corTextoSecundario, "Valor", "Pago"))
+        if (venda.total_pago > 0L) {
+            card.addView(texto("Data Pagamento: ${dataPagamentoLocal(venda)}", 12f, false).apply {
+                setTextColor(corTextoSecundario)
+            })
+        }
+        adicionarFotoNoCard(card, venda)
 
         content.addView(card, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(4), 0, dp(4)) })
     }

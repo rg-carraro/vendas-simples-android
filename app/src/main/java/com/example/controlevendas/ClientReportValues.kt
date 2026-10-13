@@ -12,11 +12,12 @@ import kotlin.math.ceil
 /** Apenas apresentação: recebe os três valores já calculados e formatados. */
 class ClientReportValues(
     context: Context, sold: String, received: String, remaining: String,
-    textColor: Int, labelColor: Int
+    textColor: Int, labelColor: Int,
+    soldLabel: String = "Vendido", paidLabel: String = "Recebido"
 ) : LinearLayout(context) {
     private val gap = dp(6)
     private var columns = 0
-    private val cells = listOf("Vendido" to sold, "Recebido" to received, "Faltante" to remaining)
+    private val cells = listOf(soldLabel to sold, paidLabel to received, "Faltante" to remaining)
         .mapIndexed { index, (label, value) ->
             LinearLayout(context).apply {
                 orientation = VERTICAL

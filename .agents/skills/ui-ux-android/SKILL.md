@@ -45,3 +45,10 @@ Esses padrões são candidatos à futura aplicação no AleJoias Vendas; a imple
 - Percentuais decimais independentes sobre vendido; denominador zero mostra zero. Não forçar soma 100% nem esconder inconsistências; conferir origem dos totais.
 - Dinheiro formatado diretamente dos centavos inteiros com decimal exato. Medir largura real com fonte efetiva; empilhar e permitir quebra antes de cortar valores. Preservar barras, paleta, margens e acessibilidade textual.
 - Testar normal/zero/extremos, troca de mês, 320 dp, paisagem e fonte 200%. Candidato ao AleJoias: adaptar sem modificar identidade, filtros, banco ou regras próprias; não implica homologação desse produto.
+
+
+## Cards compactos de vendas
+- Reutilizar a etiqueta de status existente sem reclassificar por data ou saldo. Preservar textos, cores de texto/fundo, prioridade de quitação e tratamento de parcial vencido. Reorganizar apenas seu posicionamento.
+- Nome à esquerda e etiqueta no topo à direita; medir largura real incluindo padding. Nomes completos podem quebrar; empilhar a etiqueta alinhada à direita quando faltar espaço. Considerar a escala efetiva da fonte ao reservar largura legível para o nome, evitando colunas estreitas em fonte 200%.
+- Parcela/À Vista, compra/vencimento e Valor/Pago/Faltante em faixas compactas. Três colunas quando couberem, duas/uma com largura/fonte ampliada; somente o valor Faltante em negrito. Preservar data de pagamento, fotos e toque/opções existentes.
+- Conferir 320 dp, fontes 150%/200%, paisagem, nomes/valores elevados, sem corte/sobreposição. Padrão candidato ao AleJoias, adaptando cores, status, dados e funcionalidades próprios; não autoriza alterar a origem.

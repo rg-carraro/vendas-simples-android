@@ -45,3 +45,9 @@ Os padrões são candidatos à adaptação no AleJoias Vendas, preservando marca
 ## Percentuais no gráfico financeiro
 - Conferir vendido positivo 100%, denominador zero 0%, recebido/vendido e saldo/vendido com decimal seguro. Testar centavos e extremos sem overflow; não ajustar artificialmente percentuais ou alterar totais.
 - Validar atualização dos três textos ao trocar mês, valores completos em tela estreita/fonte ampliada/paisagem e preservação do banco. Distinguir testes de views/estado de seleção manual no celular.
+
+
+## Regressão de cards/status
+- Comparar classificadores, paleta, filtros e ordenação antes/depois. Testar cores/textos de QUITADO, VENCIDO, EM ABERTO e demais estados reais, incluindo parcial vencido e quitação após pagamentos. Não inferir status somente por vencimento.
+- Pagamentos em banco sintético isolado: ler parcelas/saldo antes e após parcial/quitação, renderizar cards e verificar que a apresentação não grava nem altera registros. Conferir nomes longos, valores altos, 320 dp, fontes 150%/200%, paisagem e valores completos.
+- Validar clique real no card/Ver detalhes, pesquisa, filtros e fotos; cancelar ações sem gravar na fixture operacional. Comparar banco/identidade e restaurar configurações do AVD ao finalizar.

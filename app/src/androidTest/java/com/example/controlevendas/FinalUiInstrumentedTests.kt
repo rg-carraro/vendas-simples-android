@@ -4,6 +4,7 @@ import android.app.Instrumentation
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.view.View
 import android.view.ViewGroup
@@ -36,6 +37,139 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
     private fun call(name: String) = MainActivity::class.java.getDeclaredMethod(name).apply { isAccessible = true }.invoke(activity)
     private fun descendants(view: View): List<View> = listOf(view) +
         if (view is ViewGroup) (0 until view.childCount).flatMap { descendants(view.getChildAt(it)) } else emptyList()
+
+    private fun renderSale(venda: VendaRelatorio): LinearLayout {
+        val content = field("content").get(activity) as LinearLayout
+        content.removeAllViews()
+        MainActivity::class.java.getDeclaredMethod("adicionarCardVenda", VendaRelatorio::class.java)
+            .apply { isAccessible = true }.invoke(activity, venda)
+        return content.getChildAt(0) as LinearLayout
+    }
+
+    fun testSaleStatusesColorsAndResponsiveLayout() = instrumentation.runOnMainSync {
+        val base = VendaRelatorio(1.0, nome_cliente = "Cliente João — " + "Nome longo ".repeat(12),
+            data_venda = "2026-10-03", data_vencimento = "2999-12-27", data_pagamento = "2026-10-12",
+            valor_total = 10000, total_pago = 0, saldo = 10000, parcela_atual = 15, parcelas = 15)
+        val cases = listOf(
+            Triple(base, "EM ABERTO", Color.rgb(244, 229, 197)),
+            Triple(base.copy(total_pago = 2500, saldo = 7500), "PAGO PARCIALMENTE", Color.rgb(252, 224, 184)),
+            Triple(base.copy(data_vencimento = "2000-01-01"), "VENCIDO", Color.rgb(248, 205, 199)),
+            Triple(base.copy(data_vencimento = "2000-01-01", total_pago = 2500, saldo = 7500), "VENCIDO", Color.rgb(248, 205, 199)),
+            Triple(base.copy(data_vencimento = "2000-01-01", total_pago = 10000, saldo = 0), "QUITADO", Color.rgb(197, 231, 214)),
+            Triple(base.copy(total_pago = 15000, saldo = -5000), "QUITADO", Color.rgb(197, 231, 214)),
+            Triple(base.copy(valor_total = 0, saldo = 0), "QUITADO", Color.rgb(197, 231, 214)),
+            Triple(base.copy(valor_total = Long.MAX_VALUE, total_pago = 1, saldo = Long.MAX_VALUE - 1), "PAGO PARCIALMENTE", Color.rgb(252, 224, 184)))
+        val density = activity.resources.displayMetrics.density
+        cases.forEach { (sale, expectedStatus, background) ->
+            val card = renderSale(sale)
+            val status = descendants(card).filterIsInstance<TextView>().single { it.text.toString() == expectedStatus }
+            check((status.background as GradientDrawable).color!!.defaultColor == background)
+            val foreground = when (expectedStatus) {
+                "QUITADO" -> Color.rgb(30, 58, 95)
+                "VENCIDO" -> Color.rgb(153, 55, 47)
+                "PAGO PARCIALMENTE" -> Color.rgb(156, 82, 20)
+                else -> Color.rgb(125, 87, 32)
+            }
+            check(status.currentTextColor == foreground)
+            check(card.isClickable && card.hasOnClickListeners())
+            val initialWidth = (288 * density).toInt()
+            card.measure(View.MeasureSpec.makeMeasureSpec(initialWidth, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+            card.layout(0, 0, initialWidth, card.measuredHeight)
+            val texts = descendants(card).filterIsInstance<TextView>()
+            check(texts.any { it.text.toString() == "Parcela 15/15" })
+            check(texts.any { it.text.toString() == "Compra: 03/10/2026 | Vencimento: ${BrazilianDates.display(sale.data_vencimento!!)}" })
+            check(texts.any { it.text.toString() == "Data Pagamento: 12/10/2026" } == (sale.total_pago > 0))
+            val values = descendants(card).filterIsInstance<ClientReportValues>().single()
+            val valueTexts = descendants(values).filterIsInstance<TextView>()
+            listOf(sale.valor_total, sale.total_pago, sale.saldo).forEachIndexed { index, cents ->
+                val value = valueTexts[index * 2 + 1]
+                check(value.text.toString() == FinancialChartPercentage.money(cents))
+                check(value.typeface.isBold == (index == 2))
+            }
+            listOf(288, 608).forEach { width ->
+                val pixels = (width * density).toInt()
+                card.measure(View.MeasureSpec.makeMeasureSpec(pixels, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+                card.layout(0, 0, pixels, card.measuredHeight)
+                texts.forEach { text ->
+                    check(text.ellipsize == null)
+                    check(text.layout.getLineEnd(text.layout.lineCount - 1) == text.text.length)
+                    (0 until text.layout.lineCount).forEach { line ->
+                        val available = text.width - text.paddingLeft - text.paddingRight
+                        check(text.layout.getLineMax(line) <= available + 1f) {
+                            "Texto excede largura: ${text.text}, linha=$line, visivel=${text.layout.getLineMax(line)}, " +
+                                "comEspacos=${text.layout.getLineWidth(line)}, disponivel=$available, card=${width}dp"
+                        }
+                    }
+                }
+                val header = card.getChildAt(0) as SaleCardHeader
+                val name = header.getChildAt(0)
+                check(if (header.orientation == LinearLayout.HORIZONTAL) status.left >= name.right else status.top >= name.bottom)
+                check(status.right <= header.width)
+            }
+        }
+        val short = renderSale(base.copy(nome_cliente = "João"))
+        short.measure(View.MeasureSpec.makeMeasureSpec((328 * density).toInt(), View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+        if (activity.resources.configuration.fontScale <= 1.3f) check((short.getChildAt(0) as SaleCardHeader).orientation == LinearLayout.HORIZONTAL)
+    }
+
+    fun testSalePaymentRefreshAndFinancialIntegrity() = instrumentation.runOnMainSync {
+        val context = BackupTestContext(activity)
+        context.deleteDatabase(LocalDatabase.DB_NAME)
+        val database = LocalDatabase(context)
+        val original = field("localDb").get(activity)
+        try {
+            field("localDb").set(activity, database)
+            database.novaVenda(NovaVendaRequest("Cliente sintético", "Três parcelas", "2999-01-01", 10000, 3), emptyList())
+            val sales = database.getRelatorio()
+            check(sales.size == 3 && sales.sumOf { it.valor_total } == 10000L)
+            val sale = sales.first()
+            val id = sale.id_venda.toLong().toString()
+            database.novoPagamento(NovoPagamentoRequest(id, "2026-10-12", 1000))
+            val partial = database.getRelatorio().single { it.id_venda == sale.id_venda }
+            check(partial.total_pago == 1000L && partial.saldo == partial.valor_total - 1000L)
+            check(descendants(renderSale(partial)).filterIsInstance<TextView>().any { it.text.toString() == "PAGO PARCIALMENTE" })
+            database.novoPagamento(NovoPagamentoRequest(id, "2026-10-12", partial.saldo))
+            val before = database.getRelatorio()
+            val paid = before.single { it.id_venda == sale.id_venda }
+            check(paid.total_pago == paid.valor_total && paid.saldo == 0L)
+            check(descendants(renderSale(paid)).filterIsInstance<TextView>().any { it.text.toString() == "QUITADO" })
+            check(database.getRelatorio() == before)
+            check(before.sumOf { it.valor_total } == 10000L)
+            check(before.sumOf { it.total_pago } + before.sumOf { it.saldo } == 10000L)
+        } finally {
+            field("localDb").set(activity, original)
+            database.close()
+            context.deleteDatabase(LocalDatabase.DB_NAME)
+        }
+    }
+
+    fun testSaleFiltersAndOrdering() = instrumentation.runOnMainSync {
+        val sales = listOf(
+            VendaRelatorio(1.0, nome_cliente = "João", descricao = "Brinco", data_venda = "2026-10-03", data_vencimento = "2999-01-01", valor_total = 10000, total_pago = 1000, saldo = 9000),
+            VendaRelatorio(2.0, nome_cliente = "Maria", descricao = "Colar", data_venda = "2026-09-01", data_vencimento = "2999-03-01", valor_total = 10000, total_pago = 10000, saldo = 0),
+            VendaRelatorio(3.0, nome_cliente = "Ana", descricao = "Anel", data_venda = "2026-10-12", data_vencimento = "2999-02-01", valor_total = 10000, total_pago = 0, saldo = 10000))
+        field("vendasCache").set(activity, sales)
+        fun names(): List<String> {
+            call("abrirListaVendas")
+            return descendants(field("content").get(activity) as View).filterIsInstance<SaleCardHeader>()
+                .map { (it.getChildAt(0) as TextView).text.toString() }
+        }
+        check(names() == listOf("Maria", "Ana", "João"))
+        field("filtroCliente").set(activity, "JOÃO")
+        check(names() == listOf("João"))
+        field("filtroCliente").set(activity, "anel")
+        check(names() == listOf("Ana"))
+        field("filtroCliente").set(activity, "")
+        field("filtrarAReceber").set(activity, true)
+        check(names() == listOf("Ana", "João"))
+        field("filtroInicio").set(activity, "2026-10-10")
+        field("filtroFim").set(activity, "2026-10-31")
+        check(names() == listOf("Ana"))
+        check(sales.sumOf { it.valor_total } == 30000L && sales.sumOf { it.total_pago } == 11000L && sales.sumOf { it.saldo } == 19000L)
+    }
 
     fun testHeaderWithoutBusinessName() = instrumentation.runOnMainSync {
         call("atualizarCabecalhoNegocio")

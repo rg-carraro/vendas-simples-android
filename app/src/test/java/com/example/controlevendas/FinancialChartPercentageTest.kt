@@ -13,6 +13,7 @@ class FinancialChartPercentageTest {
         assertEquals("100,0%", FinancialChartPercentage.format(305000, 305000))
         assertEquals("7,8%", FinancialChartPercentage.format(23800, 305000))
         assertEquals("92,2%", FinancialChartPercentage.format(281200, 305000))
+        assertEquals("0,0%", FinancialChartPercentage.format(0, 305000))
     }
 
     @Test fun zeroDenominator() {

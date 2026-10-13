@@ -17,7 +17,7 @@ def native_tests(device, label):
     output = subprocess.check_output(device.prefix + ["shell", "am", "instrument", "-w", "-e", "phase", "final-ui",
         "com.vendassimples.app.test/com.example.controlevendas.BackupInstrumentationRunner"], timeout=180).decode("utf-8", errors="replace")
     (ui.OUT / (label + ".log")).write_text(output, encoding="utf-8")
-    device.check(label, "OK (8 tests)" in output and "FAILURES" not in output)
+    device.check(label, "OK (11 tests)" in output and "FAILURES" not in output)
 
 
 def edit_name(device, value):
@@ -120,19 +120,57 @@ def run_views(device):
     native_tests(device, "views-normal")
     device.shell("wm", "size", "640x1280")
     device.shell("wm", "density", "320")
+    device.shell("settings", "put", "system", "font_scale", "1.5")
+    native_tests(device, "views-320dp-fonte150")
     device.shell("settings", "put", "system", "font_scale", "2.0")
     native_tests(device, "views-320dp-fonte200")
     device.shell("wm", "size", "1280x640")
     native_tests(device, "views-paisagem-fonte200")
 
 
+def run_sales(device):
+    device.start()
+    device.snapshot("menu-vendas")
+    if "Como se chama seu negócio?" in texts(device):
+        device.back()
+        device.snapshot("menu-apos-convite")
+    device.click("Vendas")
+    device.snapshot("lista-vendas")
+    edit_name(device, "ui Fotos")
+    device.click("Aplicar")
+    device.snapshot("pesquisa-vendas")
+    device.check("Pesquisa sem distinguir maiúsculas preservada", "UI Fotos" in texts(device) and "Pesquisa: ui Fotos" in texts(device))
+    device.click("Limpar Filtros")
+    device.snapshot("pesquisa-limpa")
+    device.click("A receber")
+    device.snapshot("filtro-receber")
+    device.check("Filtro A receber preservado", device.find("Todos").get("selected") == "true")
+    device.click("Limpar Filtros")
+    device.snapshot("filtro-limpo")
+    device.check("Limpar filtros preservado", device.find("A receber").get("selected") == "false")
+    ui.details(device)
+
+
+def stop_for_restore(device):
+    """Aguarda recuperação breve do serviço após falha de sistema, sem ocultar testes falhos."""
+    for attempt in range(6):
+        try:
+            device.shell("am", "force-stop", ui.PACKAGE)
+            return
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            if attempt == 5:
+                raise
+            ui.time.sleep(5)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--serial", required=True)
     parser.add_argument("--discard-only", action="store_true", help="Verifica rascunho/confirmar descarte sem gravar venda")
-    parser.add_argument("--views-only", action="store_true", help="Repete apenas os testes nativos nas três configurações")
+    parser.add_argument("--views-only", action="store_true", help="Repete apenas os testes nativos nas quatro configurações")
+    parser.add_argument("--sales-only", action="store_true", help="Confere filtros, toque no card e detalhes/fotos sem gravar")
     args = parser.parse_args()
-    ui.OUT = Path(".gradle-user/discard-v11" if args.discard_only else ".gradle-user/final-values-v11" if args.views_only else ".gradle-user/final-ui-v11")
+    ui.OUT = Path(".gradle-user/sales-v11" if args.sales_only else ".gradle-user/discard-v11" if args.discard_only else ".gradle-user/final-values-v11" if args.views_only else ".gradle-user/final-ui-v11")
     ui.OUT.mkdir(parents=True, exist_ok=True)
     device = Device(args.serial)
     device.shell("am", "force-stop", ui.PACKAGE)
@@ -148,7 +186,9 @@ if __name__ == "__main__":
         device.shell("wm", "density", "reset")
         device.shell("settings", "put", "system", "font_scale", "1.0")
         ui.time.sleep(5)
-        if args.discard_only:
+        if args.sales_only:
+            run_sales(device)
+        elif args.discard_only:
             run_discard(device)
         elif args.views_only:
             run_views(device)
@@ -158,7 +198,7 @@ if __name__ == "__main__":
         device.results.append({"cenario": "Execução completa", "passou": False, "erro": str(error)})
         raise
     finally:
-        device.shell("am", "force-stop", ui.PACKAGE)
+        stop_for_restore(device)
         remote = "/data/local/tmp/v11-original-identity.xml"
         device.adb("push", str(identity_file), remote)
         device.shell("run-as", ui.PACKAGE, "cp", remote, "shared_prefs/business_identity.xml")
