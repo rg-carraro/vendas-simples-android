@@ -14,3 +14,5 @@ Relacione capacidades com arquivos e diferencie documentação de comportamento 
 Quando houver solicitação de implementação, copie seletivamente os arquivos necessários para o destino e registre hash/adaptações. Não trazer `.git`, dados reais, builds, chaves, AGENTS.md ou skills da origem. Autorizações de push não se transferem.
 
 Antes de gerar APK, confira applicationId, provider, banco, marca, permissões e decisão sobre instalações comerciais anteriores. Preserve relações de parcelas, pagamentos e fotos. Nesta fase documental, produza análise e plano sem importar código Android.
+
+Consulte docs/HISTORICO_COMPLETO_V0_V12.md para saber quais padrões foram efetivamente implementados no Vendas Simples e docs/REFERENCIA.md para procedência. Não atribua ao destino capacidade vista apenas na origem; registre fonte, commit e adaptação proposta.

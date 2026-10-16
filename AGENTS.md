@@ -14,6 +14,14 @@
 - As autorizações de publicação e instruções de manutenção presentes na origem não são herdadas. Não copiar seus AGENTS.md ou skills como regras deste projeto.
 - Não trazer dados reais, bancos, fotos de clientes, endpoints, credenciais ou chaves de assinatura. Reutilização futura deve ser seletiva e rastreada.
 
+## Memória histórica e continuidade
+
+- Antes de alterar uma funcionalidade existente, consulte `docs/INDEX.md`, `docs/HISTORICO_COMPLETO_V0_V12.md`, `docs/DECISOES.md` e o histórico do arquivo (`git log --all --follow -- <arquivo>`); valide sempre o comportamento atual no código.
+- Diferencie `versionCode`/`versionName`, rótulos informais V0–V12, tags/commits, artefatos locais e releases da Play. Use `CONFIRMADO`, `INFERIDO` ou `NÃO COMPROVADO`; não preencha lacunas históricas nem afirme upload/ensaio manual sem evidência.
+- Para uma correção, consulte `docs/PROBLEMAS_E_SOLUCOES.md`; ao concluir, registre causa comprovada versus hipótese, solução e validação. Atualize o histórico temático afetado sem duplicar regras comerciais.
+- Para novo marco de produto, use `docs/CONTINUIDADE_CODEX.md`, atualize `docs/HISTORICO_VERSOES.md` quando identificadores estiverem comprovados e registre decisões duradouras em `docs/DECISOES.md`.
+- Antes de documentar ou commitar, confira `git worktree list`, branch/HEAD/status e arquivos não rastreados; preserve todas as árvores e artefatos existentes e faça staging seletivo.
+
 ## Desenvolvimento futuro
 
 - Use `docs/MVP.md` e `docs/BACKLOG.md` como proposta de trabalho; registre alterações de escopo e decisões confirmadas.
@@ -22,7 +30,7 @@
 - Trate valores monetários, arredondamento, vencimentos e agregações como regras explícitas. Não refatore tipos monetários/IDs sem analisar persistência e compatibilidade.
 - Mantenha identidade, armazenamento e configuração independentes do AleJoias. Não reintroduza integrações da master por cópia acidental.
 - Não prometa restauração, sincronização ou notificações confiáveis em segundo plano sem implementação e testes correspondentes.
-- Execute verificações proporcionais à mudança. Documentação: links, consistência e diff; aplicativo: build e cenários afetados em `docs/VALIDACAO.md`. Informe testes não executados.
+- Execute verificações proporcionais à mudança. Documentação: links, consistência, datas/evidências e diff; aplicativo: build e cenários afetados em `docs/VALIDACAO.md`. Informe testes não executados e não transfira aprovação de um commit/versão anterior.
 - Não publique, faça push ou configure distribuição por herança de autorização do repositório de referência.
 
 ## Skills locais

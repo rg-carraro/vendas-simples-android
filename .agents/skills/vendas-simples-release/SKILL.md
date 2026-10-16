@@ -16,3 +16,5 @@ Preço comercial informado pelo usuário não substitui ProductDetails; não
 fixar valor no aplicativo. Preparar não autoriza carregar artefato ou enviar
 release para análise. Registre origem das evidências e consulte a
 [regressão de release](../regressao-release/SKILL.md) para CSV e integração.
+
+Antes de preparar novo marco, consulte docs/HISTORICO_VERSOES.md, docs/HISTORICO_TESTES.md e docs/CONTINUIDADE_CODEX.md. Registre commit/tag, versionCode/name, AAB/hash/certificado e estado Play separadamente; atualize lacunas sem tratar artefato local como release publicada.

@@ -52,3 +52,6 @@ Esses padrões são candidatos à futura aplicação no AleJoias Vendas; a imple
 - Nome à esquerda e etiqueta no topo à direita; medir largura real incluindo padding. Nomes completos podem quebrar; empilhar a etiqueta alinhada à direita quando faltar espaço. Considerar a escala efetiva da fonte ao reservar largura legível para o nome, evitando colunas estreitas em fonte 200%.
 - Parcela/À Vista, compra/vencimento e Valor/Pago/Faltante em faixas compactas. Três colunas quando couberem, duas/uma com largura/fonte ampliada; somente o valor Faltante em negrito. Preservar data de pagamento, fotos e toque/opções existentes.
 - Conferir 320 dp, fontes 150%/200%, paisagem, nomes/valores elevados, sem corte/sobreposição. Padrão candidato ao AleJoias, adaptando cores, status, dados e funcionalidades próprios; não autoriza alterar a origem.
+
+## Histórico e continuidade
+Antes de mudar uma tela existente, consulte docs/INDEX.md, docs/EVOLUCAO_FUNCIONALIDADES.md e os commits relacionados; confirme no código atual quais comportamentos devem ser preservados. Registre testes e limitações em docs/HISTORICO_TESTES.md/relatório da versão. Padrão histórico não é prova de homologação no app ou na referência.

@@ -16,3 +16,5 @@ Na implementação, execute build com wrapper do destino e testes pertinentes. I
 Registre commit, ambiente, cenários, resultados e limitações. Verifique independência do AleJoias e compatibilidade pretendida com APK comercial anterior. Não confunda arquivo de backup com recuperação validada. Após os checks pertinentes passarem, amplie testes apenas por novas falhas ou alterações.
 
 Para navegação/layout, consulte [interface](../vendas-simples-interface/SKILL.md); para cópia e recuperação SQLite, consulte [backup](../vendas-simples-backup/SKILL.md). Não execute a ferramenta de UI contra aparelho real ou base com dados existentes.
+
+Consulte também docs/HISTORICO_TESTES.md para identificar a cobertura histórica e lacunas; repita no commit atual os checks exigidos pela mudança. Não reclassifique teste antigo, AndroidTest compilado ou relato do usuário como execução física própria.

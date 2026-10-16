@@ -12,3 +12,5 @@ Separe requisitos explícitos, fatos da comercial e propostas. Não marque hipó
 Para mudanças de escopo, registre problema, fluxo, aceite observável e dependências. Preserve IDs existentes. Pergunte apenas sobre decisões que alteram o resultado e avance na documentação independente das respostas.
 
 Confronte solicitações com o modelo local: nuvem, estoque, assinatura e restauração não se tornam disponíveis por reaproveitamento. Atualize documentos afetados sem duplicar regras. Informe hipóteses e decisões pendentes. Planejamento não implica implementação, publicação ou gastos.
+
+Para evoluir área existente, consulte docs/INDEX.md e o histórico temático antes de formular critérios; distinga decisão atual, registro histórico, fato do código e hipótese. Ao aprovar novo marco, use o modelo em docs/CONTINUIDADE_CODEX.md e atualize somente as decisões duradouras.

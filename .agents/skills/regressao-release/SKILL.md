@@ -51,3 +51,8 @@ Os padrões são candidatos à adaptação no AleJoias Vendas, preservando marca
 - Comparar classificadores, paleta, filtros e ordenação antes/depois. Testar cores/textos de QUITADO, VENCIDO, EM ABERTO e demais estados reais, incluindo parcial vencido e quitação após pagamentos. Não inferir status somente por vencimento.
 - Pagamentos em banco sintético isolado: ler parcelas/saldo antes e após parcial/quitação, renderizar cards e verificar que a apresentação não grava nem altera registros. Conferir nomes longos, valores altos, 320 dp, fontes 150%/200%, paisagem e valores completos.
 - Validar clique real no card/Ver detalhes, pesquisa, filtros e fotos; cancelar ações sem gravar na fixture operacional. Comparar banco/identidade e restaurar configurações do AVD ao finalizar.
+
+## Histórico e evidências
+- Antes de alterar uma regressão antiga, leia docs/INDEX.md, docs/HISTORICO_TESTES.md e docs/PROBLEMAS_E_SOLUCOES.md; consulte commits do arquivo e valide o código atual.
+- Registre versão/commit testado, PASSOU/FALHOU/NÃO EXECUTADO e limite da evidência. Unitário, compilação AndroidTest, runtime e Play Console são evidências distintas; não herde aprovação de versão anterior.
+- Ao confirmar causa/solução nova, atualize o relatório da versão e o catálogo de problemas. Use docs/CONTINUIDADE_CODEX.md para novos marcos.

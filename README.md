@@ -2,11 +2,13 @@
 
 Produto Android independente para controle local de vendas, parcelas e recebimentos.
 
-**Fase atual: integração e validação técnica da V12 (1.0.12), na branch `fix/v12-seguranca-conformidade`.** O repositório contém aplicativo, Gradle, testes locais e integração Google Play Billing. A V11 permanece como referência anterior; os resultados informados para versões anteriores não substituem a validação do candidato V12.
+**Estado registrado em 16/10/2026:** a branch isolada `integration/v12-master-validation` integra o commit `64344855` e tem regressão automatizada e AAB local V12 validados. A homologação física V12, conferência atual da Play Console/Data Safety e upload Alpha não estão comprovados. Isso não equivale a publicação nem aprovação de produção.
 
 A referência é a branch `comercial` de `alejoiasvendasapp`, fixada no commit `ce112c40c4f79368042555e451338b5f318077bd`. O repositório original é somente leitura e não será alterado.
 
 ## Documentação
+
+- [Índice central e memória histórica V0–V12](docs/INDEX.md): navegação por versão, assunto e continuidade Codex.
 
 - [Visão e escopo do MVP](docs/MVP.md): público proposto, fluxos, limites e critérios de aceite.
 - [Referência AleJoias](docs/REFERENCIA.md): evidências, procedência e limites da análise.
@@ -40,7 +42,7 @@ As skills ficam em `.agents/skills/`, com instruções locais versionadas:
 
 ## Próxima etapa
 
-Concluir a integração controlada com `origin/master`, executar a regressão da V12 e depois homologar a atualização em aparelho. Integração, AAB e distribuição ainda não foram concluídos; consulte os relatórios das [fases 7F–7G](docs/FASE7G_INTEGRACAO_MASTER_V12.md).
+Resolver as pendências de conformidade/Play Console e executar homologação física V11→V12 e API 24 antes de avaliar a faixa Alpha. Consulte [Fases 7H–7J](docs/INDEX.md#documentos-de-produto-e-implementação); nenhum upload foi feito nesta preparação.
 
 ## Marco V10 beta da Store
 
@@ -71,4 +73,4 @@ Correções técnicas posteriores: [Fase 4 — lint, compatibilidade e regressã
 
 ## V12 — integração e validação
 
-A branch de trabalho prepara `versionCode 12` / `versionName 1.0.12`. A integração com `origin/master` e a regressão posterior ainda estão pendentes; esta identificação não indica AAB gerado, envio Alpha ou publicação. Consulte os [commits locais da V12](docs/FASE7F_COMMITS_V12.md) e o [relatório de integração](docs/FASE7G_INTEGRACAO_MASTER_V12.md).
+A branch isolada `integration/v12-master-validation` prepara `versionCode 12` / `versionName 1.0.12`. A integração local, regressão automatizada e AAB assinado foram registrados nas Fases 7H/7I; o envio Alpha, homologação física V12, verificação atual da Console e publicação continuam pendentes. Consulte os [relatórios de integração e regressão](docs/FASE7H_INTEGRACAO_REGRESSAO_V12.md), [AAB](docs/FASE7I_AAB_V12.md) e [preparação Alpha](docs/FASE7J_PREPARACAO_ALPHA_V12.md). A criação de AAB local não comprova upload ou release Play.
