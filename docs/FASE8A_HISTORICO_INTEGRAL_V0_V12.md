@@ -87,7 +87,10 @@ Foram criados antes deste relatório, por staging seletivo:
 1. `775ce36023ba3ec3a317983dac31f9d3ea698625` — `docs: add V0-V12 project history archive` (históricos, índice e relatórios 7H–7J sanitizados).
 2. `832b9db2067ad01b2be9b11fe32519b3c6c3d2fe` — `docs: add historical continuity workflow` (AGENTS, README e skills).
 
-Este relatório é acrescentado como terceiro commit documental local. Os commits anteriores e o merge `64344855` são ancestrais preservados; nenhum commit histórico foi alterado. Os commits não foram enviados ao remoto.
+Este relatório foi acrescentado no terceiro commit documental local. A revisão histórica posterior (detalhamento do histórico versionCode e V10) foi registrada nos commits documentais locais quarto e quinto, descritos abaixo. Os commits anteriores e o merge `64344855` são ancestrais preservados; nenhum commit histórico foi alterado. Os commits não foram enviados ao remoto.
+
+4. `55b70399e645ff39183c7c95c01ec0531ee7b40f` — `docs: detail Android version and V10 history` (sequência versionCode, histórico funcional, qualidade e problemas V10).
+5. Este commit — `docs: update phase 8A history report` (registro desta revisão incremental; o hash está no histórico local da branch).
 
 ## 10. Auditoria de informações sensíveis
 
@@ -102,11 +105,11 @@ Nos documentos novos e relatórios 7H–7J foi feita varredura direcionada para 
 - Foram preservados o worktree raiz, `.codex/worktrees/privacy-policy-2026-10`, `.worktrees/privacy-policy-2026-10`, arquivos privados não rastreados, três relatórios G1–G3 e worktree integrado. Não houve reset, clean, checkout destrutivo ou descarte.
 - Nenhum arquivo de código funcional, versão ou AAB foi modificado. Nenhum build, upload, push ou publicação ocorreu nesta fase.
 
-Após o commit deste relatório, o worktree integrado fica limpo; o hash final está disponível no histórico Git da branch (não é repetido dentro do próprio commit). O estado não rastreado/preexistente do worktree raiz e os demais worktrees foram preservados e permaneceram fora dos commits desta fase.
+Após os commits documentais quarto e quinto, o worktree integrado fica limpo; os hashes finais estão disponíveis no histórico Git da branch. O estado não rastreado/preexistente do worktree raiz e os demais worktrees foram preservados e permaneceram fora dos commits desta fase.
 
 ## 12. Plano para GitHub — pendente de autorização
 
-1. Revisar os três commits documentais e o diff final na branch `integration/v12-master-validation`.
+1. Revisar os cinco commits documentais e o diff final na branch `integration/v12-master-validation`.
 2. Confirmar com o responsável se essa branch é a fonte escolhida para PR e comparar o estado do remoto no momento futuro; esta consolidação não consultou nem modificou GitHub.
 3. Com autorização explícita separada, enviar somente a branch/documentação revisada e abrir PR para o destino definido pelo responsável. Não atualizar `master` diretamente.
 4. Depois do push, validar no GitHub links relativos, renderização de tabelas/acentos e presença dos documentos. Não publicar no Google Play como consequência do PR.
