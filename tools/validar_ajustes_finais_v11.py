@@ -13,11 +13,28 @@ import validar_ui_build10 as ui
 from validar_financeiro_v11 import Device, bounds, texts
 
 
+class ReleaseDevice(Device):
+    def snapshot(self, name):
+        super().snapshot(name)
+        # Aviso observado no AVD; nunca dispensar ANR do aplicativo sob teste.
+        for attempt in range(3):
+            if "Messages isn't responding" not in texts(self):
+                return self.nodes
+            self.click("Wait")
+            ui.time.sleep(2)
+            super().snapshot(name + f"-messages-wait-{attempt}")
+        if "Messages isn't responding" in texts(self):
+            raise RuntimeError("Messages do AVD continua sem responder; execução não aprovada")
+        return self.nodes
+
+
 def native_tests(device, label):
     output = subprocess.check_output(device.prefix + ["shell", "am", "instrument", "-w", "-e", "phase", "final-ui",
         "com.vendassimples.app.test/com.example.controlevendas.BackupInstrumentationRunner"], timeout=180).decode("utf-8", errors="replace")
     (ui.OUT / (label + ".log")).write_text(output, encoding="utf-8")
-    device.check(label, "OK (11 tests)" in output and "FAILURES" not in output)
+    source = Path("app/src/androidTest/java/com/example/controlevendas/FinalUiInstrumentedTests.kt").read_text(encoding="utf-8")
+    count = len(re.findall(r"fun test\w+\(", source))
+    device.check(label, f"OK ({count} tests)" in output and "FAILURES" not in output)
 
 
 def edit_name(device, value):
@@ -151,6 +168,40 @@ def run_sales(device):
     ui.details(device)
 
 
+def run_privacy(device):
+    wifi = device.shell("settings", "get", "global", "wifi_on").strip()
+    mobile = device.shell("settings", "get", "global", "mobile_data").strip()
+    try:
+        device.shell("svc", "wifi", "disable")
+        device.shell("svc", "data", "disable")
+        offline = False
+        for _ in range(10):
+            offline = device.shell("settings", "get", "global", "wifi_on").strip() == "0" and device.shell("settings", "get", "global", "mobile_data").strip() == "0"
+            if offline:
+                break
+            ui.time.sleep(1)
+        device.check("Wi-Fi e dados móveis desativados", offline)
+        device.start()
+        device.snapshot("menu-privacidade")
+        if "Como se chama seu negócio?" in texts(device):
+            device.back()
+            device.snapshot("menu-apos-convite")
+        device.click("Mais opções", "content-desc")
+        device.snapshot("opcao-privacidade")
+        device.check("Política no menu independente da licença", "Política de Privacidade" in texts(device))
+        device.click("Política de Privacidade")
+        device.snapshot("politica-local")
+        device.check("Texto local de privacidade acessível", any("Exclusão e retenção" in t and "Google Play Billing" in t for t in texts(device)))
+        device.check("Abrir site disponível", any(t.casefold() == "abrir site" for t in texts(device)))
+        device.click("Fechar")
+        device.snapshot("retorno-da-politica")
+        device.check("Fechar preserva navegação", "Seu controle de vendas" in texts(device) and "Nova" in texts(device))
+    finally:
+        device.shell("svc", "wifi", "enable" if wifi == "1" else "disable")
+        device.shell("svc", "data", "enable" if mobile == "1" else "disable")
+
+
+
 def stop_for_restore(device):
     """Aguarda recuperação breve do serviço após falha de sistema, sem ocultar testes falhos."""
     for attempt in range(6):
@@ -169,10 +220,14 @@ if __name__ == "__main__":
     parser.add_argument("--discard-only", action="store_true", help="Verifica rascunho/confirmar descarte sem gravar venda")
     parser.add_argument("--views-only", action="store_true", help="Repete apenas os testes nativos nas quatro configurações")
     parser.add_argument("--sales-only", action="store_true", help="Confere filtros, toque no card e detalhes/fotos sem gravar")
+    parser.add_argument("--privacy-only", action="store_true")
+    parser.add_argument("--output-dir")
     args = parser.parse_args()
     ui.OUT = Path(".gradle-user/sales-v11" if args.sales_only else ".gradle-user/discard-v11" if args.discard_only else ".gradle-user/final-values-v11" if args.views_only else ".gradle-user/final-ui-v11")
+    if args.output_dir:
+        ui.OUT = Path(args.output_dir)
     ui.OUT.mkdir(parents=True, exist_ok=True)
-    device = Device(args.serial)
+    device = ReleaseDevice(args.serial)
     device.shell("am", "force-stop", ui.PACKAGE)
     baseline = device.adb("exec-out", "run-as", ui.PACKAGE, "cat", "databases/vendas_simples.db")
     identity = device.adb("exec-out", "run-as", ui.PACKAGE, "cat", "shared_prefs/business_identity.xml")
@@ -186,7 +241,9 @@ if __name__ == "__main__":
         device.shell("wm", "density", "reset")
         device.shell("settings", "put", "system", "font_scale", "1.0")
         ui.time.sleep(5)
-        if args.sales_only:
+        if args.privacy_only:
+            run_privacy(device)
+        elif args.sales_only:
             run_sales(device)
         elif args.discard_only:
             run_discard(device)

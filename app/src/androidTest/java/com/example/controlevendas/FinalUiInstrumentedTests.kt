@@ -35,6 +35,58 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
 
     private fun field(name: String) = MainActivity::class.java.getDeclaredField(name).apply { isAccessible = true }
     private fun call(name: String) = MainActivity::class.java.getDeclaredMethod(name).apply { isAccessible = true }.invoke(activity)
+
+    fun testReportCallbackAndNotificationPermission() = instrumentation.runOnMainSync {
+        var completed = false
+        val callback: () -> Unit = { completed = true }
+        MainActivity::class.java.getDeclaredMethod("carregarRelatorio", Function0::class.java)
+            .apply { isAccessible = true }.invoke(activity, callback)
+        check(completed)
+        check((field("statusText").get(activity) as TextView).text.startsWith("Dados locais"))
+        val cache = field("vendasCache")
+        val previousSales = cache.get(activity)
+        val manager = activity.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        try {
+            manager.cancel(2026)
+            val due = VendaRelatorio(1.0, nome_cliente = "Cliente sintético", data_vencimento = "2000-01-01",
+                valor_total = 10000, total_pago = 2500, saldo = 7500)
+            cache.set(activity, listOf(due))
+            call("atualizarAvisosSemInterromperTela")
+            val allowed = android.os.Build.VERSION.SDK_INT < 33 ||
+                activity.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            val deadline = android.os.SystemClock.elapsedRealtime() + 2000
+            while (allowed && manager.activeNotifications.none { it.id == 2026 } && android.os.SystemClock.elapsedRealtime() < deadline) {
+                android.os.SystemClock.sleep(25)
+            }
+            check(manager.activeNotifications.any { it.id == 2026 } == allowed)
+            manager.cancel(2026)
+            cache.set(activity, listOf(due.copy(total_pago = 10000, saldo = 0)))
+            call("atualizarAvisosSemInterromperTela")
+            check(manager.activeNotifications.none { it.id == 2026 })
+        } finally {
+            cache.set(activity, previousSales)
+            manager.cancel(2026)
+        }
+    }
+
+    fun testPrivacyPolicyFreeFullAndUnavailableOffline() = instrumentation.runOnMainSync {
+        val repository = field("billingEntitlement").get(activity) as BillingEntitlementRepository
+        val original = repository.billingState
+        try {
+            for (state in listOf(EntitlementState.FREE_WITHIN_LIMIT, EntitlementState.FULL_ACCESS, EntitlementState.UNAVAILABLE)) {
+                repository.billingState = state
+                val dialog = call("abrirPoliticaPrivacidade") as android.app.AlertDialog
+                try {
+                    check(dialog.isShowing)
+                    val texts = descendants(dialog.window!!.decorView).filterIsInstance<TextView>().joinToString("\n") { it.text }
+                    check(texts.contains("Política de Privacidade") && texts.contains("Exclusão e retenção"))
+                    check(texts.contains("não possui criptografia própria") && texts.contains("Google Play Billing"))
+                    check(dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).isEnabled)
+                    check(dialog.getButton(android.app.AlertDialog.BUTTON_NEUTRAL).isEnabled)
+                } finally { dialog.dismiss() }
+            }
+        } finally { repository.billingState = original }
+    }
     private fun descendants(view: View): List<View> = listOf(view) +
         if (view is ViewGroup) (0 until view.childCount).flatMap { descendants(view.getChildAt(it)) } else emptyList()
 

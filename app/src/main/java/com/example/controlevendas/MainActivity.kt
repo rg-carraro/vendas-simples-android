@@ -5,6 +5,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
@@ -76,6 +79,11 @@ class MainActivity : AppCompatActivity() {
     private var listaFotosRascunho: LinearLayout? = null
     private var arquivoCamera: File? = null
 
+    private val permitirAvisos = registerForActivityResult(ActivityResultContracts.RequestPermission()) { autorizado ->
+        if (autorizado) atualizarAvisosSemInterromperTela()
+        else Toast.makeText(this, "Avisos desativados. Seus dados continuam disponíveis.", Toast.LENGTH_LONG).show()
+    }
+
     private val selecionarFotos = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         if (listaFotosRascunho != null) {
             uris.forEach { adicionarFotoRascunho(it) }
@@ -92,11 +100,11 @@ class MainActivity : AppCompatActivity() {
     private val criarArquivoBackup = registerForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         if (uri == null) return@registerForActivityResult
         backupManager.createBackup(uri, localDb, entitlementRepository.currentState(localDb.totalVendas())).onSuccess { Toast.makeText(this, "Backup realizado com sucesso.", Toast.LENGTH_LONG).show() }
-            .onFailure { Toast.makeText(this, "Não foi possível realizar o backup: ${it.message}", Toast.LENGTH_LONG).show() }
+            .onFailure { Toast.makeText(this, mensagemFalhaBackup(it), Toast.LENGTH_LONG).show() }
     }
     private val abrirArquivoBackup = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@registerForActivityResult
-        backupManager.validate(uri).onFailure { Toast.makeText(this, "Backup inválido ou incompatível.", Toast.LENGTH_LONG).show(); return@registerForActivityResult }
+        backupManager.validate(uri).onFailure { Toast.makeText(this, mensagemFalhaBackup(it), Toast.LENGTH_LONG).show(); return@registerForActivityResult }
         AlertDialog.Builder(this).setTitle("Restaurar backup")
             .setMessage("Restaurar este backup substituirá os dados atuais do Vendas Simples. Deseja continuar?")
             .setNegativeButton("Cancelar", null).setPositiveButton("Restaurar") { _, _ ->
@@ -113,7 +121,7 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         localDb = LocalDatabase(this)
                         atualizarCabecalhoNegocio()
-                        Toast.makeText(this, "A restauração não foi realizada.", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, mensagemFalhaBackup(it), Toast.LENGTH_LONG).show()
                     }
                 }
             }.show()
@@ -307,6 +315,17 @@ class MainActivity : AppCompatActivity() {
                         abrirConfiguracaoNegocio()
                         true
                     }
+                    menu.add("Política de Privacidade").setOnMenuItemClickListener {
+                        abrirPoliticaPrivacidade()
+                        true
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                        menu.add("Ativar avisos de vencimento").setOnMenuItemClickListener {
+                            permitirAvisos.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            true
+                        }
+                    }
                     menu.add("Exportar CSV").setOnMenuItemClickListener {
                         exportarCsvResumo(vendasCache, "vendas_simples.csv")
                         true
@@ -410,6 +429,37 @@ class MainActivity : AppCompatActivity() {
         linha2.addView(botaoQuadrado("Clientes", "Histórico", 1f) { abrirResumoClientes() })
         content.addView(linha2)
 
+    }
+
+    private fun mensagemFalhaBackup(failure: Throwable): String =
+        if (failure is BackupRejected) failure.message.orEmpty()
+        else "Não foi possível concluir o backup. Verifique o arquivo, o acesso e o espaço disponível. Seus dados atuais foram preservados."
+
+    private fun abrirPoliticaPrivacidade(): AlertDialog? {
+        return try {
+            val html = assets.open("privacy_policy.html").bufferedReader(Charsets.UTF_8).use { it.readText() }
+            val policy = texto(android.text.Html.fromHtml(html, android.text.Html.FROM_HTML_MODE_LEGACY).toString(), 14f, false).apply {
+                setPadding(dp(20), dp(8), dp(20), dp(8))
+                setTextIsSelectable(true)
+            }
+            AlertDialog.Builder(this).setTitle("Política de Privacidade")
+                .setView(ScrollView(this).apply { addView(policy) })
+                .setPositiveButton("Fechar", null)
+                .setNeutralButton("Abrir site", null).create().apply {
+                    setOnShowListener {
+                        getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
+                            val opened = PrivacyPolicy.openWeb(PrivacyPolicy.officialUrl) { url ->
+                                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addCategory(Intent.CATEGORY_BROWSABLE))
+                            }
+                            if (!opened) Toast.makeText(this@MainActivity, "Não foi possível abrir o navegador. A política continua disponível nesta tela.", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                    show()
+                }
+        } catch (_: Exception) {
+            Toast.makeText(this, "Não foi possível abrir a política de privacidade. Tente novamente.", Toast.LENGTH_LONG).show()
+            null
+        }
     }
 
     private fun atualizarCabecalhoNegocio() {
@@ -680,13 +730,13 @@ class MainActivity : AppCompatActivity() {
             }
             textSize = 11f
             typeface = Typeface.DEFAULT_BOLD
-                setTextColor(
-                    when {
-                        quitado -> corPrimariaEscura
-                        vencido -> Color.rgb(153, 55, 47)
-                        venda.total_pago > 0L -> corStatusParcialTexto
-                        else -> corStatusAbertoTexto
-                    }
+            setTextColor(
+                when {
+                    quitado -> corPrimariaEscura
+                    vencido -> Color.rgb(153, 55, 47)
+                    venda.total_pago > 0L -> corStatusParcialTexto
+                    else -> corStatusAbertoTexto
+                }
             )
             gravity = Gravity.CENTER
             setPadding(dp(10), dp(4), dp(10), dp(4))
@@ -1467,7 +1517,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
             Toast.makeText(this, "Backup SQLite salvo.", Toast.LENGTH_SHORT).show()
             destino
         } catch (e: Exception) {
-            Toast.makeText(this, "Erro ao fazer backup: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, mensagemFalhaBackup(e), Toast.LENGTH_LONG).show()
             null
         }
     }
@@ -1483,7 +1533,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
             }
             startActivity(Intent.createChooser(intent, "Compartilhar backup SQLite"))
         } catch (e: Exception) {
-            Toast.makeText(this, "Erro ao compartilhar backup: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, mensagemFalhaBackup(e), Toast.LENGTH_LONG).show()
         }
     }
 
@@ -2231,6 +2281,9 @@ private fun criarCanalNotificacoes() {
     }
 
     private fun notificarVencimentos() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
+
         val vencidas = vendasCache.filter { estaVencida(it) }
         val vencendoHoje = vendasCache.filter {
             (it.data_vencimento ?: "") == hoje && it.saldo > 0L
@@ -2267,12 +2320,17 @@ private fun criarCanalNotificacoes() {
 
 
 
+    private fun atualizarAvisosSemInterromperTela() {
+        try { notificarVencimentos() }
+        catch (_: Exception) { Log.w("VendasSimples", "Não foi possível emitir o aviso de vencimentos.") }
+    }
+
     private fun carregarRelatorio(aoFinalizar: (() -> Unit)? = null) {
         try {
             statusText.text = "Carregando Dados Do SQLite..."
             vendasCache = localDb.getRelatorio()
             statusText.text = "Dados locais | ${vendasCache.size} cards"
-            notificarVencimentos()
+            atualizarAvisosSemInterromperTela()
             aoFinalizar?.invoke()
         } catch (e: Exception) {
             statusText.text = "Erro No Banco Local: ${e.message}"
