@@ -6,12 +6,14 @@ Instala APK debug e APK de testes; não compra licença nem altera dados operaci
 import argparse
 from pathlib import Path
 import subprocess
+import re
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--adb", default="adb")
     parser.add_argument("--serial", required=True)
+    parser.add_argument("--output-dir", default=".gradle-user/v11-backup-tests")
     args = parser.parse_args()
     if not args.serial.startswith("emulator-"):
         raise RuntimeError("Recusa aparelho real")
@@ -30,7 +32,7 @@ def main():
             raise RuntimeError("Falha ao instalar " + apk)
     package = "com.vendassimples.app"
     adb("shell", "run-as", package, "id")
-    out = Path(".gradle-user/v11-backup-tests")
+    out = Path(args.output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
     def operational_hash():
@@ -48,7 +50,9 @@ def main():
             arguments += ["-e", "phase", "restart"]
         result = adb(*arguments, component, timeout=240)
         (out / (phase + ".txt")).write_text(result, encoding="utf-8")
-        expected = "OK (11 tests)" if phase == "main" else "OK (1 tests)"
+        source = Path("app/src/androidTest/java/com/example/controlevendas/BackupInstrumentedTests.kt").read_text(encoding="utf-8")
+        count = len(re.findall(r"fun test\w+\(", source)) - 1
+        expected = f"OK ({count} tests)" if phase == "main" else "OK (1 tests)"
         if expected not in result or "FAILURES!!!" in result or "INSTRUMENTATION_FAILED" in result:
             raise RuntimeError(result)
         print(phase + ": " + expected)
