@@ -21,6 +21,8 @@ Use `CONFIRMADO` para fato sustentado por Git/arquivo/relatório identificado, o
 
 V1–V9 são rótulos incompletamente registrados; não devem ser transformados em releases imaginárias. V10 e V11 têm marcos explícitos; V12 tem artefato local validado, mas não publicação comprovada. Detalhes: [correspondência de versões](HISTORICO_VERSOES.md).
 
+O marco V10 também trouxe refinamentos de navegação e interface compacta, controle de diálogos e tratamento para não iniciar compra quando faltassem produto, preço dinâmico ou conexão válida. O histórico registra oito testes unitários, builds debug/release e checks de UI em AVD; a rodada final com fonte ampliada encontrou ANR e ficou pendente, portanto os resultados anteriores não aprovam o layout final. Consulte [histórico de testes](HISTORICO_TESTES.md) e o relatório V10.
+
 ## Evolução técnica e funcional
 
 - **Persistência:** começou em `SQLiteOpenHelper` com tabelas de clientes, vendas e pagamentos, relações de parcelas e tabelas de fotos. A migração `DB_VERSION 3` acrescentou colunas monetárias em centavos, sem abandonar as colunas/compatibilidade existentes. Preferência de nome do negócio permanece fora do schema financeiro.
