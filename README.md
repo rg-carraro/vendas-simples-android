@@ -2,7 +2,7 @@
 
 Produto Android independente para controle local de vendas, parcelas e recebimentos.
 
-**Fase atual: desenvolvimento Android e preparação da versão 11 (1.0.11), solicitada em 11/10/2026.** O repositório contém aplicativo, Gradle, testes locais e integração Google Play Billing. O usuário informou 19 cenários aprovados no Alpha; essa informação não substitui a validação das alterações atuais.
+**Fase atual: integração e validação técnica da V12 (1.0.12), na branch `fix/v12-seguranca-conformidade`.** O repositório contém aplicativo, Gradle, testes locais e integração Google Play Billing. A V11 permanece como referência anterior; os resultados informados para versões anteriores não substituem a validação do candidato V12.
 
 A referência é a branch `comercial` de `alejoiasvendasapp`, fixada no commit `ce112c40c4f79368042555e451338b5f318077bd`. O repositório original é somente leitura e não será alterado.
 
@@ -40,7 +40,7 @@ As skills ficam em `.agents/skills/`, com instruções locais versionadas:
 
 ## Próxima etapa
 
-Validar as melhorias de UI/UX e Billing em atualização pela Play. Usar `gradlew.bat testDebugUnitTest assembleDebug bundleRelease` com JDK/SDK e assinatura locais configurados. Consulte [relatório da atualização](docs/ATUALIZACAO_ALPHA_UI_BILLING.md).
+Concluir a integração controlada com `origin/master`, executar a regressão da V12 e depois homologar a atualização em aparelho. Integração, AAB e distribuição ainda não foram concluídos; consulte os relatórios das [fases 7F–7G](docs/FASE7G_INTEGRACAO_MASTER_V12.md).
 
 ## Marco V10 beta da Store
 
@@ -60,3 +60,15 @@ O backup completo FULL_ACCESS inclui o nome no mesmo arquivo SQLite. Backups ant
 Copie `.agents/skills/` para o repositório que utilizará o Codex (ou adapte à estrutura de skills já adotada no projeto). Leia `docs/GUIA_MIGRACAO_ALEJOIAS.md` antes de portar melhorias ao AleJoias.
 
 Este pacote registra decisões e evidências relatadas em conversa, não uma auditoria do código atual. Não substitui AGENTS.md, relatórios de release nem homologação real.
+
+## Fase 2 — segurança e conformidade
+
+Correções em desenvolvimento na branch fix/v12-seguranca-conformidade, sem modificar o artefato Alpha V11. Consulte [relatório técnico e homologação](docs/FASE2_SEGURANCA_CONFORMIDADE.md) e [investigação de Segurança dos dados/Billing](docs/SEGURANCA_DADOS_PLAY.md). Não representa nova publicação nem incremento de versão.
+
+Revisão posterior: [Fase 3 — revisão final e plano de homologação/V12](docs/FASE3_REVISAO_HOMOLOGACAO.md), com análise de lint, política pública, rastreabilidade e critérios para a futura candidata. Não autoriza publicação.
+
+Correções técnicas posteriores: [Fase 4 — lint, compatibilidade e regressão](docs/FASE4_CORRECOES_TECNICAS.md). Versão de trabalho preservada em 11/1.0.11, sem nova publicação.
+
+## V12 — integração e validação
+
+A branch de trabalho prepara `versionCode 12` / `versionName 1.0.12`. A integração com `origin/master` e a regressão posterior ainda estão pendentes; esta identificação não indica AAB gerado, envio Alpha ou publicação. Consulte os [commits locais da V12](docs/FASE7F_COMMITS_V12.md) e o [relatório de integração](docs/FASE7G_INTEGRACAO_MASTER_V12.md).
