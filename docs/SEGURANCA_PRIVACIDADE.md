@@ -25,3 +25,7 @@ A restauração copia e valida uma única leitura do provedor antes de substitui
 O conteúdo inclui pagamentos e fotos/BLOBs, mas nunca concede ou altera `FULL_ACCESS`. Somente nome e sinal de convite inicial são tratados na recuperação da preferência; nenhum estado Billing é importado. Backup antigo, nome vazio ou nulo preservam o nome atualmente configurado. Criação e restauração verificam FULL_ACCESS também dentro do gerenciador; personalização permanece disponível no FREE.
 
 Versões futuras devem manter o formato identificável e adicionar migradores explícitos por combinação de `format_version` e `schema_version`, sem aceitar silenciosamente versões desconhecidas.
+
+## Fase 2 em desenvolvimento — 15/10/2026
+
+Na branch fix/v12-seguranca-conformidade, a restauração passa a rejeitar objetos SQLite não permitidos e registros incompatíveis antes da troca. Formatos 1/2 e schema 3 permanecem; veja limites e exceções de compatibilidade no [relatório da Fase 2](FASE2_SEGURANCA_CONFORMIDADE.md). A política recebe acesso gratuito offline e URL pública verificada. A [investigação do Billing](SEGURANCA_DADOS_PLAY.md) mantém as declarações externas pendentes. Essas alterações não estão no AAB Alpha V11 preservado e não comprovam aprovação para produção.
