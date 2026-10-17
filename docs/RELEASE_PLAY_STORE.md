@@ -27,3 +27,7 @@ com a label `v10-beta-store`. Nesta revisão não alterar código. A autorizaç�
 não inclui upload ou mudança no Play Console. O histórico Alpha é preservado;
 a identificação beta vem do usuário, sem verificação do Console.
 Ver [marco V10](MARCO_V10_BETA_STORE.md).
+
+## Versão 11 — 11/10/2026
+
+Preparação solicitada de versionCode 11 / versionName 1.0.11. Consulte [relatório e checklist da versão 11](RELEASE_V11.md). Resultados da V10 não homologam esta versão. Upload na Play Console e validação manual permanecem separados da geração do bundle.

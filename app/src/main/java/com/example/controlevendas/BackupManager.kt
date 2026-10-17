@@ -1,67 +1,120 @@
 package com.example.controlevendas
 
+import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.database.sqlite.SQLiteDatabase
 import java.io.File
 import java.io.FileOutputStream
 
-/** Backup local versionado por schema; não contém nem determina entitlement. */
-class BackupManager(private val context: Context) {
+/** SQLite financeiro preservado; formato 2 adiciona apenas identidade nos metadados. */
+class BackupManager internal constructor(
+    private val context: Context,
+    private val transfer: BackupTransfer,
+    private val readSource: (Uri) -> java.io.InputStream?,
+    private val freeBytes: (File) -> Long
+) {
+    constructor(context: Context) : this(context, BackupTransfer(),
+        { context.contentResolver.openInputStream(it) }, { it.usableSpace })
     companion object {
-        const val FORMAT_VERSION = 1
+        const val FORMAT_VERSION = 2
         const val FILE_PREFIX = "VendasSimples_Backup_"
         const val METADATA_TABLE = "VENDAS_SIMPLES_BACKUP_METADATA"
         const val SCHEMA_VERSION = 3
     }
-    fun createBackup(destination: Uri, database: LocalDatabase): Result<Unit> = runCatching {
-        val db = database.writableDatabase
-        db.rawQuery("PRAGMA wal_checkpoint(FULL)", null).use { it.moveToFirst() }
-        db.execSQL("PRAGMA foreign_keys=ON")
+    private fun transaction() = RestoreTransaction(
+        File(context.filesDir, "restore_transaction"),
+        context.getDatabasePath(LocalDatabase.DB_NAME), BusinessPreferences(context)
+    )
+    fun recoverPendingRestore(): Result<Unit> = runCatching { transaction().recover() }
+
+    fun createBackup(destination: Uri, database: LocalDatabase, entitlement: EntitlementState): Result<Unit> = runCatching {
+        requireFullAccess(entitlement)
+        checkpoint(database.writableDatabase)
         val source = context.getDatabasePath(LocalDatabase.DB_NAME)
+        transfer.requireSize(source.length())
+        transfer.requireSpace(freeBytes(context.cacheDir), source.length())
         val staged = File.createTempFile("vendas_backup_", ".db", context.cacheDir)
         try {
-            source.copyTo(staged, true)
+            context.getDatabasePath(LocalDatabase.DB_NAME).copyTo(staged, true)
             SQLiteDatabase.openDatabase(staged.path, null, SQLiteDatabase.OPEN_READWRITE).use { copy ->
-                copy.execSQL("CREATE TABLE IF NOT EXISTS $METADATA_TABLE (format_version INTEGER NOT NULL, schema_version INTEGER NOT NULL)")
-                copy.execSQL("DELETE FROM $METADATA_TABLE")
-                copy.execSQL("INSERT INTO $METADATA_TABLE VALUES (?, ?)", arrayOf(FORMAT_VERSION, SCHEMA_VERSION))
-                copy.rawQuery("PRAGMA integrity_check", null).use { it.moveToFirst() }
+                copy.beginTransaction()
+                try {
+                    copy.execSQL("DROP TABLE IF EXISTS $METADATA_TABLE")
+                    copy.execSQL("CREATE TABLE $METADATA_TABLE (format_version INTEGER NOT NULL, schema_version INTEGER NOT NULL, business_name TEXT)")
+                    val values = ContentValues().apply {
+                        put("format_version", FORMAT_VERSION)
+                        put("schema_version", SCHEMA_VERSION)
+                        put("business_name", BusinessPreferences(context).businessName)
+                    }
+                    copy.insertOrThrow(METADATA_TABLE, null, values)
+                    copy.setTransactionSuccessful()
+                } finally { copy.endTransaction() }
+                integrityCheck(copy)
+                checkpoint(copy)
             }
-            context.contentResolver.openOutputStream(destination)?.use { out -> staged.inputStream().use { it.copyTo(out) } }
-                ?: error("Não foi possível abrir o destino")
-        } finally { staged.delete() }
+            validateFile(staged)
+            transfer.requireSize(staged.length())
+            context.contentResolver.openOutputStream(destination, "wt")?.use { out ->
+                staged.inputStream().use { it.copyTo(out) }
+            } ?: error("Não foi possível abrir o destino")
+        } finally { removeTemporary(staged) }
     }
+
     fun validate(source: Uri): Result<Unit> = runCatching {
-        val temp = File.createTempFile("vendas_restore_", ".db", context.cacheDir)
-        try {
-            context.contentResolver.openInputStream(source)?.use { input -> FileOutputStream(temp).use { input.copyTo(it) } } ?: error("Arquivo inacessível")
-            SQLiteDatabase.openDatabase(temp.path, null, SQLiteDatabase.OPEN_READONLY).use { db ->
-                val required = setOf("CLIENTES", "VENDAS", "PAGAMENTOS", "FOTOS_VENDA")
-                val found = mutableSetOf<String>()
-                db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null).use { c -> while (c.moveToNext()) found += c.getString(0) }
-                require(found.containsAll(required) && METADATA_TABLE in found) { "Backup Vendas Simples incompatível" }
-                db.rawQuery("SELECT format_version, schema_version FROM $METADATA_TABLE LIMIT 1", null).use { c ->
-                    require(c.moveToFirst() && c.getInt(0) == FORMAT_VERSION && c.getInt(1) == SCHEMA_VERSION) { "Versão de backup incompatível" }
-                }
-                db.rawQuery("PRAGMA integrity_check", null).use { c -> require(c.moveToFirst() && c.getString(0) == "ok") { "Integridade SQLite inválida" } }
-            }
-        } finally { temp.delete() }
+        val temp = File.createTempFile("vendas_validate_", ".db", context.cacheDir)
+        try { copySource(source, temp); validateFile(temp); Unit }
+        finally { removeTemporary(temp) }
     }
-    fun restore(source: Uri, database: LocalDatabase): Result<Unit> = runCatching {
-        validate(source).getOrThrow()
+
+    private fun validateFile(file: File): String? {
+        return SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READONLY).use {
+            BackupValidator(context).validate(it)
+        }
+    }
+
+    fun restore(source: Uri, database: LocalDatabase, entitlement: EntitlementState): Result<Unit> = runCatching {
+        requireFullAccess(entitlement)
         val current = context.getDatabasePath(LocalDatabase.DB_NAME)
-        val rollback = File.createTempFile("vendas_rollback_", ".db", context.cacheDir)
-        val incoming = File.createTempFile("vendas_incoming_", ".db", context.cacheDir)
+        database.writableDatabase
+        val incoming = File.createTempFile("vendas_incoming_", ".db", current.parentFile)
         try {
+            copySource(source, incoming)
+            val restoredName = validateFile(incoming)
+            transfer.requireSpace(freeBytes(current.parentFile!!), Math.multiplyExact(current.length(), 2))
+            checkpoint(database.writableDatabase)
             database.close()
-            current.copyTo(rollback, true)
             File(current.path + "-wal").delete()
             File(current.path + "-shm").delete()
-            context.contentResolver.openInputStream(source)?.use { input -> FileOutputStream(incoming).use { input.copyTo(it) } } ?: error("Arquivo inacessível")
-            if (!current.delete()) error("Não foi possível preparar a substituição do banco")
-            if (!incoming.renameTo(current)) error("Não foi possível substituir o banco")
-        } catch (e: Exception) { if (rollback.exists()) rollback.copyTo(current, true); throw e }
-        finally { rollback.delete(); incoming.delete() }
+            transaction().replace(incoming, restoredName)
+        } finally { removeTemporary(incoming) }
+    }
+
+    private fun requireFullAccess(state: EntitlementState) {
+        require(state == EntitlementState.FULL_ACCESS) { "Backup e restauração exigem Licença Completa" }
+    }
+    private fun checkpoint(db: SQLiteDatabase) {
+        db.rawQuery("PRAGMA wal_checkpoint(FULL)", null).use { c ->
+            require(c.moveToFirst() && c.getInt(0) == 0) { "Banco ocupado; tente novamente" }
+        }
+    }
+    private fun integrityCheck(db: SQLiteDatabase) {
+        db.rawQuery("PRAGMA integrity_check", null).use { c ->
+            require(c.count == 1 && c.moveToFirst() && c.getString(0) == "ok") { "Integridade SQLite inválida" }
+        }
+    }
+    private fun copySource(source: Uri, target: File) {
+        readSource(source)?.use { input ->
+            FileOutputStream(target).use { output ->
+                transfer.copy(input, output) { freeBytes(target.parentFile!!) }
+                output.fd.sync()
+            }
+        } ?: error("Arquivo inacessível")
+    }
+    private fun removeTemporary(file: File) {
+        file.delete()
+        File(file.path + "-wal").delete()
+        File(file.path + "-shm").delete()
+        File(file.path + "-journal").delete()
     }
 }

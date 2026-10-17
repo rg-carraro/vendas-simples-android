@@ -30,3 +30,5 @@ Teste seleção/cancelamento, destino indisponível, arquivo inválido/versão
 incompatível, backup com fotos e restauração com preservação da base anterior
 em falha. Inspeção de arquivo não equivale a restauração homologada; registre
 limites de interrupção, migração e reinício. Nunca use dados reais nos testes.
+
+Antes de alterar formatos ou recuperação, leia docs/EVOLUCAO_ARQUITETURA.md, docs/HISTORICO_SEGURANCA.md e docs/PROBLEMAS_E_SOLUCOES.md, além das decisões atuais. Consulte commits/migrações reais e registre resultado por versão; compatibilidade histórica não prova runtime no build atual.

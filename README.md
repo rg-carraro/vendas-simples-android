@@ -2,14 +2,17 @@
 
 Produto Android independente para controle local de vendas, parcelas e recebimentos.
 
-**Fase atual: desenvolvimento Android e versão V10 do teste beta da Store, identificada pelo usuário em 10/10/2026.** O repositório contém aplicativo, Gradle, testes locais e integração Google Play Billing. O usuário informou 19 cenários aprovados no Alpha; essa informação não substitui a validação das alterações atuais.
+**Estado registrado em 16/10/2026:** a branch isolada `integration/v12-master-validation` integra o commit `64344855` e tem regressão automatizada e AAB local V12 validados. A homologação física V12, conferência atual da Play Console/Data Safety e upload Alpha não estão comprovados. Isso não equivale a publicação nem aprovação de produção.
 
 A referência é a branch `comercial` de `alejoiasvendasapp`, fixada no commit `ce112c40c4f79368042555e451338b5f318077bd`. O repositório original é somente leitura e não será alterado.
 
 ## Documentação
 
+- [Índice central e memória histórica V0–V12](docs/INDEX.md): navegação por versão, assunto e continuidade Codex.
+
 - [Visão e escopo do MVP](docs/MVP.md): público proposto, fluxos, limites e critérios de aceite.
 - [Referência AleJoias](docs/REFERENCIA.md): evidências, procedência e limites da análise.
+- [Formato e importação CSV](docs/EXPORTACAO_CSV.md): UTF-8 padrão/Excel, precisão financeira e limitações de leitores.
 - [Arquitetura e dados](docs/ARQUITETURA.md): base técnica e cuidados para a futura derivação.
 - [Backlog](docs/BACKLOG.md): etapas, dependências e entregas verificáveis.
 - [Validação](docs/VALIDACAO.md): cenários para futura homologação.
@@ -39,9 +42,35 @@ As skills ficam em `.agents/skills/`, com instruções locais versionadas:
 
 ## Próxima etapa
 
-Validar as melhorias de UI/UX e Billing em atualização pela Play. Usar `gradlew.bat testDebugUnitTest assembleDebug bundleRelease` com JDK/SDK e assinatura locais configurados. Consulte [relatório da atualização](docs/ATUALIZACAO_ALPHA_UI_BILLING.md).
+Resolver as pendências de conformidade/Play Console e executar homologação física V11→V12 e API 24 antes de avaliar a faixa Alpha. Consulte [Fases 7H–7J](docs/INDEX.md#documentos-de-produto-e-implementação); nenhum upload foi feito nesta preparação.
 
 ## Marco V10 beta da Store
 
 Identificação solicitada pelo usuário: `v10-beta-store`, versionCode 10 e
 versionName 1.0.0. Consulte [registro do marco](docs/MARCO_V10_BETA_STORE.md).
+
+## Versão 11 — personalização
+
+Nome do negócio configurável offline, oferecido uma vez no primeiro acesso à nova funcionalidade e editável em Personalizar negócio no menu de três pontos. Cabeçalho mantém a marca Vendas Simples, o nome em linha secundária e a frase Seu controle de vendas. Nome na cobrança/agradecimento e resumo compartilhado, além dos três PDFs existentes. Datas completas apresentadas em `dd/MM/yyyy`, com persistência ISO preservada. Miniatura e Remover foto ficam lado a lado com 16 dp, empilhados quando largura/fonte exigem.
+
+Consulte [relatório da versão 11](docs/RELEASE_V11.md) para artefato, verificações e homologação pendente. O marco V10 permanece como histórico.
+
+O backup completo FULL_ACCESS inclui o nome no mesmo arquivo SQLite. Backups anteriores continuam restauráveis e preservam o nome do aparelho quando não contêm essa informação. Personalização permanece disponível no FREE.
+
+# Pacote de skills — Vendas Simples / AleJoias
+
+Copie `.agents/skills/` para o repositório que utilizará o Codex (ou adapte à estrutura de skills já adotada no projeto). Leia `docs/GUIA_MIGRACAO_ALEJOIAS.md` antes de portar melhorias ao AleJoias.
+
+Este pacote registra decisões e evidências relatadas em conversa, não uma auditoria do código atual. Não substitui AGENTS.md, relatórios de release nem homologação real.
+
+## Fase 2 — segurança e conformidade
+
+Correções em desenvolvimento na branch fix/v12-seguranca-conformidade, sem modificar o artefato Alpha V11. Consulte [relatório técnico e homologação](docs/FASE2_SEGURANCA_CONFORMIDADE.md) e [investigação de Segurança dos dados/Billing](docs/SEGURANCA_DADOS_PLAY.md). Não representa nova publicação nem incremento de versão.
+
+Revisão posterior: [Fase 3 — revisão final e plano de homologação/V12](docs/FASE3_REVISAO_HOMOLOGACAO.md), com análise de lint, política pública, rastreabilidade e critérios para a futura candidata. Não autoriza publicação.
+
+Correções técnicas posteriores: [Fase 4 — lint, compatibilidade e regressão](docs/FASE4_CORRECOES_TECNICAS.md). Versão de trabalho preservada em 11/1.0.11, sem nova publicação.
+
+## V12 — integração e validação
+
+A branch isolada `integration/v12-master-validation` prepara `versionCode 12` / `versionName 1.0.12`. A integração local, regressão automatizada e AAB assinado foram registrados nas Fases 7H/7I; o envio Alpha, homologação física V12, verificação atual da Console e publicação continuam pendentes. Consulte os [relatórios de integração e regressão](docs/FASE7H_INTEGRACAO_REGRESSAO_V12.md), [AAB](docs/FASE7I_AAB_V12.md) e [preparação Alpha](docs/FASE7J_PREPARACAO_ALPHA_V12.md). A criação de AAB local não comprova upload ou release Play.

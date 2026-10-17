@@ -59,3 +59,17 @@ com a label `v10-beta-store`. Nesta revisão não alterar código. A autorizaç�
 não inclui upload ou mudança no Play Console. O histórico Alpha é preservado;
 a identificação beta vem do usuário, sem verificação do Console.
 Ver [marco V10](MARCO_V10_BETA_STORE.md).
+
+## Revisão de 11/10/2026 — versão 11
+
+Pedido anexado pelo usuário autoriza implementar personalização, padronização da apresentação de datas, ajuste de fotos, testes, commits locais e geração de AAB release assinado. Versão requerida: 11 / 1.0.11, applicationId `com.vendassimples.app`. Não autoriza push, merge ou upload no Play Console.
+
+Nome do negócio é preferência local independente do SQLite, sem migração; configuração inicial opcional oferecida uma vez, edição em Configurações, fallback genérico. O nome é aplicado em mensagens e nos PDFs existentes. Datas persistidas permanecem ISO; conversão ocorre nas fronteiras de apresentação e entrada. Limite de 120 caracteres protege o layout; PDF quebra o nome por largura real. Remover foto recebe 16 dp de margem acima. Regras financeiras, Billing 9.1.0, FREE 30 e FULL_ACCESS preservados. Ver [relatório](RELEASE_V11.md).
+
+## Complemento da V11 — backup do nome do negócio
+
+Solicitação do usuário: incluir/restaurar o nome no backup completo FULL_ACCESS existente, mantendo personalização gratuita, versão 11 / 1.0.11 e compatibilidade com backups antigos. Confirmado formato 2 dos metadados do mesmo SQLite, leitura do formato 1, schema financeiro 3 preservado. Nome ausente/vazio/nulo no backup não substitui nome atual. Restauração valida a cópia exata e coordena banco/preferência por journal privado de recuperação; nenhum dado da licença Google Play é exportado ou restaurado. Sem push ou publicação. Resultados e limites em [RELEASE_V11.md](RELEASE_V11.md).
+
+## Revisão de 15/10/2026 — URL oficial da política
+
+O usuário confirmou na Play Console a URL https://rg-carraro.github.io/vendas-simples-android/privacy/ e determinou seu uso na Fase 2, mantendo consulta gratuita ao texto local inclusive offline. A implementação já utiliza esse endereço. Consulta HTTPS respondeu 200, mas o texto público de 02/10/2026 difere da revisão local de 15/10/2026 preparada após a auditoria. A confirmação não autoriza commit, push ou publicação; atualizar a página pública permanece pendente. Evidências e diferenças no [relatório da Fase 2](FASE2_SEGURANCA_CONFORMIDADE.md).

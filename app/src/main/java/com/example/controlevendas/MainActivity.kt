@@ -5,6 +5,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
@@ -76,6 +79,11 @@ class MainActivity : AppCompatActivity() {
     private var listaFotosRascunho: LinearLayout? = null
     private var arquivoCamera: File? = null
 
+    private val permitirAvisos = registerForActivityResult(ActivityResultContracts.RequestPermission()) { autorizado ->
+        if (autorizado) atualizarAvisosSemInterromperTela()
+        else Toast.makeText(this, "Avisos desativados. Seus dados continuam disponíveis.", Toast.LENGTH_LONG).show()
+    }
+
     private val selecionarFotos = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         if (listaFotosRascunho != null) {
             uris.forEach { adicionarFotoRascunho(it) }
@@ -91,17 +99,31 @@ class MainActivity : AppCompatActivity() {
     }
     private val criarArquivoBackup = registerForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         if (uri == null) return@registerForActivityResult
-        backupManager.createBackup(uri, localDb).onSuccess { Toast.makeText(this, "Backup realizado com sucesso.", Toast.LENGTH_LONG).show() }
-            .onFailure { Toast.makeText(this, "Não foi possível realizar o backup: ${it.message}", Toast.LENGTH_LONG).show() }
+        backupManager.createBackup(uri, localDb, entitlementRepository.currentState(localDb.totalVendas())).onSuccess { Toast.makeText(this, "Backup realizado com sucesso.", Toast.LENGTH_LONG).show() }
+            .onFailure { Toast.makeText(this, mensagemFalhaBackup(it), Toast.LENGTH_LONG).show() }
     }
     private val abrirArquivoBackup = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@registerForActivityResult
-        backupManager.validate(uri).onFailure { Toast.makeText(this, "Backup inválido ou incompatível.", Toast.LENGTH_LONG).show(); return@registerForActivityResult }
+        backupManager.validate(uri).onFailure { Toast.makeText(this, mensagemFalhaBackup(it), Toast.LENGTH_LONG).show(); return@registerForActivityResult }
         AlertDialog.Builder(this).setTitle("Restaurar backup")
             .setMessage("Restaurar este backup substituirá os dados atuais do Vendas Simples. Deseja continuar?")
             .setNegativeButton("Cancelar", null).setPositiveButton("Restaurar") { _, _ ->
-                backupManager.restore(uri, localDb).onSuccess { localDb = LocalDatabase(this); carregarRelatorio { abrirMenuPrincipal() }; Toast.makeText(this, "Backup restaurado com sucesso.", Toast.LENGTH_LONG).show() }
-                    .onFailure { localDb = LocalDatabase(this); Toast.makeText(this, "A restauração não foi realizada.", Toast.LENGTH_LONG).show() }
+                backupManager.restore(uri, localDb, entitlementRepository.currentState(localDb.totalVendas())).onSuccess {
+                    localDb = LocalDatabase(this)
+                    atualizarCabecalhoNegocio()
+                    carregarRelatorio { abrirMenuPrincipal() }
+                    Toast.makeText(this, "Backup restaurado com sucesso.", Toast.LENGTH_LONG).show()
+                }.onFailure {
+                    localDb.close()
+                    if (backupManager.recoverPendingRestore().isFailure) {
+                        Toast.makeText(this, "Não foi possível recuperar a restauração. Libere espaço e reabra o aplicativo.", Toast.LENGTH_LONG).show()
+                        finish()
+                    } else {
+                        localDb = LocalDatabase(this)
+                        atualizarCabecalhoNegocio()
+                        Toast.makeText(this, mensagemFalhaBackup(it), Toast.LENGTH_LONG).show()
+                    }
+                }
             }.show()
     }
 
@@ -126,6 +148,8 @@ class MainActivity : AppCompatActivity() {
     private var relatorioInicio: String? = null
     private var relatorioFim: String? = null
 
+    private val businessPreferences by lazy { BusinessPreferences(this) }
+    private lateinit var businessTitle: TextView
     private val moeda = CurrencyFormatter()
 
     private fun parseCentavos(texto: String): Long? {
@@ -163,8 +187,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         onBackPressedDispatcher.addCallback(this, voltarCallback)
-        localDb = LocalDatabase(this)
         backupManager = BackupManager(this)
+        if (backupManager.recoverPendingRestore().isFailure) {
+            Toast.makeText(this, "Não foi possível recuperar a restauração. Libere espaço e reabra o aplicativo.", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
+        localDb = LocalDatabase(this)
         billingGateway = PlayBillingGateway(this, object : PlayBillingGateway.Events {
             override fun onState(state: EntitlementState) {
                 Log.d("PlayBillingGateway", "entitlement=$state")
@@ -179,6 +208,10 @@ class MainActivity : AppCompatActivity() {
         criarCanalNotificacoes()
         carregarRelatorio {
             abrirMenuPrincipal()
+            if (!businessPreferences.initialSetupOffered) {
+                businessPreferences.markSetupOffered()
+                abrirConfiguracaoNegocio(primeiroUso = true)
+            }
         }
         handler.postDelayed(autoRefreshRunnable, 5 * 60 * 1000L)
     }
@@ -235,16 +268,25 @@ class MainActivity : AppCompatActivity() {
 
         val titulo = TextView(this).apply {
             text = "Vendas Simples"
-            textSize = if (resources.configuration.screenWidthDp < 360 || resources.configuration.fontScale > 1.3f) 20f else 24f
+            maxLines = 2
+            ellipsize = android.text.TextUtils.TruncateAt.END
+            textSize = if (resources.configuration.screenWidthDp < 360 || resources.configuration.fontScale > 1.3f) 18f else 22f
             typeface = Typeface.DEFAULT_BOLD
             gravity = Gravity.CENTER
             setTextColor(corPrimariaEscura)
         }
 
+        businessTitle = texto("", 14f, false).apply {
+            gravity = Gravity.CENTER
+            maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.END
+            setTextColor(corPrimariaEscura)
+        }
+        atualizarCabecalhoNegocio()
+
         val subtitulo = TextView(this).apply {
             text = "Seu controle de vendas"
-            visibility = if (resources.configuration.screenHeightDp < 400) View.GONE else View.VISIBLE
-            textSize = 14f
+            textSize = 12f
             gravity = Gravity.CENTER
             setTextColor(corDestaque)
         }
@@ -253,6 +295,7 @@ class MainActivity : AppCompatActivity() {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             addView(titulo)
+            addView(businessTitle)
             addView(subtitulo)
         }
         header.addView(marca, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
@@ -268,6 +311,21 @@ class MainActivity : AppCompatActivity() {
             setOnClickListener { ancora ->
                 PopupMenu(this@MainActivity, ancora).apply {
                     val state = entitlementRepository.currentState(localDb.totalVendas())
+                    menu.add("Personalizar negócio").setOnMenuItemClickListener {
+                        abrirConfiguracaoNegocio()
+                        true
+                    }
+                    menu.add("Política de Privacidade").setOnMenuItemClickListener {
+                        abrirPoliticaPrivacidade()
+                        true
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                        menu.add("Ativar avisos de vencimento").setOnMenuItemClickListener {
+                            permitirAvisos.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            true
+                        }
+                    }
                     menu.add("Exportar CSV").setOnMenuItemClickListener {
                         exportarCsvResumo(vendasCache, "vendas_simples.csv")
                         true
@@ -371,7 +429,67 @@ class MainActivity : AppCompatActivity() {
         linha2.addView(botaoQuadrado("Clientes", "Histórico", 1f) { abrirResumoClientes() })
         content.addView(linha2)
 
+    }
 
+    private fun mensagemFalhaBackup(failure: Throwable): String =
+        if (failure is BackupRejected) failure.message.orEmpty()
+        else "Não foi possível concluir o backup. Verifique o arquivo, o acesso e o espaço disponível. Seus dados atuais foram preservados."
+
+    private fun abrirPoliticaPrivacidade(): AlertDialog? {
+        return try {
+            val html = assets.open("privacy_policy.html").bufferedReader(Charsets.UTF_8).use { it.readText() }
+            val policy = texto(android.text.Html.fromHtml(html, android.text.Html.FROM_HTML_MODE_LEGACY).toString(), 14f, false).apply {
+                setPadding(dp(20), dp(8), dp(20), dp(8))
+                setTextIsSelectable(true)
+            }
+            AlertDialog.Builder(this).setTitle("Política de Privacidade")
+                .setView(ScrollView(this).apply { addView(policy) })
+                .setPositiveButton("Fechar", null)
+                .setNeutralButton("Abrir site", null).create().apply {
+                    setOnShowListener {
+                        getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
+                            val opened = PrivacyPolicy.openWeb(PrivacyPolicy.officialUrl) { url ->
+                                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addCategory(Intent.CATEGORY_BROWSABLE))
+                            }
+                            if (!opened) Toast.makeText(this@MainActivity, "Não foi possível abrir o navegador. A política continua disponível nesta tela.", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                    show()
+                }
+        } catch (_: Exception) {
+            Toast.makeText(this, "Não foi possível abrir a política de privacidade. Tente novamente.", Toast.LENGTH_LONG).show()
+            null
+        }
+    }
+
+    private fun atualizarCabecalhoNegocio() {
+        val nome = businessPreferences.businessName
+        businessTitle.text = nome
+        businessTitle.contentDescription = if (nome.isEmpty()) null else "Nome do negócio: $nome"
+        businessTitle.visibility = if (nome.isEmpty()) View.GONE else View.VISIBLE
+    }
+
+    private fun abrirConfiguracaoNegocio(primeiroUso: Boolean = false) {
+        val nome = campo("Nome do negócio ou seu nome").apply {
+            setText(businessPreferences.businessName)
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS
+            filters = arrayOf(android.text.InputFilter.LengthFilter(BusinessIdentity.MAX_NAME_LENGTH))
+        }
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(24), dp(8), dp(24), dp(8))
+            addView(texto("Personalize a tela inicial, as mensagens e os PDFs. Deixe vazio para usar Vendas Simples. Você pode alterar depois nas configurações.", 14f, false))
+            addView(campoRotulado("Nome do negócio:", nome))
+        }
+        AlertDialog.Builder(this)
+            .setTitle(if (primeiroUso) "Como se chama seu negócio?" else "Nome do negócio")
+            .setView(ScrollView(this).apply { addView(layout) })
+            .setPositiveButton("Salvar") { _, _ ->
+                businessPreferences.businessName = nome.text.toString()
+                atualizarCabecalhoNegocio()
+            }
+            .setNegativeButton(if (primeiroUso) "Agora não" else "Cancelar", null)
+            .show()
     }
 
     private fun adicionarDashboardCompacto() {
@@ -468,7 +586,7 @@ class MainActivity : AppCompatActivity() {
 
         if (filtroInicio != null || filtroFim != null || filtrarAReceber || filtroCliente.isNotBlank()) {
             if (filtroInicio != null || filtroFim != null) {
-                content.addView(texto("Filtro: ${filtroInicio ?: "..."} até ${filtroFim ?: "..."}", 13f, false))
+                content.addView(texto("Filtro: ${BrazilianDates.display(filtroInicio ?: "...")} até ${BrazilianDates.display(filtroFim ?: "...")}", 13f, false))
             }
             if (filtroCliente.isNotBlank()) {
                 content.addView(texto("Pesquisa: $filtroCliente", 13f, false))
@@ -498,14 +616,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         val dataInicio = campo("Data Inicial").apply {
-            setText(inicioAtual ?: "")
+            setText(BrazilianDates.display(inicioAtual ?: ""))
             isFocusable = false
             isClickable = true
             setOnClickListener { abrirCalendario(this) }
         }
 
         val dataFim = campo("Data Final").apply {
-            setText(fimAtual ?: "")
+            setText(BrazilianDates.display(fimAtual ?: ""))
             isFocusable = false
             isClickable = true
             setOnClickListener { abrirCalendario(this) }
@@ -519,8 +637,8 @@ class MainActivity : AppCompatActivity() {
             .setView(layout)
             .setPositiveButton("Aplicar") { _, _ ->
                 onAplicar(
-                    dataInicio.text.toString().takeIf { it.isNotBlank() },
-                    dataFim.text.toString().takeIf { it.isNotBlank() }
+                    BrazilianDates.storage(dataInicio.text.toString()).takeIf { it.isNotBlank() },
+                    BrazilianDates.storage(dataFim.text.toString()).takeIf { it.isNotBlank() }
                 )
             }
             .setNegativeButton("Cancelar", null)
@@ -546,27 +664,26 @@ class MainActivity : AppCompatActivity() {
 
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(12), dp(8), dp(12), dp(8))
+            setPadding(dp(10), dp(6), dp(10), dp(6))
             background = fundoArredondadoComBorda(corCard, 20f, corBorda)
             isClickable = true
             setOnClickListener { abrirOpcoesCard(venda) }
         }
 
-        card.addView(texto(nome, 17f, true))
-        card.addView(etiquetaStatus(venda))
-        adicionarFotoNoCard(card, venda)
-        card.addView(TextView(this).apply {
-            text = "$parcelaInfo • " +
-                    "Compra: ${venda.data_venda ?: "-"}\n" +
-                    "Vencimento: ${venda.data_vencimento ?: "-"}\n" +
-                    "Valor: ${moeda.format(venda.valor_total)} • " +
-                    "Pago: ${moeda.format(venda.total_pago)}\n" +
-                    (if (venda.total_pago > 0L) "Data Pagamento: ${dataPagamentoLocal(venda)}\n" else "") +
-                    "Faltante: ${moeda.format(venda.saldo)}"
-            textSize = 13f
+        card.addView(SaleCardHeader(this, texto(nome, 15f, true), etiquetaStatus(venda)))
+        card.addView(texto(parcelaInfo, 12f, false).apply { setTextColor(corTextoSecundario) })
+        card.addView(texto("Compra: ${BrazilianDates.display(venda.data_venda ?: "-")} | " +
+            "Vencimento: ${BrazilianDates.display(venda.data_vencimento ?: "-")}", 12f, false).apply {
             setTextColor(corTextoSecundario)
-            setPadding(0, dp(6), 0, 0)
         })
+        card.addView(ClientReportValues(this, FinancialChartPercentage.money(venda.valor_total), FinancialChartPercentage.money(venda.total_pago),
+            FinancialChartPercentage.money(venda.saldo), corTexto, corTextoSecundario, "Valor", "Pago"))
+        if (venda.total_pago > 0L) {
+            card.addView(texto("Data Pagamento: ${dataPagamentoLocal(venda)}", 12f, false).apply {
+                setTextColor(corTextoSecundario)
+            })
+        }
+        adicionarFotoNoCard(card, venda)
 
         content.addView(card, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, dp(4), 0, dp(4)) })
     }
@@ -613,13 +730,13 @@ class MainActivity : AppCompatActivity() {
             }
             textSize = 11f
             typeface = Typeface.DEFAULT_BOLD
-                setTextColor(
-                    when {
-                        quitado -> corPrimariaEscura
-                        vencido -> Color.rgb(153, 55, 47)
-                        venda.total_pago > 0L -> corStatusParcialTexto
-                        else -> corStatusAbertoTexto
-                    }
+            setTextColor(
+                when {
+                    quitado -> corPrimariaEscura
+                    vencido -> Color.rgb(153, 55, 47)
+                    venda.total_pago > 0L -> corStatusParcialTexto
+                    else -> corStatusAbertoTexto
+                }
             )
             gravity = Gravity.CENTER
             setPadding(dp(10), dp(4), dp(10), dp(4))
@@ -682,7 +799,7 @@ class MainActivity : AppCompatActivity() {
         painel.addView(linhaResponsiva(linhaDetalhe("Valor da venda", moeda.format(venda.valor_total), true), linhaDetalhe("Valor pago", moeda.format(venda.total_pago), true)))
         painel.addView(linhaDetalhe("Saldo faltante", moeda.format(venda.saldo), true))
         painel.addView(linhaDetalhe("Descrição", venda.descricao ?: "-"))
-        painel.addView(linhaResponsiva(linhaDetalhe("Data da compra", venda.data_venda ?: "-"), linhaDetalhe("Vencimento", venda.data_vencimento ?: "-")))
+        painel.addView(linhaResponsiva(linhaDetalhe("Data da compra", BrazilianDates.display(venda.data_venda ?: "-")), linhaDetalhe("Vencimento", BrazilianDates.display(venda.data_vencimento ?: "-"))))
         painel.addView(linhaDetalhe("Parcela", "${venda.parcela_atual ?: 1}/${venda.parcelas ?: 1}"))
 
         val fotos = localDb.getFotosVenda(venda.id_venda_pai)
@@ -811,11 +928,15 @@ private fun abrirDashboardFinanceiro() {
         content.removeAllViews()
         val mesSelecionado = mesDashboardSelecionado ?: mesAtual
         val vendasDashboard = vendasCache.filter { (it.data_venda ?: "").startsWith(mesSelecionado) }
-        statusText.text = "Financeiro e Relatórios | $mesSelecionado"
+        statusText.text = "Financeiro e Relatórios"
 
         configurarRetorno { abrirMenuPrincipal() }
-        content.addView(botaoVoltar("Selecionar Outro Mês") { abrirSelecionarMesDashboard() })
-        adicionarCardResumo("Mês Selecionado", mesSelecionado)
+        content.addView(linhaResponsiva(
+            texto("Mês do relatório", 14f, true).apply { gravity = Gravity.CENTER_VERTICAL; minHeight = dp(48) },
+            botaoRelatorio("$mesSelecionado ▾") { abrirSelecionarMesDashboard() }.apply {
+                contentDescription = "Selecionar mês do financeiro: $mesSelecionado"
+            }
+        ), margemCardResumo())
 
         val totalVendido = vendasDashboard.sumOf { it.valor_total }
         val totalRecebido = vendasDashboard.sumOf { it.total_pago }
@@ -827,42 +948,27 @@ private fun abrirDashboardFinanceiro() {
             .size
         val vendasVencidas = vendasDashboard.count { estaVencida(it) }
 
-        val linha1 = linhaBotoes()
-        linha1.addView(cardDashboard("Total Vendido", moeda.format(totalVendido), 1f) {
-            abrirDetalhamentoFinanceiro("dashboard", "vendido")
-        })
-        linha1.addView(cardDashboard("Total Recebido", moeda.format(totalRecebido), 1f) {
-            abrirDetalhamentoFinanceiro("dashboard", "recebido")
-        })
-        content.addView(linha1)
-
-        val linha2 = linhaBotoes()
-        linha2.addView(cardDashboard("A Receber", moeda.format(totalReceber), 1f) {
-            abrirDetalhamentoFinanceiro("dashboard", "faltante")
-        })
-        linha2.addView(cardDashboard("Clientes", clientesDebito.toString(), 1f) {
-            abrirDetalhamentoFinanceiro("dashboard", "clientes_debito")
-        })
-        content.addView(linha2)
-
-        val linha3 = linhaBotoes()
-        linha3.addView(cardDashboard("Vencidas", vendasVencidas.toString(), 1f) {
-            abrirDetalhamentoFinanceiro("dashboard", "vencidos")
-        })
-        linha3.addView(cardDashboard("Cards Do Mês", vendasDashboard.size.toString(), 1f) {
-            abrirDetalhamentoFinanceiro("dashboard", "todos")
-        })
-        content.addView(linha3)
+        content.addView(linhaIndicadores(
+            cardDashboard("Total vendido", moeda.format(totalVendido), 1f) { abrirDetalhamentoFinanceiro("dashboard", "vendido") },
+            cardDashboard("Total recebido", moeda.format(totalRecebido), 1f) { abrirDetalhamentoFinanceiro("dashboard", "recebido") }
+        ))
+        content.addView(linhaIndicadores(
+            cardDashboard("A receber", moeda.format(totalReceber), 1f) { abrirDetalhamentoFinanceiro("dashboard", "faltante") },
+            cardDashboard("Clientes com saldo", clientesDebito.toString(), 1f) { abrirDetalhamentoFinanceiro("dashboard", "clientes_debito") }
+        ))
+        content.addView(linhaIndicadores(
+            cardDashboard("Vencidas", vendasVencidas.toString(), 1f) { abrirDetalhamentoFinanceiro("dashboard", "vencidos") },
+            cardDashboard("Cards do mês", vendasDashboard.size.toString(), 1f) { abrirDetalhamentoFinanceiro("dashboard", "todos") }
+        ))
 
         adicionarGraficoDashboard(totalVendido, totalRecebido, totalReceber)
 
-        content.addView(texto("Relatórios", 18f, true).apply {
-            setPadding(0, dp(18), 0, dp(6))
-        })
-        content.addView(botaoVoltar("Relatório por período") { abrirFiltroResumoPeriodo() }, margemCard())
-        content.addView(botaoVoltar("Gerar PDF financeiro") {
-            gerarPdfResumo(vendasDashboard, "resumo_vendas_simples_${mesSelecionado}.pdf", mesSelecionado)
-        }, margemCard())
+        content.addView(linhaResponsiva(
+            botaoRelatorio("Relatório por período") { abrirFiltroResumoPeriodo() },
+            botaoRelatorio("Gerar PDF financeiro") {
+                gerarPdfResumo(vendasDashboard, "resumo_vendas_simples_${mesSelecionado}.pdf", mesSelecionado)
+            }
+        ), margemCardResumo())
     }
 
     private fun abrirDetalhamentoFinanceiro(origem: String, metrica: String) {
@@ -909,7 +1015,7 @@ private fun abrirDashboardFinanceiro() {
         val periodo = when (origem) {
             "dashboard" -> mesDashboardSelecionado ?: mesAtual
             "mensal" -> mesResumoSelecionado ?: mesAtual
-            "periodo" -> "${relatorioInicio ?: "..."} até ${relatorioFim ?: "..."}"
+            "periodo" -> "${BrazilianDates.display(relatorioInicio ?: "...")} até ${BrazilianDates.display(relatorioFim ?: "...")}"
             else -> "Todos os períodos"
         }
         val total = when (metrica) {
@@ -961,13 +1067,32 @@ private fun abrirDashboardFinanceiro() {
             .show()
     }
 
+    private fun botaoRelatorio(rotulo: String, acao: () -> Unit): Button = botaoVoltar(rotulo, acao).apply {
+        minHeight = dp(48)
+        minWidth = dp(48)
+        setPadding(dp(10), dp(6), dp(10), dp(6))
+    }
+
+    // Values stay complete: choose one column when the measured text needs more space.
+    private fun linhaIndicadores(vararg indicadores: LinearLayout): LinearLayout {
+        val larguraTexto = indicadores.maxOfOrNull { indicador ->
+            (0 until indicador.childCount).mapNotNull { indicador.getChildAt(it) as? TextView }
+                .maxOfOrNull { android.text.Layout.getDesiredWidth(it.text, it.paint) } ?: 0f
+        } ?: 0f
+        val larguraMinima = maxOf(360, kotlin.math.ceil(larguraTexto / resources.displayMetrics.density * 2 + 96).toInt())
+        return linhaResponsiva(*indicadores, larguraMinima = larguraMinima).apply {
+            setPadding(0, dp(3), 0, dp(3))
+        }
+    }
+
     private fun cardDashboard(
         titulo: String, valor: String, peso: Float, acao: (() -> Unit)? = null
     ): LinearLayout {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
-            setPadding(dp(10), dp(12), dp(10), dp(12))
+            setPadding(dp(10), dp(8), dp(10), dp(8))
+            minimumHeight = dp(64)
             background = fundoArredondadoComBorda(corSuperficie, 24f, corBorda)
         }
 
@@ -976,12 +1101,11 @@ private fun abrirDashboardFinanceiro() {
             setTextColor(corTextoSecundario)
         })
 
-        card.addView(texto(valor, if (resources.displayMetrics.widthPixels < 900) 14f else 16f, true).apply {
+        card.addView(texto(valor, 16f, true).apply {
             gravity = Gravity.CENTER
         })
 
-        val params = LinearLayout.LayoutParams(0, dp(86), peso)
-        params.setMargins(dp(5), dp(5), dp(5), dp(5))
+        val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, peso)
         card.layoutParams = params
         if (acao != null) {
             card.isClickable = true
@@ -1020,7 +1144,7 @@ private fun abrirDashboardFinanceiro() {
             compartilharResumoPeriodoWhatsApp(lista)
         })
 
-        content.addView(texto("Período: ${relatorioInicio ?: "..."} até ${relatorioFim ?: "..."}", 15f, true))
+        content.addView(texto("Período: ${BrazilianDates.display(relatorioInicio ?: "...")} até ${BrazilianDates.display(relatorioFim ?: "...")}", 15f, true))
         adicionarCardResumo("Quantidade De Cards", lista.size.toString()) {
             abrirDetalhamentoFinanceiro("periodo", "todos")
         }
@@ -1122,34 +1246,16 @@ private fun abrirResumoMes() {
                 true
             }
         }
-        val campoCliente = campoRotulado("Cliente:", pesquisaCliente).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            ).apply { setMargins(0, dp(5), dp(6), dp(5)) }
-        }
-        val aplicarCliente = botaoVoltar("Aplicar") {
+        pesquisaCliente.minHeight = dp(48)
+        pesquisaCliente.contentDescription = "Pesquisar cliente"
+        val aplicarCliente = botaoRelatorio("Aplicar") {
             filtroClienteResumo = pesquisaCliente.text.toString()
             abrirResumoClientes()
-        }.apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { setMargins(0, dp(5), 0, dp(5)) }
-            minWidth = 0
-            minHeight = dp(48)
-            setPadding(dp(10), dp(6), dp(10), dp(6))
         }
-        content.addView(LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            addView(campoCliente)
-            addView(aplicarCliente)
-        })
+        content.addView(linhaResponsiva(pesquisaCliente, aplicarCliente), margemCardResumo())
 
         if (filtroClienteResumo.isNotBlank()) {
-            content.addView(botaoVoltar("Limpar Pesquisa") {
+            content.addView(botaoRelatorio("Limpar Pesquisa") {
                 filtroClienteResumo = ""
                 abrirResumoClientes()
             })
@@ -1184,18 +1290,23 @@ private fun abrirResumoMes() {
 
             val card = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
-                setPadding(dp(22), dp(18), dp(22), dp(18))
+                setPadding(dp(10), dp(8), dp(10), dp(8))
+                minimumHeight = dp(48)
                 background = fundoArredondadoComBorda(cor, 26f, corBorda)
                 isClickable = true
+                isFocusable = true
                 setOnClickListener { abrirHistoricoCliente(cliente, vendas) }
             }
 
-            card.addView(texto(cliente, 19f, true))
-            card.addView(texto("Cards: ${vendas.size}", 14f, false))
-            card.addView(texto("Vendido: ${moeda.format(vendido)}", 15f, false))
-            card.addView(texto("Recebido: ${moeda.format(recebido)}", 15f, false))
-            card.addView(texto("Faltante: ${moeda.format(faltante)}", 16f, true))
-            content.addView(card, margemCard())
+            val quantidade = if (vendas.size == 1) "1 venda" else "${vendas.size} vendas"
+            card.addView(texto("$cliente — $quantidade", 15f, false))
+            card.addView(ClientReportValues(this,
+                moeda.format(vendido), moeda.format(recebido), moeda.format(faltante),
+                corTexto, corTextoSecundario
+            ))
+            content.addView(card, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(0, dp(4), 0, dp(4)) })
         }
     }
 
@@ -1259,8 +1370,8 @@ private fun abrirHistoricoCliente(cliente: String, vendas: List<VendaRelatorio>)
         }
 
         val descricao = venda.descricao?.takeIf { it.isNotBlank() } ?: "Venda"
-        val compra = venda.data_venda ?: "-"
-        val vencimento = venda.data_vencimento ?: "-"
+        val compra = BrazilianDates.display(venda.data_venda ?: "-")
+        val vencimento = BrazilianDates.display(venda.data_vencimento ?: "-")
 
         card.addView(texto(descricao, 18f, true))
         card.addView(etiquetaStatus(venda))
@@ -1285,7 +1396,7 @@ private fun abrirHistoricoCliente(cliente: String, vendas: List<VendaRelatorio>)
     
 private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         val cliente = venda.nome_cliente?.takeIf { it.isNotBlank() } ?: "Cliente"
-        val vencimento = venda.data_vencimento ?: "-"
+        val vencimento = BrazilianDates.display(venda.data_vencimento ?: "-")
         val saldo = venda.saldo
 
         if (saldo <= 0L) {
@@ -1325,7 +1436,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
                 detalhesCobranca + resumoCompra +
                 "Vencimento: $vencimento\n\n" +
                 "Caso já tenha efetuado o pagamento, por favor desconsidere esta mensagem.\n\n" +
-                "Obrigado!"
+                BusinessIdentity.thanks(businessPreferences.businessName)
 
         val uri = Uri.parse("https://wa.me/?text=" + Uri.encode(mensagem))
         val intent = Intent(Intent.ACTION_VIEW, uri)
@@ -1340,11 +1451,12 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         fun barra(label: String, valor: Long): LinearLayout {
             val wrapper = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
-                setPadding(dp(12), dp(8), dp(12), dp(8))
+                setPadding(dp(10), dp(5), dp(10), dp(5))
                 background = fundoArredondadoComBorda(corSuperficie, 22f, corBorda)
             }
 
-            wrapper.addView(texto("$label: ${moeda.format(valor)}", 13f, true))
+            val valueLabel = "${FinancialChartPercentage.money(valor)} · ${FinancialChartPercentage.format(valor, totalVendido)}"
+            wrapper.addView(FinancialChartLabel(this, label, valueLabel, corTexto))
 
             val fundo = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -1367,9 +1479,9 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         content.addView(texto("Gráfico Financeiro", 18f, true).apply {
             setPadding(0, dp(12), 0, dp(4))
         })
-        content.addView(barra("Vendido", totalVendido), margemCard())
-        content.addView(barra("Recebido", totalRecebido), margemCard())
-        content.addView(barra("A Receber", totalReceber), margemCard())
+        content.addView(barra("Vendido", totalVendido), margemCardResumo())
+        content.addView(barra("Recebido", totalRecebido), margemCardResumo())
+        content.addView(barra("A Receber", totalReceber), margemCardResumo())
     }
 
     private fun abrirBackupLocal() {
@@ -1400,16 +1512,12 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
 
     private fun fazerBackupBancoSqlite(): File? {
         return try {
-            localDb.close()
-            val origem = getDatabasePath(LocalDatabase.DB_NAME)
             val destino = File(filesDir, "backup_vendas_simples_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.db")
-            origem.copyTo(destino, overwrite = true)
-            localDb = LocalDatabase(this)
+            backupManager.createBackup(Uri.fromFile(destino), localDb, entitlementRepository.currentState(localDb.totalVendas())).getOrThrow()
             Toast.makeText(this, "Backup SQLite salvo.", Toast.LENGTH_SHORT).show()
             destino
         } catch (e: Exception) {
-            localDb = LocalDatabase(this)
-            Toast.makeText(this, "Erro ao fazer backup: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, mensagemFalhaBackup(e), Toast.LENGTH_LONG).show()
             null
         }
     }
@@ -1425,34 +1533,30 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
             }
             startActivity(Intent.createChooser(intent, "Compartilhar backup SQLite"))
         } catch (e: Exception) {
-            Toast.makeText(this, "Erro ao compartilhar backup: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, mensagemFalhaBackup(e), Toast.LENGTH_LONG).show()
         }
     }
 
     private fun exportarCsvResumo(lista: List<VendaRelatorio>, nomeArquivo: String) {
-        try {
-            val header = "Cliente;Descrição;Data Compra;Vencimento;Valor;Pago;Faltante;Parcela\n"
-            val linhas = lista.joinToString(separator = "\n") { venda ->
-                val parcela = "${venda.parcela_atual ?: 1}/${venda.parcelas ?: 1}"
-                listOf(
-                    venda.nome_cliente ?: "",
-                    venda.descricao ?: "",
-                    venda.data_venda ?: "",
-                    venda.data_vencimento ?: "",
-                    venda.valor_total.toString(),
-                    venda.total_pago.toString(),
-                    venda.saldo.toString(),
-                    parcela
-                ).joinToString(";")
+        AlertDialog.Builder(this)
+            .setTitle("Exportar CSV")
+            .setItems(arrayOf("CSV padrão — UTF-8", "CSV para Excel — com BOM")) { _, which ->
+                compartilharCsvResumo(lista, nomeArquivo, withBom = which == 1)
             }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
 
+    private fun compartilharCsvResumo(lista: List<VendaRelatorio>, nomeArquivo: String, withBom: Boolean) {
+        try {
             val file = File(cacheDir, nomeArquivo)
-            file.writeText(header + linhas)
+            file.writeBytes(SalesCsvExporter.encode(lista, withBom))
 
             val uri = FileProvider.getUriForFile(this, "${packageName}.provider", file)
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/csv"
                 putExtra(Intent.EXTRA_STREAM, uri)
+                putExtra(Intent.EXTRA_TEXT, BusinessIdentity.summary(businessPreferences.businessName))
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             startActivity(Intent.createChooser(intent, "Exportar/Compartilhar CSV"))
@@ -1584,14 +1688,14 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
                     set(Calendar.YEAR, mesSelecionado.substring(0, 4).toInt())
                     set(Calendar.MONTH, mesSelecionado.substring(5, 7).toInt() - 1)
                 }
-                return "$mesSelecionado-01 até $mesSelecionado-${calendario.getActualMaximum(Calendar.DAY_OF_MONTH)}"
+                return "${BrazilianDates.display("$mesSelecionado-01")} até ${BrazilianDates.display("$mesSelecionado-${calendario.getActualMaximum(Calendar.DAY_OF_MONTH)}")}"
             }
             val datas = lista.mapNotNull { it.data_venda }.filter { it.isNotBlank() }.sorted()
             val inicio = datas.firstOrNull()
             val fim = datas.lastOrNull()
             return when {
-                inicio != null && fim != null -> "$inicio até $fim"
-                inicio != null -> inicio
+                inicio != null && fim != null -> "${BrazilianDates.display(inicio)} até ${BrazilianDates.display(fim)}"
+                inicio != null -> BrazilianDates.display(inicio)
                 else -> "Não informado"
             }
         }
@@ -1621,14 +1725,21 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
             else -> "RELATÓRIO FINANCEIRO"
         }
 
-        canvas.drawText("VENDAS SIMPLES", 297f, y.toFloat(), titlePaint)
-        y += 24
+        val nomeNegocio = businessPreferences.displayName
+        // Quebra por largura real, inclusive para nomes longos sem espaços.
+        var restanteNome = nomeNegocio
+        while (restanteNome.isNotEmpty()) {
+            val tamanho = titlePaint.breakText(restanteNome, true, 495f, null).coerceAtLeast(1)
+            canvas.drawText(restanteNome.substring(0, tamanho), 297f, y.toFloat(), titlePaint)
+            restanteNome = restanteNome.substring(tamanho)
+            y += 24
+        }
         canvas.drawText(tipoRelatorio, 297f, y.toFloat(), subtitlePaint)
         y += 26
 
         campo("Mês De Referência", mesReferencia())
         campo("Período", periodoRelatorio())
-        campo("Emitido Em", hoje)
+        campo("Emitido Em", BrazilianDates.display(hoje))
         y += 10
         canvas.drawLine(40f, y.toFloat(), 555f, y.toFloat(), linePaint)
         y += 22
@@ -1659,8 +1770,8 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
             y += 18
             campo("Cliente", venda.nome_cliente ?: "-")
             campo("Descrição", venda.descricao ?: "-")
-            campo("Data Da Compra", venda.data_venda ?: "-")
-            campo("Data De Vencimento", venda.data_vencimento ?: "-")
+            campo("Data Da Compra", BrazilianDates.display(venda.data_venda ?: "-"))
+            campo("Data De Vencimento", BrazilianDates.display(venda.data_vencimento ?: "-"))
             campo("Parcela", "${venda.parcela_atual ?: 1}/${venda.parcelas ?: 1}")
             campo("Valor Da Venda", moeda.format(venda.valor_total))
             campo("Valor Pago", moeda.format(venda.total_pago))
@@ -1703,6 +1814,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "application/pdf"
             putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(Intent.EXTRA_TEXT, BusinessIdentity.summary(businessPreferences.businessName))
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         startActivity(Intent.createChooser(intent, "Compartilhar PDF"))
@@ -1711,7 +1823,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
     private fun confirmarDeletarCard(venda: VendaRelatorio) {
         val msg = "Deseja deletar este card de venda?\n\n" +
                 "Cliente: ${venda.nome_cliente ?: "-"}\n" +
-                "Vencimento: ${venda.data_vencimento ?: "-"}\n" +
+                "Vencimento: ${BrazilianDates.display(venda.data_vencimento ?: "-")}\n" +
                 "Valor: ${moeda.format(venda.valor_total)}\n\n" +
                 "Esta ação remove a venda e os pagamentos vinculados do SQLite."
 
@@ -1766,7 +1878,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         }
 
         val data = campo("Data Da Compra").apply {
-            setText(vendaExistente?.data_venda ?: hoje)
+            setText(BrazilianDates.display(vendaExistente?.data_venda ?: hoje))
             isFocusable = false
             isClickable = true
             setOnClickListener { abrirCalendario(this) }
@@ -1857,7 +1969,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
                                 descricao = descricao.text.toString(),
                                 valor_total = valorVenda,
                                 parcelas = qtParcelas,
-                                data_venda = data.text.toString()
+                                data_venda = BrazilianDates.storage(data.text.toString())
                             )
                             try {
                                 localDb.novaVenda(request, fotosRascunho)
@@ -1874,8 +1986,8 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
                                 valor_total = valorVenda,
                                 parcelas = qtParcelas,
                                 parcela_atual = vendaExistente.parcela_atual ?: 1,
-                                data_venda = data.text.toString(),
-                                data_vencimento = vendaExistente.data_vencimento ?: data.text.toString()
+                                data_venda = BrazilianDates.storage(data.text.toString()),
+                                data_vencimento = vendaExistente.data_vencimento ?: BrazilianDates.storage(data.text.toString())
                             )
                             try {
                                 localDb.atualizarVenda(request)
@@ -1972,15 +2084,34 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         val lista = listaFotosRascunho ?: return
         lista.removeAllViews()
         fotosRascunho.forEachIndexed { indice, bytes ->
-            val linha = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+            val horizontal = resources.configuration.screenWidthDp >= 360 && resources.configuration.fontScale <= 1.3f
+            val linha = LinearLayout(this).apply {
+                orientation = if (horizontal) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(0, dp(4), 0, dp(4))
+            }
             linha.addView(ImageView(this).apply {
                 setImageBitmap(decodificarMiniatura(bytes))
                 scaleType = ImageView.ScaleType.CENTER_CROP
+                contentDescription = "Ver foto ${indice + 1}"
+                isFocusable = true
+                setOnClickListener { mostrarFoto(bytes) }
             }, LinearLayout.LayoutParams(dp(72), dp(72)))
             linha.addView(botaoVoltar("Remover foto ${indice + 1}") {
                 fotosRascunho.removeAt(indice)
                 atualizarFotosRascunho()
-            }, margemCard().apply { width = 0; weight = 1f })
+            }.apply {
+                minWidth = dp(48)
+                minHeight = dp(48)
+                setCompoundDrawablesWithIntrinsicBounds(android.R.drawable.ic_menu_delete, 0, 0, 0)
+                compoundDrawablePadding = dp(6)
+                compoundDrawableTintList = android.content.res.ColorStateList.valueOf(Color.WHITE)
+                contentDescription = "Remover foto ${indice + 1} de ${fotosRascunho.size}"
+            }, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                if (horizontal) leftMargin = dp(16) else topMargin = dp(16)
+            })
             lista.addView(linha)
         }
     }
@@ -2004,7 +2135,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
     }
 
     private fun dataPagamentoLocal(venda: VendaRelatorio): String {
-        return venda.data_pagamento?.takeIf { it.isNotBlank() } ?: "Não informada"
+        return BrazilianDates.display(venda.data_pagamento?.takeIf { it.isNotBlank() } ?: "Não informada")
     }
 
     private fun abrirDialogCorrigirPagamento(venda: VendaRelatorio) {
@@ -2018,7 +2149,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
 
         val valorCorreto = campo("Valor Correto Pago").apply { setText(decimalText(venda.total_pago)) }
         val data = campo("Data Da Correção").apply {
-            setText(dataPagamentoLocal(venda).takeIf { it != "Não informada" } ?: hoje)
+            setText(BrazilianDates.display(dataPagamentoLocal(venda).takeIf { it != "Não informada" } ?: hoje))
             isFocusable = false
             isClickable = true
             setOnClickListener { abrirCalendario(this) }
@@ -2037,7 +2168,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
                     return@setPositiveButton
                 }
                 try {
-                    localDb.corrigirPagamentoTotal(venda.id_venda.toLong().toString(), data.text.toString(), correto)
+                    localDb.corrigirPagamentoTotal(venda.id_venda.toLong().toString(), BrazilianDates.storage(data.text.toString()), correto)
                     Toast.makeText(this, "Pagamento corrigido no SQLite.", Toast.LENGTH_SHORT).show()
                     carregarRelatorio { abrirListaVendas() }
                 } catch (e: Exception) {
@@ -2069,6 +2200,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = "image/png"
                 putExtra(Intent.EXTRA_STREAM, uri)
+                putExtra(Intent.EXTRA_TEXT, BusinessIdentity.summary(businessPreferences.businessName))
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 setPackage("com.whatsapp")
             }
@@ -2079,6 +2211,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
                 val share = Intent(Intent.ACTION_SEND).apply {
                     type = "image/png"
                     putExtra(Intent.EXTRA_STREAM, uri)
+                    putExtra(Intent.EXTRA_TEXT, BusinessIdentity.summary(businessPreferences.businessName))
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 startActivity(Intent.createChooser(share, "Compartilhar resumo"))
@@ -2098,7 +2231,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
 
         val valor = campo("Valor Pago")
         val data = campo("Data Do Pagamento").apply {
-            setText(hoje)
+            setText(BrazilianDates.display(hoje))
             isFocusable = false
             isClickable = true
             setOnClickListener { abrirCalendario(this) }
@@ -2119,7 +2252,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
                 try {
                     val request = NovoPagamentoRequest(
                         id_venda = venda.id_venda.toLong().toString(),
-                        data_pagamento = data.text.toString(),
+                        data_pagamento = BrazilianDates.storage(data.text.toString()),
                         valor_pago = valorPago
                     )
                     localDb.novoPagamento(request)
@@ -2148,6 +2281,9 @@ private fun criarCanalNotificacoes() {
     }
 
     private fun notificarVencimentos() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
+
         val vencidas = vendasCache.filter { estaVencida(it) }
         val vencendoHoje = vendasCache.filter {
             (it.data_vencimento ?: "") == hoje && it.saldo > 0L
@@ -2184,12 +2320,17 @@ private fun criarCanalNotificacoes() {
 
 
 
+    private fun atualizarAvisosSemInterromperTela() {
+        try { notificarVencimentos() }
+        catch (_: Exception) { Log.w("VendasSimples", "Não foi possível emitir o aviso de vencimentos.") }
+    }
+
     private fun carregarRelatorio(aoFinalizar: (() -> Unit)? = null) {
         try {
             statusText.text = "Carregando Dados Do SQLite..."
             vendasCache = localDb.getRelatorio()
             statusText.text = "Dados locais | ${vendasCache.size} cards"
-            notificarVencimentos()
+            atualizarAvisosSemInterromperTela()
             aoFinalizar?.invoke()
         } catch (e: Exception) {
             statusText.text = "Erro No Banco Local: ${e.message}"
@@ -2201,7 +2342,7 @@ private fun criarCanalNotificacoes() {
         DatePickerDialog(
             this,
             { _, ano, mes, dia ->
-                campoData.setText(String.format(Locale.US, "%04d-%02d-%02d", ano, mes + 1, dia))
+                campoData.setText(String.format(Locale("pt", "BR"), "%02d/%02d/%04d", dia, mes + 1, ano))
             },
             cal.get(Calendar.YEAR),
             cal.get(Calendar.MONTH),
