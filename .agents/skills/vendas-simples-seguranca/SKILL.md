@@ -8,3 +8,5 @@ Leia `docs/SEGURANCA_PRIVACIDADE.md` e `docs/REGRAS_FINANCEIRAS.md`. Não trazer
 Falha de licença, Billing ou rede nunca pode apagar dados. Valores novos usam centavos em `Long` ou decimal seguro, nunca Float/Double. Mudança de schema exige migração versionada, fixtures e teste de preservação de IDs, pagamentos e fotos.
 
 Leia docs/HISTORICO_SEGURANCA.md e docs/PROBLEMAS_E_SOLUCOES.md antes de mudar controle existente; diferencie código presente, teste executado e declaração externa. Ao concluir, atualize a evidência de segurança da versão e mantenha pendências Data Safety/Billing explícitas.
+
+Antes de alterar Billing, SDKs, transmissão, armazenamento, exportação ou backup, consulte `docs/CONHECIMENTO_GOOGLE_PLAY_DATA_SAFETY.md`. Reavalie a política e a declaração para qualquer novo SDK ou fluxo externo; a orientação de suporte é condicionada à arquitetura e não é aprovação formal.
