@@ -33,6 +33,14 @@
 - Execute verificações proporcionais à mudança. Documentação: links, consistência, datas/evidências e diff; aplicativo: build e cenários afetados em `docs/VALIDACAO.md`. Informe testes não executados e não transfira aprovação de um commit/versão anterior.
 - Não publique, faça push ou configure distribuição por herança de autorização do repositório de referência.
 
+### Data Safety e SDKs
+
+- Antes de alterar Google Play Billing, consultar `docs/CONHECIMENTO_GOOGLE_PLAY_DATA_SAFETY.md` e preservar as condições e limites da orientação recebida do suporte.
+- Avaliar todo SDK novo/transitivo e suas transmissões para Data Safety; a declaração atual não é precedente automático para outra arquitetura, versão ou aplicativo.
+- Reavaliar a política e a declaração antes de introduzir transmissões, endpoints, contas, sincronização ou novas finalidades de dados.
+- Alterações em armazenamento, exportação, backup ou restauração exigem análise de privacidade e consistência com a política.
+- Diferenciar evidência do código, orientação de suporte e aprovação formal. O suporte não fez pré-aprovação; registrar lacunas e não tratar a revisão da Play como garantia.
+
 ## Skills locais
 
 Leia a skill pertinente quando a tarefa exigir seu fluxo:
