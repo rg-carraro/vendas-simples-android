@@ -18,7 +18,7 @@
 
 - Antes de alterar funcionalidade existente, consulte `docs/INDEX.md`, `docs/HISTORICO_COMPLETO_V0_V12.md`, `docs/HISTORICO_COMPLETO_V0_V13.md`, `docs/DECISOES.md`, `docs/PROBLEMAS_E_SOLUCOES.md` e o histórico do arquivo (`git log --all --follow -- <arquivo>`); valide comportamento no código atual.
 - Estado Git: V13 integrada à master pela PR #4, merge `5593215`, `13 / 1.0.13`. O proprietário relatou envio Alpha 6 “Em análise” em 19/10/2026; isso não comprova aprovação, disponibilidade aos testadores ou produção. Consulte `docs/PENDENCIAS_ATUAIS.md` para o status e fonte.
-- V14 tem duas decisões funcionais aprovadas e planejadas: posição do acesso à política e identidade nos PDFs. Ambas estão **PLANEJADAS, NÃO IMPLEMENTADAS**; consulte `docs/DECISOES.md` e `docs/ROADMAP_PRODUTO.md`.
+- V14 tem duas decisões funcionais aprovadas. A implementação local está na branch isolada `feature/v14-pdf-identidade-privacidade`, em validação, sem integração ou distribuição; consulte `docs/FASE14_FUNCIONAL_PDF_PRIVACIDADE.md`, `docs/DECISOES.md` e `docs/ROADMAP_PRODUTO.md`.
 - Diferencie `versionCode`/`versionName`, rótulos informais V0–V13, tags/commits, AAB local, upload, aprovação, rollout e release Play. Classifique evidência como `CONFIRMADO`, `RELATADO PELO PROPRIETÁRIO`, `INFERIDO`, `NÃO COMPROVADO` ou `PENDENTE`.
 - Para correção, consulte `docs/PROBLEMAS_E_SOLUCOES.md`; registre causa confirmada versus hipótese, solução e validação. Atualize histórico temático sem duplicar regras comerciais. Use `docs/MANUTENCAO_POS_LANCAMENTO.md` para triagem e regressão.
 - Para novo marco, use `docs/CONTINUIDADE_CODEX.md`, atualize `docs/HISTORICO_VERSOES.md` e `docs/HISTORICO_TESTES.md` quando houver evidência e registre decisões duradouras em `docs/DECISOES.md`.

@@ -93,4 +93,8 @@ As duas decisões abaixo foram aprovadas pelo proprietário e estão **V14 FUNCI
 | D-15 | Remover o item “Política de Privacidade” do menu de três pontos e manter o acesso dentro de “Sobre o aplicativo”. | Preservar a leitura local/offline, o link oficial e todas as demais opções do menu. |
 | D-16 | Aplicar padrão de identidade a todos os PDFs existentes. | Nome personalizado do negócio em destaque; ícone oficial Vendas Simples somente na primeira página de cada PDF; não repetir nas páginas seguintes. Preservar títulos, valores, fotografias, totais, paginação e o fallback atual quando não houver nome personalizado. Antes de implementar, inventariar todos os geradores de PDF e seus testes. |
 
-O detalhamento e as dependências estão em [Roadmap](ROADMAP_PRODUTO.md), [Pendências atuais](PENDENCIAS_ATUAIS.md) e no [relatório complementar da Fase 14](FASE14_CONSOLIDACAO_CONHECIMENTO.md). A classificação acima não deve ser alterada para implementada até haver mudança no código e validação correspondentes.
+O detalhamento e as dependências estão em [Roadmap](ROADMAP_PRODUTO.md), [Pendências atuais](PENDENCIAS_ATUAIS.md) e no [relatório complementar da Fase 14](FASE14_CONSOLIDACAO_CONHECIMENTO.md). A classificação na data de aprovação era planejada/não implementada; o estado posterior da branch funcional consta abaixo.
+
+## Implementação V14 em validação — 19/10/2026
+
+Na branch isolada `feature/v14-pdf-identidade-privacidade`, a implementação local removeu o atalho duplicado da política no menu e manteve o acesso em Sobre; os três pontos de exportação PDF identificados convergem para um gerador paginado, que recebeu ícone oficial, nome/fallback e identificação sutil apenas na primeira página. Os testes e builds desta branch estão em validação; não é integração na master nem distribuição. Ver [relatório funcional da Fase 14](FASE14_FUNCIONAL_PDF_PRIVACIDADE.md).

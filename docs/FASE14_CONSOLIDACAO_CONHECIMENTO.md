@@ -65,3 +65,5 @@ Em 19/10/2026, o proprietário aprovou duas decisões funcionais, registradas co
 2. Aplicar o padrão a todos os PDFs: nome personalizado em destaque; ícone oficial Vendas Simples apenas na primeira página de cada PDF; preservar títulos, valores, fotografias, totais, paginação e fallback sem nome personalizado. Identificar todos os geradores de PDF antes de implementar.
 
 Atualizados `docs/DECISOES.md`, `docs/PENDENCIAS_ATUAIS.md`, `docs/ROADMAP_PRODUTO.md`, `AGENTS.md` e `README.md`. Não houve alteração de código, Gradle, versão, AAB/APK ou estado Alpha V13. Esta atualização permanece exclusivamente documental.
+
+O trabalho funcional iniciado depois, na branch `feature/v14-pdf-identidade-privacidade` baseada na master que integrou esta documentação, é descrito separadamente em [FASE14_FUNCIONAL_PDF_PRIVACIDADE.md](FASE14_FUNCIONAL_PDF_PRIVACIDADE.md). Este relatório continua sendo o registro da etapa documental original.

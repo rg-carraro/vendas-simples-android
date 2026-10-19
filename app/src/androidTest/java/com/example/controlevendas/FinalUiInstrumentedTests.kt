@@ -4,6 +4,8 @@ import android.app.Instrumentation
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.pdf.PdfRenderer
+import android.os.ParcelFileDescriptor
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.view.View
@@ -41,7 +43,8 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
             .apply { isAccessible = true }
         val popup = createMenu.invoke(activity, View(activity)) as android.widget.PopupMenu
         val labels = (0 until popup.menu.size()).map { popup.menu.getItem(it).title.toString() }
-        check(labels.containsAll(listOf("Personalizar negócio", "Política de Privacidade", "Exportar CSV", DeveloperContact.menuLabel)))
+        check(labels.containsAll(listOf("Personalizar negócio", "Exportar CSV", DeveloperContact.menuLabel)))
+        check("Política de Privacidade" !in labels)
         check(popup.menu.performIdentifierAction(
             (0 until popup.menu.size()).map { popup.menu.getItem(it) }.single { it.title == DeveloperContact.menuLabel }.itemId,
             0
@@ -124,7 +127,17 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
         val repository = field("billingEntitlement").get(activity) as BillingEntitlementRepository
         val original = repository.billingState
         try {
+            call("abrirSobreAplicativo")
+            val content = field("content").get(activity) as View
+            val privacyButton = descendants(content).filterIsInstance<Button>()
+                .single { it.text.toString() == DeveloperContact.privacyAction }
+            check(privacyButton.isEnabled && privacyButton.hasOnClickListeners())
             for (state in listOf(EntitlementState.FREE_WITHIN_LIMIT, EntitlementState.FULL_ACCESS, EntitlementState.UNAVAILABLE)) {
+                call("abrirSobreAplicativo")
+                val aboutContent = field("content").get(activity) as View
+                check(descendants(aboutContent).filterIsInstance<Button>().any {
+                    it.text.toString() == DeveloperContact.privacyAction && it.isEnabled
+                })
                 repository.billingState = state
                 val dialog = call("abrirPoliticaPrivacidade") as android.app.AlertDialog
                 try {
@@ -137,6 +150,62 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
                 } finally { dialog.dismiss() }
             }
         } finally { repository.billingState = original }
+    }
+
+    fun testPdfIdentityAppearsOnlyOnFirstPageWithNameAndFallback() = instrumentation.runOnMainSync {
+        val pdfMethod = MainActivity::class.java.getDeclaredMethod(
+            "gerarPdfGenerico", File::class.java, String::class.java, List::class.java,
+            Boolean::class.javaPrimitiveType!!, String::class.java
+        ).apply { isAccessible = true }
+        val previousName = preferences.snapshot()
+        val sales = (1..14).map { index ->
+            VendaRelatorio(index.toDouble(), nome_cliente = "Cliente $index", descricao = "Item $index",
+                data_venda = "2026-10-01", data_vencimento = "2026-10-31", valor_total = 10000,
+                total_pago = 2500, saldo = 7500, parcela_atual = 1, parcelas = 1)
+        }
+        fun assertBranding(file: File) {
+            val descriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+            try {
+                PdfRenderer(descriptor).use { renderer ->
+                    check(renderer.pageCount > 1)
+                    fun topCenterPixels(pageIndex: Int): Int {
+                        renderer.openPage(pageIndex).use { page ->
+                            val bitmap = Bitmap.createBitmap(page.width, page.height, Bitmap.Config.ARGB_8888)
+                            bitmap.eraseColor(Color.WHITE)
+                            page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                            var colored = 0
+                            val density = page.width / 595f
+                            val left = (270 * density).toInt().coerceAtLeast(0)
+                            val right = (325 * density).toInt().coerceAtMost(bitmap.width)
+                            val top = (35 * density).toInt().coerceAtLeast(0)
+                            val bottom = (88 * density).toInt().coerceAtMost(bitmap.height)
+                            for (y in top until bottom) for (x in left until right) {
+                                if (Color.red(bitmap.getPixel(x, y)) < 245 || Color.green(bitmap.getPixel(x, y)) < 245 || Color.blue(bitmap.getPixel(x, y)) < 245) colored++
+                            }
+                            bitmap.recycle()
+                            return colored
+                        }
+                    }
+                    check(topCenterPixels(0) > 20) { "Ícone não visível no cabeçalho da primeira página" }
+                    check(topCenterPixels(1) == 0) { "Ícone/cabeçalho repetido na segunda página" }
+                }
+            } finally { descriptor.close() }
+        }
+        val file = File(activity.cacheDir, "ui-test-v14-identidade.pdf")
+        try {
+            preferences.businessName = "Loja São José — Acessórios"
+            pdfMethod.invoke(activity, file, "Resumo Vendas Simples", sales, false, null)
+            assertBranding(file)
+            check(preferences.displayName == "Loja São José — Acessórios")
+            file.delete()
+            preferences.businessName = ""
+            pdfMethod.invoke(activity, file, "Resumo Vendas Simples", sales, false, null)
+            assertBranding(file)
+            check(preferences.displayName == "Vendas Simples")
+        } finally {
+            file.delete()
+            preferences.restoreState(previousName)
+        }
     }
     private fun descendants(view: View): List<View> = listOf(view) +
         if (view is ViewGroup) (0 until view.childCount).flatMap { descendants(view.getChildAt(it)) } else emptyList()

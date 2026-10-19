@@ -20,11 +20,11 @@ Testar aparelho/emulador, compra de teste, reinstalação, migrações, backup e
 
 Backend antifraude, conta, sincronização automática em nuvem, restauração de backup pela UI, planos adicionais, assinatura, estoque e recursos fiscais só entram após decisão explícita e escopo próprio. Login e sincronização não fazem parte do roadmap atual.
 
-## Incremento funcional V14 — planejado, não implementado
+## Incremento funcional V14 — em validação na branch isolada
 
-Decisões aprovadas pelo proprietário em 19/10/2026; classificação: **V14 FUNCIONAL — PLANEJADA, NÃO IMPLEMENTADA**.
+Decisões aprovadas pelo proprietário em 19/10/2026. A implementação está em branch isolada e aguarda validação; não foi integrada nem distribuída.
 
 1. Remover “Política de Privacidade” do menu de três pontos, mantendo o acesso em “Sobre o aplicativo”, a versão local/offline, o link oficial e as demais opções do menu.
 2. Atualizar todos os PDFs existentes: destacar o nome personalizado do negócio e inserir o ícone oficial do Vendas Simples somente na primeira página de cada documento. Preservar títulos, valores, fotografias, totais, paginação e fallback atual sem nome personalizado.
 
-Antes da implementação do item de PDF, identificar todos os geradores e pontos de paginação. Homologar documentos curtos e multipágina, com/sem nome e fotografias; conferir presença do ícone na primeira página e ausência nas seguintes. O planejamento não altera a V13 nem constitui registro de implementação.
+O inventário encontrou três ações PDF, todas atendidas por `gerarPdfGenerico` em `MainActivity.kt`. O relatório [Fase 14 funcional](FASE14_FUNCIONAL_PDF_PRIVACIDADE.md) registra solução e validação. Homologar documentos curtos e multipágina, com/sem nome e fotografias; conferir presença do ícone na primeira página e ausência nas seguintes. A V13 e seu AAB preservado não são alterados.

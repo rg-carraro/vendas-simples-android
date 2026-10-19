@@ -2,9 +2,11 @@
 
 Produto Android independente para controle local de vendas, parcelas e recebimentos.
 
-**Estado da base (19/10/2026):** a master contém a V13 (`13 / 1.0.13`) integrada pela PR #4, merge `5593215`. O proprietário relatou que o envio 6 da V13 está “Em análise” na faixa fechada Alpha, com cerca de oito dias restantes no período informado. Esse status da Console foi relatado pelo proprietário e não verificado diretamente; aprovação, disponibilidade aos testadores e publicação pública não estão comprovadas. O AAB local validado tem SHA-256 `33D0906198E439304887A59AB683AF723636DEEE6ACAF51025BD073C42ED6642`. Consulte [pendências](docs/PENDENCIAS_ATUAIS.md) e [histórico V0–V13](docs/HISTORICO_COMPLETO_V0_V13.md).
+**Estado da base (19/10/2026):** a master contém a V13 (`13 / 1.0.13`) e a consolidação documental Fase 14. Na branch isolada `feature/v14-pdf-identidade-privacidade`, a V14 (`14 / 1.0.14`) está em validação funcional local; não integrada nem distribuída. O proprietário relatou que o envio 6 da V13 está “Em análise” na faixa fechada Alpha; não verificado diretamente. O AAB V13 preservado tem SHA-256 `33D0906198E439304887A59AB683AF723636DEEE6ACAF51025BD073C42ED6642`. Consulte [pendências](docs/PENDENCIAS_ATUAIS.md), [histórico V0–V13](docs/HISTORICO_COMPLETO_V0_V13.md) e [relatório Fase 14 funcional](docs/FASE14_FUNCIONAL_PDF_PRIVACIDADE.md).
 
 **V13 — marco integrado:** a tela Sobre e o contato iniciado pelo usuário foram integrados à master pela PR #4. Build debug, 46 testes unitários, compilação instrumentada e lint (0 erros/67 avisos) estão registrados no [relatório da Fase 13](docs/FASE13_SOBRE_APLICATIVO.md). O AAB local release foi gerado e validado no ciclo seguinte, com hash registrado no [histórico de versões](docs/HISTORICO_VERSOES.md). Testes instrumentados em runtime, atualização direta pela Play, API 24 e Billing real seguem pendentes. O proprietário informou estado Alpha “Em análise”; consulte [Pendências atuais](docs/PENDENCIAS_ATUAIS.md) para a classificação da evidência.
+
+**V14 — em desenvolvimento local:** a branch `feature/v14-pdf-identidade-privacidade` remove o atalho duplicado da política do menu e aplica identidade oficial na primeira página dos PDFs. Não foi integrada nem distribuída; consulte [relatório funcional](docs/FASE14_FUNCIONAL_PDF_PRIVACIDADE.md).
 
 A referência é a branch `comercial` de `alejoiasvendasapp`, fixada no commit `ce112c40c4f79368042555e451338b5f318077bd`. O repositório original é somente leitura e não será alterado.
 
@@ -50,7 +52,7 @@ As skills ficam em `.agents/skills/`, com instruções locais versionadas:
 
 Consultar [Pendências atuais](docs/PENDENCIAS_ATUAIS.md): o proprietário informou o envio 6 da V13 em análise na faixa fechada Alpha em 19/10/2026. Revisão, disponibilização aos testadores e elegibilidade de produção precisam ser confirmadas na Console. Runtime instrumentado, API 24, atualização direta pela Play e Billing de teste também seguem pendentes. Não inferir aprovação ou publicação.
 
-O proprietário também aprovou duas decisões funcionais para a V14 — acesso à política dentro de “Sobre o aplicativo” e padrão visual de identidade em todos os PDFs. Ambas estão **planejadas e não implementadas**; consulte [decisões](docs/DECISOES.md), [roadmap](docs/ROADMAP_PRODUTO.md) e [pendências](docs/PENDENCIAS_ATUAIS.md).
+O proprietário aprovou duas decisões funcionais para a V14 — acesso à política dentro de “Sobre o aplicativo” e identidade visual em todos os PDFs. A implementação está na branch funcional isolada e aguarda validação/integração; consulte [relatório da Fase 14](docs/FASE14_FUNCIONAL_PDF_PRIVACIDADE.md), [decisões](docs/DECISOES.md), [roadmap](docs/ROADMAP_PRODUTO.md) e [pendências](docs/PENDENCIAS_ATUAIS.md).
 
 ## Marco V10 beta da Store
 
