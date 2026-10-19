@@ -43,14 +43,16 @@ Ajuda oficial atual consultada: [requisitos de teste para contas pessoais novas]
 
 ## Verificações e limitações
 
-- `git fetch origin master` foi executado sem sobrescrever alterações locais; `origin/master` apontou para `5593215...`, base desta worktree.
+- A tentativa de `git fetch origin master` nesta worktree foi bloqueada por permissão ao escrever `.git/worktrees/.../FETCH_HEAD`. A base foi conferida sem escrita pelo GitHub: comparação do SHA `5593215...` com `master` retornou `identical`.
 - Estado inicial da worktree Fase 14 estava limpo e baseada em `origin/master`. As outras worktrees e a árvore raiz foram inspecionadas e preservadas; alterações não relacionadas existentes não foram tocadas.
 - Comparação local da política: texto principal idêntico após extração de `<main>` e normalização de tags/espaços; arquivos têm estrutura global diferente por navegação e wrapper.
 - Busca online da política pública falhou com erro de carregamento da ferramenta; não se declara HTTP 200 nem correspondência live.
 - Requisito de acesso à produção foi conferido na página oficial do Google Play ligada acima. A elegibilidade específica não pode ser concluída sem tipo/data da conta e estado da Console.
 - Builds não executados por ser fase documental. `git diff --check` passou; links relativos em 27 arquivos Markdown passaram; varredura de padrões de chave privada, tokens, senha literal e caminho privado do usuário passou. `git diff` em `app/src`, Gradle e arquivos funcionais não mostrou alterações. A lista alterada contém somente documentação e skills; nenhum APK/AAB está no delta.
-- Não houve alteração de código, Gradle, dependências, versionamento, recursos Android, AAB/APK, banco, assinatura, Console, publicação, commit, push ou merge durante a preparação inicial deste relatório.
+- Commit documental: `17a325c8c55e87a8d7110bf1a1fe953720713b6e` (`docs: consolidate V13 history and maintenance guidance`), enviado por push normal para `origin/docs/fase14-consolidacao-conhecimento`. GitHub confirmou que o commit e o relatório estão acessíveis na branch. A master continua exatamente no SHA base `5593215...`.
+- A criação da PR draft foi tentada pela integração GitHub e recusada com HTTP 403, `Resource not accessible by integration`. Nenhuma PR foi criada. Link para abrir manualmente em rascunho: https://github.com/rg-carraro/vendas-simples-android/pull/new/docs/fase14-consolidacao-conhecimento .
+- Não houve alteração de código, Gradle, dependências, versionamento, recursos Android, AAB/APK, banco, assinatura, Console, publicação ou merge.
 
 ## Próximo passo
 
-Revisar o diff, completar as verificações documentais e publicar somente a branch desta fase. Criar PR documental em draft se o acesso GitHub permitir; não fazer merge. O fluxo V13 Alpha permanece sob responsabilidade da Console e do proprietário, sem interferência desta fase.
+Criar manualmente a PR documental como draft pelo link acima, revisar e aguardar revisão/merge humano. O fluxo V13 Alpha permanece sob responsabilidade da Console e do proprietário, sem interferência desta fase.
