@@ -4,7 +4,7 @@ Produto Android independente para controle local de vendas, parcelas e recebimen
 
 **Estado registrado em 16/10/2026:** a branch isolada `integration/v12-master-validation` integra o commit `64344855` e tem regressão automatizada e AAB local V12 validados. A homologação física V12, conferência atual da Play Console/Data Safety e upload Alpha não estão comprovados. Isso não equivale a publicação nem aprovação de produção.
 
-**Candidato V13 (19/10/2026):** a branch local `feature/v13-sobre-aplicativo` prepara `versionCode 13` / `versionName 1.0.13` com tela Sobre e canal de contato por e-mail iniciado pelo usuário. Build debug, testes unitários, lint e compilação dos testes instrumentados passaram; runtime/inspeção física continuam pendentes. Não houve AAB, commit, push ou publicação. Consulte [relatório V13](docs/FASE13_SOBRE_APLICATIVO.md).
+**Candidato V13 (19/10/2026):** a branch `feature/v13-sobre-aplicativo`, baseada na master após a integração da PR #3, prepara `versionCode 13` / `versionName 1.0.13` com tela Sobre e canal de contato por e-mail iniciado pelo usuário. Build debug, 46 testes unitários, compilação instrumentada e lint (0 erros/67 avisos) passaram; testes instrumentados em runtime e atualização direta da Play continuam pendentes. O AAB V13 ainda não foi gerado. Consulte [relatório V13](docs/FASE13_SOBRE_APLICATIVO.md) para o estado do PR e o hash do APK debug.
 
 A referência é a branch `comercial` de `alejoiasvendasapp`, fixada no commit `ce112c40c4f79368042555e451338b5f318077bd`. O repositório original é somente leitura e não será alterado.
 

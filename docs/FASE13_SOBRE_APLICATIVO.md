@@ -1,8 +1,8 @@
 # V13 — Tela Sobre e contato com o desenvolvedor
 
-**Estado:** implementação local na branch `feature/v13-sobre-aplicativo`; não publicada.
+**Estado:** implementação commitada na branch `feature/v13-sobre-aplicativo`; PR ainda não criada nesta etapa.
 
-**Base:** merge oficial `11214de6aac8bf1072c1767344c725939d3b1802` (`master`).
+**Base:** `origin/master` no merge `2231c022facc0c45481d6009e35c94a5696ffed3`, que integrou a PR #3 documental. O commit de feature é `09f49af361c9fe50cf87c77e6955140a5de1342f`; o merge da base atualizado é `10f09409cd3dd3d53b8b6f705ba7b4fe46517dae`.
 
 **Metadados preparados:** applicationId `com.vendassimples.app`, versionCode `13`, versionName `1.0.13`, minSdk 24, targetSdk 36. A mudança de versão existe somente nesta branch.
 
@@ -45,6 +45,12 @@ Executado com JBR 21.0.10 e Gradle Wrapper 8.11.1, usando `GRADLE_USER_HOME` def
 - Testes instrumentados em runtime e inspeção visual em 320 dp/fonte ampliada — **não executados**. O ADB não conseguiu criar `\.android` por permissão negada. Não contornei essa restrição e nenhum dispositivo foi instalado ou alterado.
 - Teste real de seleção de aplicativo de e-mail/envio — **não executado**; o teste automatizado cobre a Intent e a falha simulada de cliente ausente, sem enviar e-mail.
 
+### Regressão desta preparação para PR
+
+Após incorporar `origin/master` (`2231c022`, PR #3 documental), foi executado novamente `:app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebug :app:lintDebug` na árvore final da branch. **BUILD SUCCESSFUL**; os relatórios registram 46 testes unitários, 0 falhas/erros, compilação instrumentada aprovada, APK debug aprovado e lint com 0 erros/67 avisos. O APK continua com 7.472.773 bytes e SHA-256 `D00FFBC29592F3320FAF3353EE81641DF023D4BC14A5D36C2729F8C7AA0D3C0C`; metadados confirmados: `com.vendassimples.app`, 13/1.0.13, min 24, target/compile 36. As tarefas Gradle já estavam majoritariamente atualizadas; este resultado comprova a execução bem-sucedida do comando, mas não runtime instrumentado.
+
+O diff V13 em relação a `origin/master` limita-se à tela Sobre/contato, metadados 13/1.0.13, testes e documentação listados acima. Não há alterações em SQLite, Billing (9.1.0), produto `full_access`, limite FREE (30 vendas), backup, assinatura ou política. `git diff --check` passou. A busca por padrões de credenciais não encontrou segredo; a única correspondência relevante foi texto documental explicando a ausência de senhas no histórico. O AAB V12 na worktree original segue intacto: 5.361.969 bytes, SHA-256 `4CF6052542FA842EC0796D16006A2912BC825039366C20AE7EB504A608CFA75D`.
+
 ## Homologação relatada pelo proprietário
 
 Em 19/10/2026, o proprietário informou que:
@@ -62,7 +68,7 @@ Esses resultados ficam classificados como **RELATADOS PELO PROPRIETÁRIO**; não
 
 O APK acima é debug para validação local. **Nenhum AAB V13 foi gerado.** O AAB V12 na worktree `integration/v12-master-validation` foi conferido sem reconstrução: 5.361.969 bytes, SHA-256 `4CF6052542FA842EC0796D16006A2912BC825039366C20AE7EB504A608CFA75D`.
 
-A branch da V12, a master, o AAB V12 e a instalação real no Samsung S22+ não foram modificados. Não houve commit, push, merge, PR, tag, upload ou publicação.
+A branch da V12, a master e o AAB V12 não foram modificados. A implementação V13 está no commit de feature acima; a PR #3 foi incorporada à branch V13 por merge normal. O estado de push/PR será registrado após a publicação controlada da branch. Não houve tag, upload ou publicação na Google Play.
 
 ## Pendências e recomendação
 
