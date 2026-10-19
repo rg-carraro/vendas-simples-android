@@ -378,10 +378,6 @@ class MainActivity : AppCompatActivity() {
                         abrirConfiguracaoNegocio()
                         true
                     }
-                    menu.add("Política de Privacidade").setOnMenuItemClickListener {
-                        abrirPoliticaPrivacidade()
-                        true
-                    }
                     menu.add(DeveloperContact.menuLabel).setOnMenuItemClickListener {
                         abrirSobreAplicativo()
                         true
@@ -1823,7 +1819,25 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         }
 
         val nomeNegocio = businessPreferences.displayName
-        // Quebra por largura real, inclusive para nomes longos sem espaços.
+        // Identidade visual aparece somente na primeira página. As novas páginas
+        // começam no topo habitual, sem reservar espaço para repetir o cabeçalho.
+        val icon = androidx.core.content.ContextCompat.getDrawable(this, R.mipmap.ic_launcher)
+        icon?.let {
+            val iconSize = 52f
+            val left = (595f - iconSize) / 2f
+            it.setBounds(left.toInt(), y, (left + iconSize).toInt(), y + iconSize.toInt())
+            it.draw(canvas)
+        }
+        y += 66
+        val imprintPaint = Paint().apply {
+            textSize = 9f
+            color = corTextoSecundario
+            textAlign = Paint.Align.CENTER
+        }
+        canvas.drawText("Gerado pelo Vendas Simples", 297f, y.toFloat(), imprintPaint)
+        y += 25
+        // O nome usa o valor configurado ou o fallback atual e quebra pela
+        // largura real, inclusive quando não há espaços.
         var restanteNome = nomeNegocio
         while (restanteNome.isNotEmpty()) {
             val tamanho = titlePaint.breakText(restanteNome, true, 495f, null).coerceAtLeast(1)

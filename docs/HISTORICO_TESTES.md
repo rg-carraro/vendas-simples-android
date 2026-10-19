@@ -31,4 +31,12 @@ Testes foram ampliados de regras monetárias para formato de backup, transação
 
 O relatório da Fase 13 registra 46 testes unitários aprovados, compilação de AndroidTest, build debug e lint sem erros/67 avisos. O proprietário relatou validação visual/fluxos no S22+ e restore V12→V13 Debug. O AAB local release foi validado depois com SHA-256 `33D0906198E439304887A59AB683AF723636DEEE6ACAF51025BD073C42ED6642`. Esses registros não comprovam runtime instrumentado, atualização direta pela Play, execução em API24 ou compra/restauração Play real. Status Alpha envio 6 “Em análise” em 19/10/2026 é relato do proprietário, não teste observado. Consulte [Pendências atuais](PENDENCIAS_ATUAIS.md).
 
+## V14 — validação funcional local (19/10/2026)
+
+Na branch `feature/v14-pdf-identidade-privacidade`, 46/46 testes unitários passaram em debug e 46/46 em release. `compileDebugAndroidTestKotlin`, `lintDebug`, `lintRelease` e `assembleDebug` passaram; lint reportou 0 erros e 67 avisos por variante. ADB não iniciou porque não pôde criar `\.android` no sandbox, e não havia AVD listado; AndroidTest runtime, inspeção visual do PDF, aparelho real e API24 não foram executados. Consulte [relatório funcional da Fase 14](FASE14_FUNCIONAL_PDF_PRIVACIDADE.md).
+
+O proprietário posteriormente informou ter homologado manualmente as mudanças funcionais V14 e confirmado funcionamento correto. Esta evidência é **RELATADA PELO PROPRIETÁRIO**; não substitui o AndroidTest runtime nem foi observada pelo Codex.
+
+No fechamento do release V14 (19/10/2026), `testDebugUnitTest`, `testReleaseUnitTest`, `compileDebugAndroidTestKotlin`, `lintDebug`, `lintRelease` e `bundleRelease` passaram juntos. Os testes unitários e a compilação AndroidTest estavam atualizados; lint teve 0 erros e 67 avisos por variante. Bundletool validou o AAB e seu manifesto, e `jarsigner -verify` confirmou a assinatura. AndroidTest runtime, API24, atualização via Play e Billing real continuam pendentes. Hash e metadados constam em [Fase 14](FASE14_FUNCIONAL_PDF_PRIVACIDADE.md).
+
 Use os registros `PASSOU`, `FALHOU`, `NÃO EXECUTADO` com commit/versão, ambiente, aparelho/API e evidência. A lista de regressão reutilizável está em [VALIDACAO](VALIDACAO.md) e [regressao-release skill](../.agents/skills/regressao-release/SKILL.md).
