@@ -36,6 +36,57 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
     private fun field(name: String) = MainActivity::class.java.getDeclaredField(name).apply { isAccessible = true }
     private fun call(name: String) = MainActivity::class.java.getDeclaredMethod(name).apply { isAccessible = true }.invoke(activity)
 
+    fun testAboutScreenMenuIdentityVersionAndBackNavigation() = instrumentation.runOnMainSync {
+        val createMenu = MainActivity::class.java.getDeclaredMethod("criarMenuOpcoes", View::class.java)
+            .apply { isAccessible = true }
+        val popup = createMenu.invoke(activity, View(activity)) as android.widget.PopupMenu
+        val labels = (0 until popup.menu.size()).map { popup.menu.getItem(it).title.toString() }
+        check(labels.containsAll(listOf("Personalizar negócio", "Política de Privacidade", "Exportar CSV", DeveloperContact.menuLabel)))
+        check(popup.menu.performIdentifierAction(
+            (0 until popup.menu.size()).map { popup.menu.getItem(it) }.single { it.title == DeveloperContact.menuLabel }.itemId,
+            0
+        ))
+
+        val content = field("content").get(activity) as LinearLayout
+        val texts = descendants(content).filterIsInstance<TextView>().map { it.text.toString() }
+        check(texts.containsAll(listOf(
+            DeveloperContact.appName,
+            DeveloperContact.subtitle,
+            DeveloperContact.versionLabel(activity.packageManager.getPackageInfo(activity.packageName, 0).versionName),
+            DeveloperContact.description,
+            "Desenvolvedor: RGCarraro",
+            "E-mail: rgcarraro@gmail.com",
+            DeveloperContact.contactAction,
+            DeveloperContact.privacyAction
+        )))
+        check(descendants(content).filterIsInstance<android.widget.ImageView>().any { it.drawable != null })
+        check(field("telaAtual").get(activity) == "sobre")
+        activity.onBackPressedDispatcher.onBackPressed()
+        check(field("telaAtual").get(activity) == "menu")
+        check((field("statusText").get(activity) as TextView).text == "Menu Principal")
+    }
+
+    fun testContactIntentAndMissingEmailClientFallback() = instrumentation.runOnMainSync {
+        call("abrirSobreAplicativo")
+        val intent = call("criarIntentContatoDesenvolvedor") as Intent
+        check(intent.action == Intent.ACTION_SENDTO)
+        check(intent.data?.scheme == "mailto")
+        check(intent.data?.schemeSpecificPart?.substringBefore('?') == DeveloperContact.email)
+        check(intent.data?.getQueryParameter("subject") == DeveloperContact.subject)
+        check(intent.data?.getQueryParameter("body") == DeveloperContact.message(
+            activity.packageManager.getPackageInfo(activity.packageName, 0).versionName
+        ))
+        check(intent.extras == null)
+
+        val execute = MainActivity::class.java.getDeclaredMethod("executarIntentContato", Function1::class.java)
+            .apply { isAccessible = true }
+        val fallback = execute.invoke(activity, { _: Intent -> throw android.content.ActivityNotFoundException() }) as android.app.AlertDialog
+        try {
+            check(fallback.isShowing)
+            check(fallback.getButton(android.app.AlertDialog.BUTTON_POSITIVE).text == "Copiar e-mail")
+        } finally { fallback.dismiss() }
+    }
+
     fun testReportCallbackAndNotificationPermission() = instrumentation.runOnMainSync {
         var completed = false
         val callback: () -> Unit = { completed = true }
