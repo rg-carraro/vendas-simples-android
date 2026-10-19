@@ -8,6 +8,7 @@ import android.content.Intent
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
@@ -177,6 +178,7 @@ class MainActivity : AppCompatActivity() {
                     "resumo_clientes" -> abrirResumoClientes()
                     "resumo_periodo" -> abrirResumoPeriodo()
                     "resumo_mes" -> abrirResumoMes()
+                    "sobre" -> abrirSobreAplicativo()
                     else -> abrirMenuPrincipal()
                 }
             }
@@ -308,51 +310,7 @@ class MainActivity : AppCompatActivity() {
             setPadding(0, 0, 0, 0)
             isClickable = true
             isFocusable = true
-            setOnClickListener { ancora ->
-                PopupMenu(this@MainActivity, ancora).apply {
-                    val state = entitlementRepository.currentState(localDb.totalVendas())
-                    menu.add("Personalizar negócio").setOnMenuItemClickListener {
-                        abrirConfiguracaoNegocio()
-                        true
-                    }
-                    menu.add("Política de Privacidade").setOnMenuItemClickListener {
-                        abrirPoliticaPrivacidade()
-                        true
-                    }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                        ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                        menu.add("Ativar avisos de vencimento").setOnMenuItemClickListener {
-                            permitirAvisos.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            true
-                        }
-                    }
-                    menu.add("Exportar CSV").setOnMenuItemClickListener {
-                        exportarCsvResumo(vendasCache, "vendas_simples.csv")
-                        true
-                    }
-                    if (state == EntitlementState.FULL_ACCESS) {
-                        menu.add("Fazer backup").setOnMenuItemClickListener {
-                            criarArquivoBackup.launch("VendasSimples_Backup_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.db")
-                            true
-                        }
-                        menu.add("Restaurar backup").setOnMenuItemClickListener {
-                            abrirArquivoBackup.launch(arrayOf("application/octet-stream", "application/x-sqlite3", "application/vnd.sqlite3"))
-                            true
-                        }
-                        menu.add("Licença Completa — Ativada")
-                    } else {
-                        val preco = fullAccessPrice ?: "preço indisponível"
-                        menu.add("Licença Completa — $preco").apply { isEnabled = fullAccessPrice != null }.setOnMenuItemClickListener {
-                            billingGateway.buy(this@MainActivity)
-                            true
-                        }
-                    }
-                    setOnMenuItemClickListener {
-                        false
-                    }
-                    show()
-                }
-            }
+            setOnClickListener { ancora -> criarMenuOpcoes(ancora).show() }
         }
         header.addView(moreButton, LinearLayout.LayoutParams(dp(48), dp(48)))
 
@@ -413,6 +371,55 @@ class MainActivity : AppCompatActivity() {
         ViewCompat.requestApplyInsets(root)
     }
 
+    private fun criarMenuOpcoes(ancora: View): PopupMenu {
+        return PopupMenu(this@MainActivity, ancora).apply {
+                    val state = entitlementRepository.currentState(localDb.totalVendas())
+                    menu.add("Personalizar negócio").setOnMenuItemClickListener {
+                        abrirConfiguracaoNegocio()
+                        true
+                    }
+                    menu.add("Política de Privacidade").setOnMenuItemClickListener {
+                        abrirPoliticaPrivacidade()
+                        true
+                    }
+                    menu.add(DeveloperContact.menuLabel).setOnMenuItemClickListener {
+                        abrirSobreAplicativo()
+                        true
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                        menu.add("Ativar avisos de vencimento").setOnMenuItemClickListener {
+                            permitirAvisos.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            true
+                        }
+                    }
+                    menu.add("Exportar CSV").setOnMenuItemClickListener {
+                        exportarCsvResumo(vendasCache, "vendas_simples.csv")
+                        true
+                    }
+                    if (state == EntitlementState.FULL_ACCESS) {
+                        menu.add("Fazer backup").setOnMenuItemClickListener {
+                            criarArquivoBackup.launch("VendasSimples_Backup_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.db")
+                            true
+                        }
+                        menu.add("Restaurar backup").setOnMenuItemClickListener {
+                            abrirArquivoBackup.launch(arrayOf("application/octet-stream", "application/x-sqlite3", "application/vnd.sqlite3"))
+                            true
+                        }
+                        menu.add("Licença Completa — Ativada")
+                    } else {
+                        val preco = fullAccessPrice ?: "preço indisponível"
+                        menu.add("Licença Completa — $preco").apply { isEnabled = fullAccessPrice != null }.setOnMenuItemClickListener {
+                            billingGateway.buy(this@MainActivity)
+                            true
+                        }
+                    }
+                    setOnMenuItemClickListener {
+                        false
+                    }
+        }
+    }
+
     private fun abrirMenuPrincipal() {
         telaAtual = "menu"
         configurarRetorno(null)
@@ -430,6 +437,96 @@ class MainActivity : AppCompatActivity() {
         content.addView(linha2)
 
     }
+
+    private fun abrirSobreAplicativo() {
+        telaAtual = "sobre"
+        configurarRetorno { abrirMenuPrincipal() }
+        content.removeAllViews()
+        statusText.text = DeveloperContact.menuLabel
+
+        val identity = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(16), dp(16), dp(16), dp(16))
+            background = fundoArredondadoComBorda(corSuperficie, 22f, corBorda)
+            contentDescription = "Ícone e identificação do Vendas Simples"
+        }
+        identity.addView(ImageView(this).apply {
+            setImageResource(R.mipmap.ic_launcher)
+            contentDescription = "Ícone do Vendas Simples"
+            scaleType = ImageView.ScaleType.FIT_CENTER
+        }, LinearLayout.LayoutParams(dp(72), dp(72)))
+        val identityText = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(14), 0, 0, 0)
+            addView(texto(DeveloperContact.appName, 21f, true).apply {
+                setTextColor(corPrimariaEscura)
+            })
+            addView(texto(DeveloperContact.subtitle, 15f, false).apply {
+                setTextColor(corDestaque)
+                setPadding(0, dp(3), 0, 0)
+            })
+            addView(texto(DeveloperContact.versionLabel(installedVersionName()), 14f, false).apply {
+                setTextColor(corTextoSecundario)
+                setPadding(0, dp(5), 0, 0)
+            })
+        }
+        identity.addView(identityText, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        content.addView(identity, margemCard())
+
+        content.addView(LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(14), dp(16), dp(14))
+            background = fundoArredondadoComBorda(corSuperficie, 22f, corBorda)
+            addView(texto("Sobre", 15f, true).apply { setTextColor(corPrimariaEscura) })
+            addView(texto(DeveloperContact.description, 15f, false).apply {
+                setPadding(0, dp(7), 0, 0)
+            })
+        }, margemCard())
+
+        content.addView(LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(14), dp(16), dp(14))
+            background = fundoArredondadoComBorda(corSuperficie, 22f, corBorda)
+            addView(texto("Desenvolvedor: ${DeveloperContact.developerName}", 15f, true))
+            addView(texto("E-mail: ${DeveloperContact.email}", 15f, false).apply {
+                setPadding(0, dp(7), 0, 0)
+            })
+        }, margemCard())
+
+        content.addView(botaoVoltar(DeveloperContact.contactAction) { iniciarContatoDesenvolvedor() })
+        content.addView(botaoVoltar(DeveloperContact.privacyAction) { abrirPoliticaPrivacidade() })
+    }
+
+    private fun installedVersionName(): String? =
+        runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull()
+
+    private fun criarIntentContatoDesenvolvedor(): Intent =
+        Intent(Intent.ACTION_SENDTO, DeveloperContact.mailtoUri(installedVersionName()).toUri())
+
+    private fun iniciarContatoDesenvolvedor() {
+        executarIntentContato { intent -> startActivity(intent) }
+    }
+
+    private fun executarIntentContato(abrir: (Intent) -> Unit): AlertDialog? {
+        try {
+            abrir(criarIntentContatoDesenvolvedor())
+            return null
+        } catch (_: Exception) {
+            return mostrarContatoIndisponivel()
+        }
+    }
+
+    private fun mostrarContatoIndisponivel(): AlertDialog = AlertDialog.Builder(this)
+            .setTitle("E-mail indisponível")
+            .setMessage("Nenhum aplicativo de e-mail compatível foi encontrado. Você pode copiar o endereço do desenvolvedor.")
+            .setNegativeButton("Fechar", null)
+            .setPositiveButton("Copiar e-mail") { _, _ ->
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("E-mail do desenvolvedor", DeveloperContact.email))
+                Toast.makeText(this, "E-mail copiado.", Toast.LENGTH_SHORT).show()
+            }
+            .create().apply { show() }
 
     private fun mensagemFalhaBackup(failure: Throwable): String =
         if (failure is BackupRejected) failure.message.orEmpty()

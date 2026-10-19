@@ -73,3 +73,7 @@ Solicitação do usuário: incluir/restaurar o nome no backup completo FULL_ACCE
 ## Revisão de 15/10/2026 — URL oficial da política
 
 O usuário confirmou na Play Console a URL https://rg-carraro.github.io/vendas-simples-android/privacy/ e determinou seu uso na Fase 2, mantendo consulta gratuita ao texto local inclusive offline. A implementação já utiliza esse endereço. Consulta HTTPS respondeu 200, mas o texto público de 02/10/2026 difere da revisão local de 15/10/2026 preparada após a auditoria. A confirmação não autoriza commit, push ou publicação; atualizar a página pública permanece pendente. Evidências e diferenças no [relatório da Fase 2](FASE2_SEGURANCA_CONFORMIDADE.md).
+
+## Decisão de 19/10/2026 — contato público na V13
+
+Pedido V13 do proprietário confirma a grafia pública `RGCarraro` e autoriza usar `rgcarraro@gmail.com` como canal de contato do desenvolvedor. A tela Sobre terá uma única ação de contato por e-mail, abrirá um rascunho editável com nome e versão do app, sem envio automático ou anexos/dados comerciais. O acesso à política local/offline e ao endereço HTTPS existente será reutilizado. A candidata 13/1.0.13 é preparada somente na branch `feature/v13-sobre-aplicativo`; não há autorização de publicação. Ver [relatório da Fase 13](FASE13_SOBRE_APLICATIVO.md).

@@ -23,6 +23,7 @@
 | **V10 beta da Store** | `10 / 1.0.0`, min 24, compile/target 36. | 10/10/2026; commit `99f41e7`; tag anotada local `v10-beta-store`. | **CONFIRMADO** por tag/commit e metadados; a descrição do marco foi fornecida pelo usuário. Faixa e status remotos da Play não foram verificados nesta reconstrução. |
 | **V11** | `11 / 1.0.11`, `com.vendassimples.app`, min 24, compile/target 36. | 11–12/10/2026; tag `v1.0.11-rc.1` → `8aa3488`. | **CONFIRMADO** por configuração, tag e [RELEASE_V11](RELEASE_V11.md). Tag identifica RC; não comprova release final da Play. O tag message registra AAB local, testes e pendências. |
 | **V12** | `12 / 1.0.12`, applicationId igual, min 24, compile/target 36. | 16/10/2026; configuração em `eb717b7`; integração `6434485` (branch `integration/v12-master-validation`). | **CONFIRMADO** por Gradle/merge e [Fases 7H–7J](INDEX.md#documentos-de-produto-e-implementação). AAB local assinado e validado na Fase 7I. Upload Alpha, homologação física V12 e produção **não comprovados**. Não há tag V12 identificada. |
+| **V13 candidata local** | `13 / 1.0.13`, applicationId `com.vendassimples.app`, min 24, compile/target 36. | 19/10/2026; branch local `feature/v13-sobre-aplicativo`, worktree isolada; base `11214de6`. | **CONFIRMADO** na configuração desta branch e no [relatório da Fase 13](FASE13_SOBRE_APLICATIVO.md). Tela Sobre/contato implementada localmente; sem AAB, commit, push, upload, homologação física ou publicação. |
 
 ## Tags e refs observadas
 
@@ -125,3 +126,10 @@ Fonte principal: [RELEASE_V11](RELEASE_V11.md) e [HISTORICO_TESTES](HISTORICO_TE
 - **Mudanças:** endurecimento/validação de SQLite backup/restore e transferência; política de privacidade local/offline e controle de notificações; correções API/lint; AGP8.9.1, Gradle8.11.1, KGP2.2.20; documentação consolidada. Schema financeiro e regras comerciais permanecem.
 - **Testes/build/AAB:** 43/43 debug e release, lint 0 erros/67 avisos por variante; AndroidTest compilado, sem runtime. AAB local 5.361.969 bytes, SHA-256 `4CF6052542FA842EC0796D16006A2912BC825039366C20AE7EB504A608CFA75D`, assinado e validado em Fase7I.
 - **Play/segurança/problemas:** sem upload/produção comprovados; Data Safety/Billing SDK, política pública, update físico V11→V12, API24 e Billing real pendentes. Ver Fases 6C e 7H–7J.
+
+### V13 — candidata local: Sobre e contato
+
+- **Identidade/ref:** `versionCode 13` / `versionName 1.0.13`, applicationId `com.vendassimples.app`, min24/compile36/target36; configurado na branch isolada `feature/v13-sobre-aplicativo`, baseada no merge `11214de6`.
+- **Mudanças:** item “Sobre o aplicativo” no menu; ícone oficial, nome/subtítulo, versão dinâmica, descrição, desenvolvedor `RGCarraro`, contato único por `ACTION_SENDTO` e acesso à política existente. O corpo do e-mail não inclui dados comerciais; o usuário revisa e envia.
+- **Testes:** 46 testes unitários aprovados, `compileDebugAndroidTestKotlin`, `assembleDebug` e `lintDebug` aprovados; 0 erros/67 avisos de lint. Instrumentados não foram executados em runtime e inspeção física não foi feita.
+- **Distribuição:** sem AAB V13 ou upload. A V12 e seu AAB permanecem preservados; conferir o relatório da Fase 13 para hash, arquivos, limites e próximos passos.
