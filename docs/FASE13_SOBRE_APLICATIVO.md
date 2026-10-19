@@ -1,6 +1,6 @@
 # V13 — Tela Sobre e contato com o desenvolvedor
 
-**Estado:** implementação commitada na branch `feature/v13-sobre-aplicativo`; PR ainda não criada nesta etapa.
+**Estado:** implementação publicada na branch `feature/v13-sobre-aplicativo`; a criação do PR pela integração GitHub foi recusada (HTTP 403). Criar/revisar manualmente pelo [comparador da branch com master](https://github.com/rg-carraro/vendas-simples-android/compare/master...feature/v13-sobre-aplicativo?expand=1).
 
 **Base:** `origin/master` no merge `2231c022facc0c45481d6009e35c94a5696ffed3`, que integrou a PR #3 documental. O commit de feature é `09f49af361c9fe50cf87c77e6955140a5de1342f`; o merge da base atualizado é `10f09409cd3dd3d53b8b6f705ba7b4fe46517dae`.
 
@@ -68,7 +68,7 @@ Esses resultados ficam classificados como **RELATADOS PELO PROPRIETÁRIO**; não
 
 O APK acima é debug para validação local. **Nenhum AAB V13 foi gerado.** O AAB V12 na worktree `integration/v12-master-validation` foi conferido sem reconstrução: 5.361.969 bytes, SHA-256 `4CF6052542FA842EC0796D16006A2912BC825039366C20AE7EB504A608CFA75D`.
 
-A branch da V12, a master e o AAB V12 não foram modificados. A implementação V13 está no commit de feature acima; a PR #3 foi incorporada à branch V13 por merge normal. O estado de push/PR será registrado após a publicação controlada da branch. Não houve tag, upload ou publicação na Google Play.
+A branch da V12, a master e o AAB V12 não foram modificados. A implementação V13 está publicada na branch remota. Não houve tag, merge da V13 em master, upload ou publicação na Google Play. O conector GitHub retornou HTTP 403 ao tentar criar o PR; nenhuma PR foi aberta.
 
 ## Pendências e recomendação
 
