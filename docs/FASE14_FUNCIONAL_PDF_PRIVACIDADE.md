@@ -40,6 +40,8 @@ Bundle gerado: `app/build/outputs/bundle/release/app-release.aab` nesta worktree
 
 Nenhuma mudança funcional além das duas melhorias V14 aprovadas foi feita. O proprietário relatou a homologação manual descrita acima; runtime de AndroidTest, API 24, atualização in-place pela Play e Billing real permanecem não executados pelo Codex. A V13/AAB V13 em seu worktree próprio não foi alterada. O AAB V14 não foi carregado à Console.
 
+O código e esta documentação foram commitados e a branch `feature/v14-pdf-identidade-privacidade` foi publicada por push normal para `origin`; o SHA remoto foi conferido como igual ao HEAD local. A master permaneceu no commit base durante a verificação. A criação da PR pela integração GitHub retornou HTTP 403 (`Resource not accessible by integration`); não foi criada PR duplicada. Link para abertura manual: https://github.com/rg-carraro/vendas-simples-android/compare/master...feature/v14-pdf-identidade-privacidade?expand=1. Nenhum merge, upload ou publicação foi feito.
+
 ## Arquivos alterados
 
 - `app/build.gradle` — `versionCode 14` / `versionName 1.0.14` nesta branch.
