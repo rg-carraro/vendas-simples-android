@@ -32,3 +32,6 @@ em falha. Inspeção de arquivo não equivale a restauração homologada; regist
 limites de interrupção, migração e reinício. Nunca use dados reais nos testes.
 
 Antes de alterar formatos ou recuperação, leia docs/EVOLUCAO_ARQUITETURA.md, docs/HISTORICO_SEGURANCA.md e docs/PROBLEMAS_E_SOLUCOES.md, além das decisões atuais. Consulte commits/migrações reais e registre resultado por versão; compatibilidade histórica não prova runtime no build atual.
+## Compatibilidade e release
+
+Consulte `docs/HISTORICO_COMPLETO_V0_V13.md`, `docs/PROBLEMAS_E_SOLUCOES.md` e `docs/PENDENCIAS_ATUAIS.md`. Antes de mudar formato/schema, testar arquivos antigos, inválidos/corrompidos, relações de parcelas/pagamentos, fotos e consistência do nome com dados sintéticos; preservar original até commit atômico/validação e provar rollback. Restore de backup não substitui atualização in-place via Play. Nunca restaurar ou inferir entitlement FULL_ACCESS a partir do arquivo.

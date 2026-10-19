@@ -27,4 +27,8 @@ Testes foram ampliados de regras monetárias para formato de backup, transação
 - [ ] Confirmar política pública e declarações atuais da Console.
 - [ ] Validar exportações/compartilhamento e backup/restauração em instalação descartável com dados sintéticos.
 
+## V13 — estado posterior ao relatório da Fase 13
+
+O relatório da Fase 13 registra 46 testes unitários aprovados, compilação de AndroidTest, build debug e lint sem erros/67 avisos. O proprietário relatou validação visual/fluxos no S22+ e restore V12→V13 Debug. O AAB local release foi validado depois com SHA-256 `33D0906198E439304887A59AB683AF723636DEEE6ACAF51025BD073C42ED6642`. Esses registros não comprovam runtime instrumentado, atualização direta pela Play, execução em API24 ou compra/restauração Play real. Status Alpha envio 6 “Em análise” em 19/10/2026 é relato do proprietário, não teste observado. Consulte [Pendências atuais](PENDENCIAS_ATUAIS.md).
+
 Use os registros `PASSOU`, `FALHOU`, `NÃO EXECUTADO` com commit/versão, ambiente, aparelho/API e evidência. A lista de regressão reutilizável está em [VALIDACAO](VALIDACAO.md) e [regressao-release skill](../.agents/skills/regressao-release/SKILL.md).

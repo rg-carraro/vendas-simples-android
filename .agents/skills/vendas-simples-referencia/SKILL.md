@@ -15,4 +15,7 @@ Quando houver solicitação de implementação, copie seletivamente os arquivos 
 
 Antes de gerar APK, confira applicationId, provider, banco, marca, permissões e decisão sobre instalações comerciais anteriores. Preserve relações de parcelas, pagamentos e fotos. Nesta fase documental, produza análise e plano sem importar código Android.
 
-Consulte docs/HISTORICO_COMPLETO_V0_V12.md para saber quais padrões foram efetivamente implementados no Vendas Simples e docs/REFERENCIA.md para procedência. Não atribua ao destino capacidade vista apenas na origem; registre fonte, commit e adaptação proposta.
+Consulte docs/HISTORICO_COMPLETO_V0_V13.md e docs/HISTORICO_VERSOES.md para saber quais padrões foram efetivamente implementados no Vendas Simples e docs/REFERENCIA.md para procedência. Não atribua ao destino capacidade vista apenas na origem; registre fonte, commit e adaptação proposta.
+## Uso em outro aplicativo
+
+`docs/BASE_REUTILIZAVEL_NOVOS_APPS.md` é o mapa de componentes e limites. A origem permanece somente leitura; não copiar credenciais, bancos, fotos, endpoints, regras comerciais, identidade ou chaves. Para qualquer adaptação, registrar procedência, diferenças, novos testes e decisões no repositório de destino; não descrever como implementado no Vendas Simples o que só existe na origem.

@@ -18,3 +18,6 @@ Registre commit, ambiente, cenários, resultados e limitações. Verifique indep
 Para navegação/layout, consulte [interface](../vendas-simples-interface/SKILL.md); para cópia e recuperação SQLite, consulte [backup](../vendas-simples-backup/SKILL.md). Não execute a ferramenta de UI contra aparelho real ou base com dados existentes.
 
 Consulte também docs/HISTORICO_TESTES.md para identificar a cobertura histórica e lacunas; repita no commit atual os checks exigidos pela mudança. Não reclassifique teste antigo, AndroidTest compilado ou relato do usuário como execução física própria.
+## Evidência e manutenção
+
+Use `docs/HISTORICO_TESTES.md` e `docs/PENDENCIAS_ATUAIS.md` como estado de referência, depois confirme o commit atual. Dados de teste devem ser sintéticos; registre versão, ambiente, API, passos e evidência. Marque `PASSOU`, `FALHOU` ou `NÃO EXECUTADO`; compilação de AndroidTest não é runtime e restore não é atualização pela Play. Siga `docs/MANUTENCAO_POS_LANCAMENTO.md` para priorizar por impacto.
