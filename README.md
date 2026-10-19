@@ -50,6 +50,8 @@ As skills ficam em `.agents/skills/`, com instruções locais versionadas:
 
 Consultar [Pendências atuais](docs/PENDENCIAS_ATUAIS.md): o proprietário informou o envio 6 da V13 em análise na faixa fechada Alpha em 19/10/2026. Revisão, disponibilização aos testadores e elegibilidade de produção precisam ser confirmadas na Console. Runtime instrumentado, API 24, atualização direta pela Play e Billing de teste também seguem pendentes. Não inferir aprovação ou publicação.
 
+O proprietário também aprovou duas decisões funcionais para a V14 — acesso à política dentro de “Sobre o aplicativo” e padrão visual de identidade em todos os PDFs. Ambas estão **planejadas e não implementadas**; consulte [decisões](docs/DECISOES.md), [roadmap](docs/ROADMAP_PRODUTO.md) e [pendências](docs/PENDENCIAS_ATUAIS.md).
+
 ## Marco V10 beta da Store
 
 Identificação solicitada pelo usuário: `v10-beta-store`, versionCode 10 e

@@ -83,3 +83,14 @@ Pedido V13 do proprietário confirma a grafia pública `RGCarraro` e autoriza us
 O produto é simples, offline-first, sem login obrigatório, backend próprio ou sincronização automática. A manutenção prioriza dados, segurança, compatibilidade e estabilidade; feedback e novas funcionalidades são avaliados pontualmente, sem compromisso de lançamentos contínuos. O produto é Vendas Simples, desenvolvedor RGCarraro e contato `rgcarraro@gmail.com`, pelo canal “Falar com o desenvolvedor”. Não há nova decisão de distribuição ou mudança comercial nesta consolidação. O valor R$ 19,90 é informado como preço comercial atual pelo proprietário, mas o aplicativo obtém o preço apresentado de ProductDetails do Google Play; não codificar valor fixo.
 
 Regras vigentes: FREE até 30 vendas, clientes ilimitados e exportação CSV gratuita; FULL_ACCESS por compra única no produto `full_access`, sem assinatura; restauração do entitlement Play é separada de restaurar backup. Direitos já adquiridos não podem ser apagados por erro de rede/licença. Decisões históricas anteriores permanecem registradas. Ver [MONETIZACAO](MONETIZACAO.md), [base reutilizável](BASE_REUTILIZAVEL_NOVOS_APPS.md) e [manutenção](MANUTENCAO_POS_LANCAMENTO.md).
+
+## Decisões funcionais aprovadas para V14 — 19/10/2026
+
+As duas decisões abaixo foram aprovadas pelo proprietário e estão **V14 FUNCIONAL — PLANEJADA, NÃO IMPLEMENTADA**. Este registro não altera a V13, seus artefatos ou sua distribuição Alpha.
+
+| ID | Decisão aprovada | Escopo e preservação |
+|---|---|---|
+| D-15 | Remover o item “Política de Privacidade” do menu de três pontos e manter o acesso dentro de “Sobre o aplicativo”. | Preservar a leitura local/offline, o link oficial e todas as demais opções do menu. |
+| D-16 | Aplicar padrão de identidade a todos os PDFs existentes. | Nome personalizado do negócio em destaque; ícone oficial Vendas Simples somente na primeira página de cada PDF; não repetir nas páginas seguintes. Preservar títulos, valores, fotografias, totais, paginação e o fallback atual quando não houver nome personalizado. Antes de implementar, inventariar todos os geradores de PDF e seus testes. |
+
+O detalhamento e as dependências estão em [Roadmap](ROADMAP_PRODUTO.md), [Pendências atuais](PENDENCIAS_ATUAIS.md) e no [relatório complementar da Fase 14](FASE14_CONSOLIDACAO_CONHECIMENTO.md). A classificação acima não deve ser alterada para implementada até haver mudança no código e validação correspondentes.

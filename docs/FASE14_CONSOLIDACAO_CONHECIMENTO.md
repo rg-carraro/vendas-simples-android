@@ -56,3 +56,12 @@ Ajuda oficial atual consultada: [requisitos de teste para contas pessoais novas]
 ## Próximo passo
 
 Criar manualmente a PR documental como draft pelo link acima, revisar e aguardar revisão/merge humano. O fluxo V13 Alpha permanece sob responsabilidade da Console e do proprietário, sem interferência desta fase.
+
+## Complemento documental — decisões funcionais planejadas para V14
+
+Em 19/10/2026, o proprietário aprovou duas decisões funcionais, registradas como **V14 FUNCIONAL — PLANEJADA, NÃO IMPLEMENTADA**:
+
+1. Remover “Política de Privacidade” do menu de três pontos; mantê-la em “Sobre o aplicativo”, preservando texto local/offline, link oficial e demais opções do menu.
+2. Aplicar o padrão a todos os PDFs: nome personalizado em destaque; ícone oficial Vendas Simples apenas na primeira página de cada PDF; preservar títulos, valores, fotografias, totais, paginação e fallback sem nome personalizado. Identificar todos os geradores de PDF antes de implementar.
+
+Atualizados `docs/DECISOES.md`, `docs/PENDENCIAS_ATUAIS.md`, `docs/ROADMAP_PRODUTO.md`, `AGENTS.md` e `README.md`. Não houve alteração de código, Gradle, versão, AAB/APK ou estado Alpha V13. Esta atualização permanece exclusivamente documental.
