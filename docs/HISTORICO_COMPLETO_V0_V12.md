@@ -1,5 +1,7 @@
 # Histórico integral do Vendas Simples — V0 a V12
 
+> Este documento preserva o recorte histórico da Fase 8A. A continuidade posterior, inclusive a V13 integrada na master e os limites atuais de evidência, está em [Histórico consolidado V0–V13](HISTORICO_COMPLETO_V0_V13.md) e [Histórico de versões](HISTORICO_VERSOES.md).
+
 ## Origem e método
 
 O primeiro registro de concepção é `9c265085` (29/09/2026, estrutura inicial do MVP); a primeira base Android é `5c8c4f2` no mesmo dia. A partir da primeira árvore Android, o app já tinha Activity programática extensa, `SQLiteOpenHelper`, modelos e fluxos de vendas/clientes/fotos. “V0 — Origem do Vendas Simples” é um nome documental para esse começo, não uma versão oficial nem tag. O projeto usou como referência uma aplicação comercial anterior; essa referência não é a origem Git do Vendas Simples e permanece somente leitura conforme [REFERENCIA.md](REFERENCIA.md).

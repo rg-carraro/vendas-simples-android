@@ -10,7 +10,7 @@ Esta linha do tempo diferencia controles que o código implementa, testes que fo
 | 29/09–02/10 | Assinatura release externa ao código; backup oculto no FREE; Billing/entitlement; backup/restauração FULL_ACCESS; política inicial/site. | Commits `87588cf`, `2500ef5`, `ce6abb3`, `a18a4d0`, `d8e6fcf`, `5b496bc`. |
 | V11 | Preferência de negócio privada; inclusão opcional em backup; formatos antigos mantidos; entitlement separado do banco/arquivo. `allowBackup=false` aparece no projeto. | [RELEASE_V11](RELEASE_V11.md) e testes registrados. Proteção de backup não significa criptografia própria: essa limitação está documentada. |
 | Fases 2–4 | Validação SQLite/metadata/IDs/relações/datas/fotos, rejeição de arquivos incompatíveis, cópia intermediária/rollback e controle de notificações/permissões/API. Política offline e teste de paridade local. | [FASE2](FASE2_SEGURANCA_CONFORMIDADE.md), [FASE3](FASE3_REVISAO_HOMOLOGACAO.md), [FASE4](FASE4_CORRECOES_TECNICAS.md); relatórios documentam testes e gaps de runtime. |
-| Fase 6C | Revisão de categorias Data Safety e Billing/Data Transport/CCT, versões/faixas ativas e política pública. | **PENDENTE**: payloads/finalidades/destinos/retention de SDK, respostas atuais da Console e paridade remota não confirmadas de forma independente. |
+| Fase 6C e fases 9C–9F | Revisão de categorias Data Safety e Billing/Data Transport/CCT, versões/faixas ativas e política pública. Após informação ao suporte sobre os fluxos V12, Fase 9F registrou orientação condicional sobre dados locais e telemetria estritamente da infraestrutura Play Billing descrita. | A conclusão é condicionada à arquitetura e não é pré-aprovação. Conferir ficha vigente/versões na Console e conteúdo da página pública; reavaliar novos SDKs ou fluxos. Ver [Pendências atuais](PENDENCIAS_ATUAIS.md). |
 | V12 | Build/AAB local assinado e validado; código estático de backup/privacidade e regressão unitária/integrada. | **CONFIRMADO localmente** nos relatórios 7H–7J. Não comprova upload, aprovação, Data Safety correta ou testes físicos. |
 
 ## Controles documentados no código
@@ -22,12 +22,11 @@ Esta linha do tempo diferencia controles que o código implementa, testes que fo
 - A política existe em asset offline e em página local do site. A igualdade local testada não comprova o que a página pública está servindo hoje.
 - Manifesto/permissões e implementação de notificações foram revistos na Fase 4; permissões não são por si só evidência de coleta.
 
-## Evidência externa ainda necessária
+## Pendências externas remanescentes (estado atualizado)
 
-1. Inspecionar na Play Console as respostas atuais de Segurança dos dados, status, tipos, coleta/compartilhamento, finalidade, obrigatoriedade, criptografia e exclusão.
-2. Listar faixas e todos os `versionCode`s ainda distribuídos; declaração deve considerar versões e SDKs que continuam disponíveis.
-3. Obter documento oficial/confirmatório do provedor Billing/SDK ou evidência técnica controlada sobre diagnóstico, identificadores, eventos, destinos, retenção e transmissão automática/opcional. A análise local detectou caminho de transporte possível, mas não classificou com segurança o payload final.
-4. Verificar a URL pública e conteúdo servido da política, comparando com a revisão local de 15/10/2026.
-5. Executar update V11→V12, API 24, Billing Play e restore em ambiente de teste com dados sintéticos.
+1. Confirmar na Console a declaração atual, as faixas e versões ativas; a orientação Fase 9F não é aprovação formal.
+2. Confirmar que o artefato/fluxo V13 continua no escopo descrito ao suporte; reapreciar se houver novo SDK, transmissão, destino ou finalidade.
+3. Verificar a URL pública e conteúdo servido da política, comparando com os arquivos locais de 15/10/2026. A checagem live não foi possível nesta Fase 14.
+4. Executar update V12→V13, runtime instrumentado, API 24 e Billing Play em ambiente de teste com dados sintéticos.
 
-Não usar exceção de dados de cartão para inferir classificação de histórico de compras ou diagnósticos. Não modificar a Console nem afirmar conformidade completa até reconciliar evidências. Ver [FASE6C](FASE6C_SEGURANCA_DADOS_PLAY.md), [SEGURANCA_DADOS_PLAY](SEGURANCA_DADOS_PLAY.md) e [FASE7J](FASE7J_PREPARACAO_ALPHA_V12.md).
+Não usar exceção de dados de cartão para inferir classificação de histórico de compras ou diagnósticos. Não confundir orientação de suporte com aprovação, nem editar a Console sem autorização. Ver [FASE6C](FASE6C_SEGURANCA_DADOS_PLAY.md), [SEGURANCA_DADOS_PLAY](SEGURANCA_DADOS_PLAY.md), [Fase 9F](FASE9F_ENCERRAMENTO_DATA_SAFETY_ALPHA.md) e [Pendências atuais](PENDENCIAS_ATUAIS.md).

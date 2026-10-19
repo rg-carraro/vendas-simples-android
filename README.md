@@ -2,20 +2,20 @@
 
 Produto Android independente para controle local de vendas, parcelas e recebimentos.
 
-**Estado registrado em 16/10/2026:** a branch isolada `integration/v12-master-validation` integra o commit `64344855` e tem regressão automatizada e AAB local V12 validados. A homologação física V12, conferência atual da Play Console/Data Safety e upload Alpha não estão comprovados. Isso não equivale a publicação nem aprovação de produção.
+**Estado da base (19/10/2026):** a master contém a V13 (`13 / 1.0.13`) integrada pela PR #4, merge `5593215`. O proprietário relatou que o envio 6 da V13 está “Em análise” na faixa fechada Alpha, com cerca de oito dias restantes no período informado. Esse status da Console foi relatado pelo proprietário e não verificado diretamente; aprovação, disponibilidade aos testadores e publicação pública não estão comprovadas. O AAB local validado tem SHA-256 `33D0906198E439304887A59AB683AF723636DEEE6ACAF51025BD073C42ED6642`. Consulte [pendências](docs/PENDENCIAS_ATUAIS.md) e [histórico V0–V13](docs/HISTORICO_COMPLETO_V0_V13.md).
 
-**Candidato V13 (19/10/2026):** a branch publicada `feature/v13-sobre-aplicativo`, baseada na master após a integração da PR #3, prepara `versionCode 13` / `versionName 1.0.13` com tela Sobre e canal de contato por e-mail iniciado pelo usuário. Build debug, 46 testes unitários, compilação instrumentada e lint (0 erros/67 avisos) passaram; testes instrumentados em runtime e atualização direta da Play continuam pendentes. O AAB V13 ainda não foi gerado. A integração GitHub recusou a criação do PR (HTTP 403); link para abrir manualmente e detalhes no [relatório V13](docs/FASE13_SOBRE_APLICATIVO.md).
+**V13 — marco integrado:** a tela Sobre e o contato iniciado pelo usuário foram integrados à master pela PR #4. Build debug, 46 testes unitários, compilação instrumentada e lint (0 erros/67 avisos) estão registrados no [relatório da Fase 13](docs/FASE13_SOBRE_APLICATIVO.md). O AAB local release foi gerado e validado no ciclo seguinte, com hash registrado no [histórico de versões](docs/HISTORICO_VERSOES.md). Testes instrumentados em runtime, atualização direta pela Play, API 24 e Billing real seguem pendentes. O proprietário informou estado Alpha “Em análise”; consulte [Pendências atuais](docs/PENDENCIAS_ATUAIS.md) para a classificação da evidência.
 
 A referência é a branch `comercial` de `alejoiasvendasapp`, fixada no commit `ce112c40c4f79368042555e451338b5f318077bd`. O repositório original é somente leitura e não será alterado.
 
 ## Documentação
 
-- [Índice central e memória histórica V0–V12](docs/INDEX.md): navegação por versão, assunto e continuidade Codex.
+- [Índice central e memória histórica V0–V13](docs/INDEX.md): navegação por versão, assunto, manutenção e continuidade Codex.
 
 - [Visão e escopo do MVP](docs/MVP.md): público proposto, fluxos, limites e critérios de aceite.
 - [Referência AleJoias](docs/REFERENCIA.md): evidências, procedência e limites da análise.
 - [Formato e importação CSV](docs/EXPORTACAO_CSV.md): UTF-8 padrão/Excel, precisão financeira e limitações de leitores.
-- [Arquitetura e dados](docs/ARQUITETURA.md): base técnica e cuidados para a futura derivação.
+- [Arquitetura e dados](docs/ARQUITETURA.md): base técnica, dados e procedência.
 - [Backlog](docs/BACKLOG.md): etapas, dependências e entregas verificáveis.
 - [Validação](docs/VALIDACAO.md): cenários para futura homologação.
 - [Decisões](docs/DECISOES.md): requisitos confirmados, propostas e questões abertas.
@@ -27,6 +27,10 @@ A referência é a branch `comercial` de `alejoiasvendasapp`, fixada no commit `
 - [Regras financeiras](docs/REGRAS_FINANCEIRAS.md): dinheiro em centavos e invariantes de cálculo.
 - [Auditoria pré-Billing](docs/AUDITORIA_PRE_BILLING.md): achados, riscos e limitações antes da loja.
 - [AGENTS.md](AGENTS.md): instruções para trabalhar neste repositório.
+- [Histórico V0–V13](docs/HISTORICO_COMPLETO_V0_V13.md): continuação da síntese original até a V13.
+- [Pendências atuais](docs/PENDENCIAS_ATUAIS.md): evidências e próximos passos para Alpha, Play e homologação.
+- [Manutenção pós-lançamento](docs/MANUTENCAO_POS_LANCAMENTO.md): triagem e regressão segura.
+- [Base reutilizável](docs/BASE_REUTILIZAVEL_NOVOS_APPS.md): padrões e limites para outro aplicativo independente.
 
 ## Skills do projeto
 
@@ -44,7 +48,7 @@ As skills ficam em `.agents/skills/`, com instruções locais versionadas:
 
 ## Próxima etapa
 
-Resolver as pendências de conformidade/Play Console e executar homologação física V11→V12 e API 24 antes de avaliar a faixa Alpha. Consulte [Fases 7H–7J](docs/INDEX.md#documentos-de-produto-e-implementação); nenhum upload foi feito nesta preparação.
+Consultar [Pendências atuais](docs/PENDENCIAS_ATUAIS.md): o proprietário informou o envio 6 da V13 em análise na faixa fechada Alpha em 19/10/2026. Revisão, disponibilização aos testadores e elegibilidade de produção precisam ser confirmadas na Console. Runtime instrumentado, API 24, atualização direta pela Play e Billing de teste também seguem pendentes. Não inferir aprovação ou publicação.
 
 ## Marco V10 beta da Store
 
@@ -59,9 +63,9 @@ Consulte [relatório da versão 11](docs/RELEASE_V11.md) para artefato, verifica
 
 O backup completo FULL_ACCESS inclui o nome no mesmo arquivo SQLite. Backups anteriores continuam restauráveis e preservam o nome do aparelho quando não contêm essa informação. Personalização permanece disponível no FREE.
 
-# Pacote de skills — Vendas Simples / AleJoias
+# Skills locais do projeto
 
-Copie `.agents/skills/` para o repositório que utilizará o Codex (ou adapte à estrutura de skills já adotada no projeto). Leia `docs/GUIA_MIGRACAO_ALEJOIAS.md` antes de portar melhorias ao AleJoias.
+As skills em `.agents/skills/` ensinam procedimentos deste repositório. Uma adaptação para outro aplicativo precisa ser revisada conforme [Base reutilizável](docs/BASE_REUTILIZAVEL_NOVOS_APPS.md), removendo identidade e regras específicas.
 
 Este pacote registra decisões e evidências relatadas em conversa, não uma auditoria do código atual. Não substitui AGENTS.md, relatórios de release nem homologação real.
 
@@ -75,4 +79,4 @@ Correções técnicas posteriores: [Fase 4 — lint, compatibilidade e regressã
 
 ## V12 — integração e validação
 
-A branch isolada `integration/v12-master-validation` prepara `versionCode 12` / `versionName 1.0.12`. A integração local, regressão automatizada e AAB assinado foram registrados nas Fases 7H/7I; o envio Alpha, homologação física V12, verificação atual da Console e publicação continuam pendentes. Consulte os [relatórios de integração e regressão](docs/FASE7H_INTEGRACAO_REGRESSAO_V12.md), [AAB](docs/FASE7I_AAB_V12.md) e [preparação Alpha](docs/FASE7J_PREPARACAO_ALPHA_V12.md). A criação de AAB local não comprova upload ou release Play.
+A V12 permanece como histórico de integração e preparação; seus relatórios documentam o AAB local daquele marco, sem comprovar release pública. O marco corrente é V13, integrado pela PR #4. Consulte o [histórico V0–V13](docs/HISTORICO_COMPLETO_V0_V13.md) e a [linha do tempo detalhada](docs/HISTORICO_VERSOES.md).

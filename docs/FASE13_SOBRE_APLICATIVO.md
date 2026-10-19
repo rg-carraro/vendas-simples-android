@@ -1,5 +1,7 @@
 # V13 — Tela Sobre e contato com o desenvolvedor
 
+> **Atualização posterior (Fase 14):** este relatório preserva o estado da etapa de preparação da V13 e foi correto no momento em que foi escrito. Depois disso, a PR #4 foi integrada à master pelo merge `5593215`, um AAB release V13 foi gerado/validado separadamente, e o proprietário relatou em 19/10/2026 envio 6 na Alpha “Em análise”. Esses fatos posteriores não alteram os testes listados abaixo. Veja [histórico V0–V13](HISTORICO_COMPLETO_V0_V13.md) e [pendências atuais](PENDENCIAS_ATUAIS.md). O relato da Console não comprova aprovação nem publicação.
+
 **Estado:** implementação publicada na branch `feature/v13-sobre-aplicativo`; a criação do PR pela integração GitHub foi recusada (HTTP 403). Criar/revisar manualmente pelo [comparador da branch com master](https://github.com/rg-carraro/vendas-simples-android/compare/master...feature/v13-sobre-aplicativo?expand=1).
 
 **Base:** `origin/master` no merge `2231c022facc0c45481d6009e35c94a5696ffed3`, que integrou a PR #3 documental. O commit de feature é `09f49af361c9fe50cf87c77e6955140a5de1342f`; o merge da base atualizado é `10f09409cd3dd3d53b8b6f705ba7b4fe46517dae`.

@@ -20,3 +20,7 @@ release para análise. Registre origem das evidências e consulte a
 Antes de preparar novo marco, consulte docs/HISTORICO_VERSOES.md, docs/HISTORICO_TESTES.md e docs/CONTINUIDADE_CODEX.md. Registre commit/tag, versionCode/name, AAB/hash/certificado e estado Play separadamente; atualize lacunas sem tratar artefato local como release publicada.
 
 Para release com Billing ou novos SDKs, leia `docs/CONHECIMENTO_GOOGLE_PLAY_DATA_SAFETY.md`, confira se a arquitetura ainda satisfaz suas condições e reavalie a ficha/política para novos fluxos de dados. A orientação de suporte não é aprovação formal nem autorização para alterar a Console ou publicar.
+
+## Manutenção e atualização via Play
+
+Consulte `docs/PENDENCIAS_ATUAIS.md`, `docs/HISTORICO_COMPLETO_V0_V13.md` e `docs/MANUTENCAO_POS_LANCAMENTO.md`. Registre separadamente aprovação, disponibilidade na faixa, rollout e produção. Uma restauração de backup ou APK debug não substitui atualização in-place via Play. Faça checklist de API mínima, Billing em teste, política pública e migração antes do próximo rollout; registre data e fonte de cada status da Console.

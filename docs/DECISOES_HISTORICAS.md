@@ -17,3 +17,5 @@ Esta linha do tempo aponta para decisões já registradas. A fonte normativa atu
 ## Decisões que continuam abertas
 
 Status atual da declaração Data Safety; categorias e retenção de Billing/SDK; confirmação atual da página pública; faixa e artefato enviados à Play; homologação física V12 e API 24; produção. Ver [FASE6C](FASE6C_SEGURANCA_DADOS_PLAY.md) e [FASE7J](FASE7J_PREPARACAO_ALPHA_V12.md). O histórico não resolve essas perguntas automaticamente.
+
+**Atualização de estado:** a Fase 9F registrou orientação de suporte condicional à arquitetura V12 analisada, sem aprovação formal. O estado Alpha V13 informado pelo proprietário em 19/10/2026 e as pendências de API, runtime, Billing e política pública estão em [Pendências atuais](PENDENCIAS_ATUAIS.md); não foram apagadas dúvidas históricas nem inferida elegibilidade de produção.

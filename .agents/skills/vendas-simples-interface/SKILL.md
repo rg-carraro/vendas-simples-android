@@ -34,3 +34,6 @@ No cabeçalho compartilhado, mantenha a marca Vendas Simples separada do nome op
 Em fotos de rascunho, priorize miniatura/ação lado a lado com 16 dp, índice acessível e remoção isolada; empilhe quando necessário sem botão de largura total. Os padrões e a candidatura ao AleJoias estão na [skill de UI/UX](../ui-ux-android/SKILL.md); não autorizam editar a origem.
 
 Antes de modificar fluxo existente, use docs/INDEX.md, docs/EVOLUCAO_FUNCIONALIDADES.md e git log --all --follow no arquivo afetado. Preserve causas já corrigidas e registre no relatório da versão qualquer mudança de comportamento/teste; não trate evidência de UI antiga como validação atual.
+## Regressão após release
+
+Antes de alterar UI já distribuída, consulte `docs/HISTORICO_COMPLETO_V0_V13.md`, `docs/DECISOES.md`, `docs/PROBLEMAS_E_SOLUCOES.md` e `docs/PENDENCIAS_ATUAIS.md`. Valide em tela pequena e fonte ampliada sem reduzir áreas de toque; execute regressão de navegação/filtros e não transfira resultado visual de outra versão. Registre dispositivo/API e diferencie teste executado de relato do proprietário.

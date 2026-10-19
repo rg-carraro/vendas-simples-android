@@ -1,6 +1,6 @@
 # Release e Google Play
 
-Este documento prepara a distribuição; não representa publicação autorizada. O aplicativo está em desenvolvimento e o usuário informou distribuição Alpha em teste fechado.
+Este documento prepara a distribuição; não representa publicação autorizada. A V13 está integrada à master; em 19/10/2026 o proprietário relatou envio 6 “Em análise” na faixa fechada Alpha. Esse relato não comprova aprovação ou disponibilidade. Consulte [Pendências atuais](PENDENCIAS_ATUAIS.md) antes de qualquer próxima etapa.
 
 Antes do primeiro release: confirmar `applicationId`, assinatura, backup e coexistência com APKs anteriores; configurar a Licença Completa (`FULL_ACCESS`) no Play Console com preço definido manualmente no Play Console e compra única, sem assinatura; revisar privacidade, permissões e ausência de referências ao AleJoias; testar migração e falhas de licença sem perda de dados.
 

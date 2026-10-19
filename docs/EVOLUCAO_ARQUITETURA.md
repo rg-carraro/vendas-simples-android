@@ -18,7 +18,7 @@ Não foi identificada migração de Room, Compose, cloud database, login ou back
 
 ## Billing e fronteira de domínio
 
-Billing foi preparado em `896c0f5` e integrado em `a18a4d0`/`c2e97c2`. O produto atual documentado usa Billing Library 9.1.0, compra INAPP `full_access`, preço obtido de ProductDetails e estados de domínio separados da UI. Os callbacks foram ajustados para evitar reconstrução desnecessária da tela. Consulta/restauração do entitlement é independente do arquivo de backup. Eventos e categorias reais de telemetria do SDK permanecem questão de conformidade; ver [Data Safety](HISTORICO_SEGURANCA.md).
+Billing foi preparado em `896c0f5` e integrado em `a18a4d0`/`c2e97c2`. O produto atual documentado usa Billing Library 9.1.0, compra INAPP `full_access`, preço obtido de ProductDetails e estados de domínio separados da UI. Os callbacks foram ajustados para evitar reconstrução desnecessária da tela. Consulta/restauração do entitlement é independente do arquivo de backup. A Fase 9F registrou uma conclusão condicional à arquitetura V12 descrita e à orientação do suporte; isso não é aprovação formal e requer reavaliação se SDKs/fluxos mudarem. Ver [Conhecimento Google Play](CONHECIMENTO_GOOGLE_PLAY_DATA_SAFETY.md) e [Pendências](PENDENCIAS_ATUAIS.md).
 
 ## Arquivos, exportação e identidade
 
