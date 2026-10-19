@@ -18,3 +18,5 @@ release para análise. Registre origem das evidências e consulte a
 [regressão de release](../regressao-release/SKILL.md) para CSV e integração.
 
 Antes de preparar novo marco, consulte docs/HISTORICO_VERSOES.md, docs/HISTORICO_TESTES.md e docs/CONTINUIDADE_CODEX.md. Registre commit/tag, versionCode/name, AAB/hash/certificado e estado Play separadamente; atualize lacunas sem tratar artefato local como release publicada.
+
+Para release com Billing ou novos SDKs, leia `docs/CONHECIMENTO_GOOGLE_PLAY_DATA_SAFETY.md`, confira se a arquitetura ainda satisfaz suas condições e reavalie a ficha/política para novos fluxos de dados. A orientação de suporte não é aprovação formal nem autorização para alterar a Console ou publicar.
