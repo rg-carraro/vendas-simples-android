@@ -8,17 +8,21 @@ import android.os.Bundle
 class BackupInstrumentationRunner : Instrumentation() {
     private var restartPhase = false
     private var finalUiPhase = false
+    private var requestedTest: String? = null
     override fun onCreate(arguments: Bundle?) {
         super.onCreate(arguments)
         restartPhase = arguments?.getString("phase") == "restart"
         finalUiPhase = arguments?.getString("phase") == "final-ui"
+        requestedTest = arguments?.getString("test")
         start()
     }
     override fun onStart() {
         if (finalUiPhase) {
             val tests = FinalUiInstrumentedTests(this)
             var failures = 0
-            val methods = tests.javaClass.declaredMethods.filter { it.name.startsWith("test") && it.parameterCount == 0 }.sortedBy { it.name }
+            val methods = tests.javaClass.declaredMethods.filter {
+                it.name.startsWith("test") && it.parameterCount == 0 && (requestedTest == null || it.name == requestedTest)
+            }.sortedBy { it.name }
             methods.forEach { method ->
                 try {
                     tests.prepare()
@@ -37,6 +41,7 @@ class BackupInstrumentationRunner : Instrumentation() {
         val tests = BackupInstrumentedTests(BackupTestContext(targetContext))
         val methods = tests.javaClass.declaredMethods.filter {
             it.name.startsWith("test") && it.parameterCount == 0 &&
+                (requestedTest == null || it.name == requestedTest) &&
                 (if (restartPhase) it.name == "testRestartPersistence" else it.name != "testRestartPersistence")
         }.sortedBy { it.name }
         var failures = 0
@@ -56,7 +61,7 @@ class BackupInstrumentationRunner : Instrumentation() {
             } catch (failure: Throwable) {
                 failures++
                 status.putString("stack", (failure.cause ?: failure).stackTraceToString())
-                status.putString("stream", "\n${method.name}: ${failure.cause ?: failure}\n")
+                status.putString("stream", "\n${method.name}: ${(failure.cause ?: failure).stackTraceToString()}\n")
                 sendStatus(-2, status)
             } finally { tests.close() }
         }

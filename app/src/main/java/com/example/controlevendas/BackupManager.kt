@@ -113,6 +113,8 @@ class BackupManager internal constructor(
     }
     private fun removeTemporary(file: File) {
         file.delete()
+        // SQLite may rename a rejected database to this sibling during corruption handling.
+        File(file.path + ".corrupt").delete()
         File(file.path + "-wal").delete()
         File(file.path + "-shm").delete()
         File(file.path + "-journal").delete()
