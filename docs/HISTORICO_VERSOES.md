@@ -141,3 +141,11 @@ Fonte principal: [RELEASE_V11](RELEASE_V11.md) e [HISTORICO_TESTES](HISTORICO_TE
 - **Mudanças:** remove atalho duplicado de política no menu, mantendo a ação dentro de Sobre, leitura local e link HTTPS. Três ações de PDF convergem para `gerarPdfGenerico`; este desenha o ícone oficial, nome configurado/fallback e texto sutil na primeira página, sem cabeçalho repetido em páginas seguintes.
 - **Testes/build:** 46 testes unitários debug e 46 release passaram; `compileDebugAndroidTestKotlin`, `lintDebug`, `lintRelease` e `bundleRelease` passaram. Lint: 0 erros, 67 avisos por variante (ver relatório da Fase 14). Runtime AndroidTest e teste API24 não executados por indisponibilidade de ADB/AVD no sandbox.
 - **Artefato/distribuição:** AAB local assinado, validado e identificado em [relatório da Fase 14](FASE14_FUNCIONAL_PDF_PRIVACIDADE.md), sem upload à Play. O certificado SHA-256 coincide com o fingerprint da chave de upload conhecido. AAB V13 não foi modificado. Atualização V13→V14 pela Play permanece pendente.
+
+### Fase 16 — suporte a Light Mode e Dark Mode (integração Git; sem nova versão)
+
+- **Base:** branch `feature/fase16-light-dark-mode`, base `dfb87e6ddb294834bde8f6ae044b4a1d58ed7525`, código V14 (`14 / 1.0.14`). O proprietário relata distribuição V14 em teste fechado; Console não consultada.
+- **Mudanças:** paletas semânticas `values`/`values-night`, diálogos DayNight, cores de botões/estados/controles, correção do resíduo `.corrupt` e testes instrumentados. SQLite schema, formato de backup, Billing e metadados da V14 preservados.
+- **Validação:** 46 testes unitários por variante; 38/38 backup; UI 76/76 nas quatro combinações tema/fonte; compilação AndroidTest; lint 0 erros (63 avisos debug/65 release); assembleDebug passou. O proprietário relata que todos os cenários manuais que executou no S22 passaram; essa aprovação é relatada, sem detalhamento caso a caso. APK isolado `.fase16` mantido localmente, não versionado.
+- **Commits da feature:** `d00acef` (UI/temas) e `a813542` (limpeza temporária de backup). Integração PR Fase16D em andamento; registrar PR e SHA final após merge.
+- **Estado de distribuição:** sem AAB, upload ou publicação. Versionamento permanece 14 / 1.0.14; V15 ainda não preparada para distribuição.
