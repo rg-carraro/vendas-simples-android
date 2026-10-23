@@ -12,7 +12,6 @@ import androidx.core.net.toUri
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -40,6 +39,9 @@ import android.view.Gravity
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
+import androidx.core.widget.TextViewCompat
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.OnBackPressedCallback
 import android.view.KeyEvent
@@ -51,21 +53,28 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
-    // Paleta visual Vendas Simples.
-    private val corFundo = Color.rgb(245, 247, 251)
-    private val corSuperficie = Color.rgb(255, 255, 255)
-    private val corPrimaria = Color.rgb(37, 99, 235)
-    private val corPrimariaEscura = Color.rgb(30, 58, 95)
-    private val corDestaque = Color.rgb(71, 85, 105)
-    private val corTexto = Color.rgb(30, 41, 59)
-    private val corTextoSecundario = Color.rgb(100, 116, 139)
-    private val corBorda = Color.rgb(203, 213, 225)
-    private val corQuitado = Color.rgb(226, 244, 235)
-    private val corVencido = Color.rgb(253, 232, 229)
-    private val corStatusParcialTexto = Color.rgb(156, 82, 20)
-    private val corStatusParcialFundo = Color.rgb(252, 224, 184)
-    private val corStatusAbertoTexto = Color.rgb(125, 87, 32)
-    private val corStatusAbertoFundo = Color.rgb(244, 229, 197)
+    // Os tokens são resolvidos por recursos qualificados e acompanham o tema do sistema.
+    private val corFundo get() = getColor(R.color.color_app_background)
+    private val corSuperficie get() = getColor(R.color.color_surface)
+    private val corSuperficieVariante get() = getColor(R.color.color_surface_variant)
+    private val corPrimaria get() = getColor(R.color.color_primary)
+    private val corOnPrimaria get() = getColor(R.color.color_on_primary)
+    private val corPrimariaEscura get() = getColor(R.color.color_primary_variant)
+    private val corDestaque get() = getColor(R.color.color_secondary)
+    private val corTexto get() = getColor(R.color.color_text_primary)
+    private val corTextoSecundario get() = getColor(R.color.color_text_secondary)
+    private val corBorda get() = getColor(R.color.color_outline)
+    private val corQuitado get() = getColor(R.color.color_status_paid_surface)
+    private val corVencido get() = getColor(R.color.color_status_overdue_surface)
+    private val corStatusQuitadoTexto get() = getColor(R.color.color_status_paid_text)
+    private val corStatusVencidoTexto get() = getColor(R.color.color_status_overdue_text)
+    private val corStatusParcialTexto get() = getColor(R.color.color_status_partial_text)
+    private val corStatusParcialFundo get() = getColor(R.color.color_status_partial_surface)
+    private val corStatusAbertoTexto get() = getColor(R.color.color_status_open_text)
+    private val corStatusAbertoFundo get() = getColor(R.color.color_status_open_surface)
+    private val corErroTexto get() = getColor(R.color.color_error_text)
+    private val corErroFundo get() = getColor(R.color.color_error_surface)
+    private val corErroContorno get() = getColor(R.color.color_error_outline)
 
     private lateinit var content: LinearLayout
     private lateinit var statusText: TextView
@@ -106,7 +115,7 @@ class MainActivity : AppCompatActivity() {
     private val abrirArquivoBackup = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@registerForActivityResult
         backupManager.validate(uri).onFailure { Toast.makeText(this, mensagemFalhaBackup(it), Toast.LENGTH_LONG).show(); return@registerForActivityResult }
-        AlertDialog.Builder(this).setTitle("Restaurar backup")
+        MaterialAlertDialogBuilder(this).setTitle("Restaurar backup")
             .setMessage("Restaurar este backup substituirá os dados atuais do Vendas Simples. Deseja continuar?")
             .setNegativeButton("Cancelar", null).setPositiveButton("Restaurar") { _, _ ->
                 backupManager.restore(uri, localDb, entitlementRepository.currentState(localDb.totalVendas())).onSuccess {
@@ -402,10 +411,11 @@ class MainActivity : AppCompatActivity() {
                             abrirArquivoBackup.launch(arrayOf("application/octet-stream", "application/x-sqlite3", "application/vnd.sqlite3"))
                             true
                         }
-                        menu.add("Licença Completa — Ativada")
+                        menu.add("Licença ativada")
                     } else {
                         val preco = fullAccessPrice ?: "preço indisponível"
-                        menu.add("Licença Completa — $preco").apply { isEnabled = fullAccessPrice != null }.setOnMenuItemClickListener {
+                        val rotuloLicenca = if (fullAccessPrice == null) "Licença indisponível" else "Licença — $preco"
+                        menu.add(rotuloLicenca).apply { isEnabled = fullAccessPrice != null }.setOnMenuItemClickListener {
                             billingGateway.buy(this@MainActivity)
                             true
                         }
@@ -513,7 +523,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun mostrarContatoIndisponivel(): AlertDialog = AlertDialog.Builder(this)
+    private fun mostrarContatoIndisponivel(): AlertDialog = MaterialAlertDialogBuilder(this)
             .setTitle("E-mail indisponível")
             .setMessage("Nenhum aplicativo de e-mail compatível foi encontrado. Você pode copiar o endereço do desenvolvedor.")
             .setNegativeButton("Fechar", null)
@@ -535,7 +545,7 @@ class MainActivity : AppCompatActivity() {
                 setPadding(dp(20), dp(8), dp(20), dp(8))
                 setTextIsSelectable(true)
             }
-            AlertDialog.Builder(this).setTitle("Política de Privacidade")
+            MaterialAlertDialogBuilder(this).setTitle("Política de Privacidade")
                 .setView(ScrollView(this).apply { addView(policy) })
                 .setPositiveButton("Fechar", null)
                 .setNeutralButton("Abrir site", null).create().apply {
@@ -563,7 +573,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun abrirConfiguracaoNegocio(primeiroUso: Boolean = false) {
-        val nome = campo("Nome do negócio ou seu nome").apply {
+        val nome = campo("Nome do negócio").apply {
             setText(businessPreferences.businessName)
             inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS
             filters = arrayOf(android.text.InputFilter.LengthFilter(BusinessIdentity.MAX_NAME_LENGTH))
@@ -574,7 +584,7 @@ class MainActivity : AppCompatActivity() {
             addView(texto("Personalize a tela inicial, as mensagens e os PDFs. Deixe vazio para usar Vendas Simples. Você pode alterar depois nas configurações.", 14f, false))
             addView(campoRotulado("Nome do negócio:", nome))
         }
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(if (primeiroUso) "Como se chama seu negócio?" else "Nome do negócio")
             .setView(ScrollView(this).apply { addView(layout) })
             .setPositiveButton("Salvar") { _, _ ->
@@ -725,7 +735,7 @@ class MainActivity : AppCompatActivity() {
         layout.addView(campoRotulado("Data inicial:", dataInicio))
         layout.addView(campoRotulado("Data final:", dataFim))
 
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(titulo)
             .setView(layout)
             .setPositiveButton("Aplicar") { _, _ ->
@@ -825,8 +835,8 @@ class MainActivity : AppCompatActivity() {
             typeface = Typeface.DEFAULT_BOLD
             setTextColor(
                 when {
-                    quitado -> corPrimariaEscura
-                    vencido -> Color.rgb(153, 55, 47)
+                    quitado -> corStatusQuitadoTexto
+                    vencido -> corStatusVencidoTexto
                     venda.total_pago > 0L -> corStatusParcialTexto
                     else -> corStatusAbertoTexto
                 }
@@ -835,8 +845,8 @@ class MainActivity : AppCompatActivity() {
             setPadding(dp(10), dp(4), dp(10), dp(4))
             background = fundoArredondado(
                 when {
-                    quitado -> Color.rgb(197, 231, 214)
-                    vencido -> Color.rgb(248, 205, 199)
+                    quitado -> corQuitado
+                    vencido -> corVencido
                     venda.total_pago > 0L -> corStatusParcialFundo
                     else -> corStatusAbertoFundo
                 },
@@ -871,7 +881,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcao("Corrigir valor pago") { abrirDialogCorrigirPagamento(venda) }
         adicionarOpcao("Deletar card", destrutiva = true) { confirmarDeletarCard(venda) }
 
-        dialog = AlertDialog.Builder(this)
+        dialog = MaterialAlertDialogBuilder(this)
             .setTitle(venda.nome_cliente ?: "Venda")
             .setView(opcoes)
             .setNegativeButton("Fechar", null)
@@ -932,10 +942,7 @@ class MainActivity : AppCompatActivity() {
         // O formulário existente aceita apenas valor positivo até o saldo.
         val pagamento = if (venda.saldo > 0L) botaoVoltar("Registrar Pagamento") { dialog.dismiss(); abrirDialogPagamento(venda) } else null
         val pdf = botaoVoltar("PDF do Card") { dialog.dismiss(); gerarPdfCard(venda) }
-        val fechar = botaoVoltar("Fechar") { dialog.dismiss() }.apply {
-            setTextColor(corPrimaria)
-            background = fundoArredondadoComBorda(corSuperficie, 22f, corBorda)
-        }
+        val fechar = botaoVoltar("Fechar") { dialog.dismiss() }
         val rodape = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(12), dp(4), dp(12), dp(8))
@@ -949,7 +956,7 @@ class MainActivity : AppCompatActivity() {
             }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { if (pagamento != null) topMargin = dp(4) })
         }
         estrutura.addView(rodape)
-        dialog = AlertDialog.Builder(this).setView(estrutura).create()
+        dialog = MaterialAlertDialogBuilder(this).setView(estrutura).create()
         dialog.show()
         dialog.window?.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, minOf(dp(680), (dp(resources.configuration.screenHeightDp) * 0.9).toInt()))
     }
@@ -975,8 +982,16 @@ class MainActivity : AppCompatActivity() {
         setPadding(dp(10), dp(6), dp(10), dp(6))
         setCompoundDrawablesWithIntrinsicBounds(icone, 0, 0, 0)
         compoundDrawablePadding = dp(8)
-        compoundDrawableTintList = android.content.res.ColorStateList.valueOf(if (ativo) Color.WHITE else corPrimaria)
-        setTextColor(if (ativo) Color.WHITE else corPrimaria)
+        val textColors = ContextCompat.getColorStateList(
+            this@MainActivity,
+            if (ativo) R.color.primary_button_text else R.color.secondary_button_text
+        )
+        TextViewCompat.setCompoundDrawableTintList(this, textColors)
+        setTextColor(textColors)
+        backgroundTintList = ContextCompat.getColorStateList(
+            this@MainActivity,
+            if (ativo) R.color.primary_button_background else R.color.secondary_button_background
+        )
         background = if (ativo) fundoArredondado(corPrimaria, 18f) else fundoArredondadoComBorda(corSuperficie, 18f, corBorda)
         isSelected = ativo
         contentDescription = "$rotulo: filtro ${if (ativo) "ativo" else "inativo"}"
@@ -1005,12 +1020,12 @@ class MainActivity : AppCompatActivity() {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(18), dp(14), dp(18), dp(14))
             background = fundoArredondadoComBorda(
-                if (aviso) corVencido else corSuperficie,
+                if (aviso) corErroFundo else corSuperficie,
                 20f,
-                if (aviso) Color.rgb(230, 181, 174) else corBorda
+                if (aviso) corErroContorno else corBorda
             )
             addView(texto(mensagem, 14f, false).apply {
-                setTextColor(if (aviso) Color.rgb(117, 48, 43) else corTexto)
+                setTextColor(if (aviso) corErroTexto else corTexto)
                 setLineSpacing(0f, 1.15f)
             })
         }
@@ -1150,7 +1165,7 @@ private fun abrirDashboardFinanceiro() {
             return
         }
 
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Mês Do Financeiro")
             .setItems(mesesDisponiveis.toTypedArray()) { _, which ->
                 mesDashboardSelecionado = mesesDisponiveis[which]
@@ -1312,7 +1327,7 @@ private fun abrirResumoMes() {
             return
         }
 
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Selecionar Mês")
             .setItems(mesesDisponiveis.toTypedArray()) { _, which ->
                 mesResumoSelecionado = mesesDisponiveis[which]
@@ -1553,7 +1568,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
 
             val fundo = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
-                background = fundoArredondado(Color.rgb(226, 232, 240), 12f)
+                background = fundoArredondado(corSuperficieVariante, 12f)
             }
 
             val largura = ((resources.displayMetrics.widthPixels - dp(80)) * (valor.toDouble() / maxValor.toDouble())).toInt().coerceAtLeast(dp(12))
@@ -1631,7 +1646,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
     }
 
     private fun exportarCsvResumo(lista: List<VendaRelatorio>, nomeArquivo: String) {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Exportar CSV")
             .setItems(arrayOf("CSV padrão — UTF-8", "CSV para Excel — com BOM")) { _, which ->
                 compartilharCsvResumo(lista, nomeArquivo, withBom = which == 1)
@@ -1698,40 +1713,40 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         val titlePaint = Paint().apply {
             textSize = 19f
             isFakeBoldText = true
-            color = corPrimariaEscura
+            color = PdfPalette.primaryDark
             textAlign = Paint.Align.CENTER
         }
         val subtitlePaint = Paint().apply {
             textSize = 15f
             isFakeBoldText = true
-            color = corDestaque
+            color = PdfPalette.secondary
             textAlign = Paint.Align.CENTER
         }
         val sectionPaint = Paint().apply {
             textSize = 13f
             isFakeBoldText = true
-            color = corPrimariaEscura
+            color = PdfPalette.primaryDark
         }
         val labelPaint = Paint().apply {
             textSize = 10.5f
             isFakeBoldText = true
-            color = corTextoSecundario
+            color = PdfPalette.textSecondary
         }
         val valuePaint = Paint().apply {
             textSize = 10.5f
-            color = corTexto
+            color = PdfPalette.textPrimary
         }
         val footerPaint = Paint().apply {
             textSize = 9f
-            color = corTextoSecundario
+            color = PdfPalette.textSecondary
             textAlign = Paint.Align.CENTER
         }
         val linePaint = Paint().apply {
-            color = corBorda
+            color = PdfPalette.outline
             strokeWidth = 1f
         }
         val softLinePaint = Paint().apply {
-            color = Color.rgb(226, 232, 240)
+            color = PdfPalette.divider
             strokeWidth = 1f
         }
 
@@ -1831,7 +1846,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         y += 66
         val imprintPaint = Paint().apply {
             textSize = 9f
-            color = corTextoSecundario
+            color = PdfPalette.textSecondary
             textAlign = Paint.Align.CENTER
         }
         canvas.drawText("Gerado pelo Vendas Simples", 297f, y.toFloat(), imprintPaint)
@@ -1938,7 +1953,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
                 "Valor: ${moeda.format(venda.valor_total)}\n\n" +
                 "Esta ação remove a venda e os pagamentos vinculados do SQLite."
 
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Deletar Card")
             .setView(painelMensagem(msg, aviso = true))
             .setPositiveButton("Deletar") { _, _ ->
@@ -1972,9 +1987,9 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
             hint = "Nome Do Cliente"
             textSize = 16f
             threshold = 0
-            setTextColor(corTexto)
+            setTextColor(ContextCompat.getColorStateList(this@MainActivity, R.color.input_text))
             setHintTextColor(corTextoSecundario)
-            backgroundTintList = android.content.res.ColorStateList.valueOf(corDestaque)
+            backgroundTintList = ContextCompat.getColorStateList(this@MainActivity, R.color.field_stroke)
             setAdapter(ArrayAdapter(this@MainActivity, android.R.layout.simple_dropdown_item_1line, nomes))
             setOnClickListener { showDropDown() }
             setText(vendaExistente?.nome_cliente ?: "")
@@ -2038,7 +2053,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         val campos = listOf(nomeCliente, valor, parcelas, data, descricao)
         val inicial = campos.map { it.text.toString() }
         val scroll = ScrollView(this).apply { addView(layout) }
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(if (vendaExistente == null) "Nova Venda" else "Editar Card")
             .setView(scroll)
             .setPositiveButton("Salvar", null)
@@ -2048,7 +2063,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
                 setCanceledOnTouchOutside(false)
                 fun cancelarFormulario() {
                     if (campos.map { it.text.toString() } == inicial && fotosRascunho.isEmpty()) dismiss()
-                    else AlertDialog.Builder(this@MainActivity)
+                    else MaterialAlertDialogBuilder(this@MainActivity)
                         .setTitle("Descartar alterações?")
                         .setMessage("As alterações desta venda ainda não foram salvas.")
                         .setNegativeButton("Continuar editando", null)
@@ -2129,7 +2144,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
             abrirDialogVenda(null)
             return
         }
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Desbloqueie novas vendas")
             .setMessage("O plano FREE permite até 30 vendas. Seus dados, consultas, relatórios e pagamentos continuam disponíveis. Desbloqueie a Licença Completa para cadastrar a próxima venda.")
             .setPositiveButton(fullAccessPrice?.let { "Comprar — $it" } ?: "Preço indisponível") { _, _ ->
@@ -2216,7 +2231,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
                 minHeight = dp(48)
                 setCompoundDrawablesWithIntrinsicBounds(android.R.drawable.ic_menu_delete, 0, 0, 0)
                 compoundDrawablePadding = dp(6)
-                compoundDrawableTintList = android.content.res.ColorStateList.valueOf(Color.WHITE)
+                TextViewCompat.setCompoundDrawableTintList(this, android.content.res.ColorStateList.valueOf(corOnPrimaria))
                 contentDescription = "Remover foto ${indice + 1} de ${fotosRascunho.size}"
             }, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
@@ -2242,7 +2257,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
             setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
             adjustViewBounds = true
         }
-        AlertDialog.Builder(this).setView(imagem).setPositiveButton("Fechar", null).show()
+        MaterialAlertDialogBuilder(this).setView(imagem).setPositiveButton("Fechar", null).show()
     }
 
     private fun dataPagamentoLocal(venda: VendaRelatorio): String {
@@ -2269,7 +2284,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         layout.addView(campoRotulado("Valor pago correto:", valorCorreto))
         layout.addView(campoRotulado("Data da correção:", data))
 
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Corrigir Valor Pago")
             .setView(layout)
             .setPositiveButton("Salvar") { _, _ ->
@@ -2351,7 +2366,7 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
         layout.addView(campoRotulado("Valor pago:", valor))
         layout.addView(campoRotulado("Data do pagamento:", data))
 
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Registrar Pagamento")
             .setView(layout)
             .setPositiveButton("Salvar") { _, _ ->
@@ -2503,12 +2518,12 @@ private fun criarCanalNotificacoes() {
             textSize = 15f
             typeface = Typeface.DEFAULT_BOLD
             gravity = Gravity.CENTER_VERTICAL
-            setTextColor(if (destrutiva) Color.rgb(153, 55, 47) else corPrimariaEscura)
+            setTextColor(if (destrutiva) corErroTexto else corPrimariaEscura)
             setPadding(dp(16), dp(13), dp(16), dp(13))
             background = fundoArredondadoComBorda(
                 if (destrutiva) corVencido else corSuperficie,
                 18f,
-                if (destrutiva) Color.rgb(230, 181, 174) else corBorda
+                if (destrutiva) corErroContorno else corBorda
             )
             isClickable = true
             isFocusable = true
@@ -2527,7 +2542,14 @@ private fun criarCanalNotificacoes() {
         val secundaria = texto.startsWith("Voltar", ignoreCase = true) ||
                 texto.startsWith("Limpar", ignoreCase = true) ||
                 texto.startsWith("Cancelar", ignoreCase = true)
-        setTextColor(if (secundaria) corPrimaria else Color.WHITE)
+        setTextColor(ContextCompat.getColorStateList(
+            this@MainActivity,
+            if (secundaria) R.color.secondary_button_text else R.color.primary_button_text
+        ))
+        backgroundTintList = ContextCompat.getColorStateList(
+            this@MainActivity,
+            if (secundaria) R.color.secondary_button_background else R.color.primary_button_background
+        )
         background = if (secundaria) {
             fundoArredondadoComBorda(corSuperficie, 22f, corBorda)
         } else {
@@ -2616,9 +2638,9 @@ private fun criarCanalNotificacoes() {
     private fun campo(hint: String): EditText = EditText(this).apply {
         this.hint = hint
         textSize = if (hint.startsWith("Pesquisar", ignoreCase = true)) 14f else 16f
-        setTextColor(corTexto)
+        setTextColor(ContextCompat.getColorStateList(this@MainActivity, R.color.input_text))
         setHintTextColor(corTextoSecundario)
-        backgroundTintList = android.content.res.ColorStateList.valueOf(corDestaque)
+        backgroundTintList = ContextCompat.getColorStateList(this@MainActivity, R.color.field_stroke)
     }
 
     private fun margemCard(): LinearLayout.LayoutParams =
@@ -2646,6 +2668,16 @@ private class CurrencyFormatter {
     private val formatter = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
     fun format(cents: Long): String = formatter.format(cents / 100.0)
     fun format(value: Double): String = formatter.format(value)
+}
+
+/** Paleta fixa de impressão: o tema de tela não muda a aparência dos PDFs existentes. */
+private object PdfPalette {
+    val primaryDark = Color.rgb(30, 58, 95)
+    val secondary = Color.rgb(71, 85, 105)
+    val textPrimary = Color.rgb(30, 41, 59)
+    val textSecondary = Color.rgb(100, 116, 139)
+    val outline = Color.rgb(203, 213, 225)
+    val divider = Color.rgb(226, 232, 240)
 }
 
 

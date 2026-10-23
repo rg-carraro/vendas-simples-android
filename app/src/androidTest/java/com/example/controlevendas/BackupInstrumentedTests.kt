@@ -21,6 +21,9 @@ class BackupInstrumentedTests(private val context: Context) {
         check(context.packageName.endsWith(".test")) { "Recusa armazenamento de produção" }
         context.deleteDatabase(LocalDatabase.DB_NAME)
         check(identity.edit().clear().commit())
+        context.cacheDir.listFiles().orEmpty().filter { it.name.startsWith("vendas_validate_") }.forEach { check(it.delete()) }
+        context.getDatabasePath(LocalDatabase.DB_NAME).parentFile!!.listFiles().orEmpty()
+            .filter { it.name.startsWith("vendas_incoming_") }.forEach { check(it.delete()) }
         File(context.filesDir, "restore_transaction").listFiles()?.forEach { check(it.delete()) }
         backup.delete()
         database = LocalDatabase(context)
@@ -206,8 +209,12 @@ class BackupInstrumentedTests(private val context: Context) {
         check(before == financialSnapshot(database.readableDatabase))
         check(bytes.contentEquals(context.getDatabasePath(LocalDatabase.DB_NAME).readBytes()))
         check(preferences.businessName == "Preservado" && preferences.initialSetupOffered)
-        check(context.cacheDir.listFiles().orEmpty().none { it.name.startsWith("vendas_validate_") })
-        check(context.getDatabasePath(LocalDatabase.DB_NAME).parentFile!!.listFiles().orEmpty().none { it.name.startsWith("vendas_incoming_") })
+        check(context.cacheDir.listFiles().orEmpty().none { it.name.startsWith("vendas_validate_") }) {
+            "Arquivos de validação temporários restantes: ${context.cacheDir.listFiles().orEmpty().filter { it.name.startsWith("vendas_validate_") }.map { it.name }}"
+        }
+        check(context.getDatabasePath(LocalDatabase.DB_NAME).parentFile!!.listFiles().orEmpty().none { it.name.startsWith("vendas_incoming_") }) {
+            "Arquivos de restauração temporários restantes: ${context.getDatabasePath(LocalDatabase.DB_NAME).parentFile!!.listFiles().orEmpty().filter { it.name.startsWith("vendas_incoming_") }.map { it.name }}"
+        }
     }
     fun testRejectsUnexpectedTrigger() = rejectedImport {
         it.execSQL("CREATE TRIGGER injected AFTER INSERT ON PAGAMENTOS BEGIN UPDATE VENDAS SET valor_total_centavos=1; END")

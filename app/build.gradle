@@ -41,6 +41,10 @@ android {
         }
     }
     buildTypes {
+        debug {
+            // Isola builds e testes do pacote V14 instalado pela Play.
+            applicationIdSuffix '.fase16'
+        }
         release {
             signingConfig signingConfigs.release
         }

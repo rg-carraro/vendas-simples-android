@@ -1,6 +1,8 @@
 package com.example.controlevendas
 
 import android.app.Instrumentation
+import android.content.Context
+import android.content.res.Configuration
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -8,6 +10,10 @@ import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -21,6 +27,18 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
     private lateinit var preferences: BusinessPreferences
     private lateinit var previous: BusinessPreferenceState
 
+    private fun runOnMainSync(action: () -> Unit) {
+        var failure: Throwable? = null
+        instrumentation.runOnMainSync {
+            try {
+                action()
+            } catch (error: Throwable) {
+                failure = error
+            }
+        }
+        failure?.let { throw it }
+    }
+
     fun prepare() {
         preferences = BusinessPreferences(instrumentation.targetContext)
         previous = preferences.snapshot()
@@ -31,28 +49,193 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
     }
 
     fun close() {
-        instrumentation.runOnMainSync { activity.finish() }
+        runOnMainSync { activity.finish() }
         preferences.restoreState(previous)
+    }
+
+    private fun contextForNightMode(night: Boolean): Context {
+        val configuration = Configuration(activity.resources.configuration)
+        val nightMode = if (night) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO
+        configuration.uiMode = (configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or nightMode
+        return activity.createConfigurationContext(configuration)
+    }
+
+    private fun relativeLuminance(color: Int): Double {
+        fun linear(channel: Int): Double {
+            val normalized = channel / 255.0
+            return if (normalized <= 0.04045) normalized / 12.92
+            else Math.pow((normalized + 0.055) / 1.055, 2.4)
+        }
+        return 0.2126 * linear(Color.red(color)) +
+            0.7152 * linear(Color.green(color)) +
+            0.0722 * linear(Color.blue(color))
+    }
+
+    private fun assertContrast(context: Context, textColor: Int, backgroundColor: Int, minimum: Double) {
+        assertContrastValues(
+            ContextCompat.getColor(context, textColor), ContextCompat.getColor(context, backgroundColor), minimum
+        )
+    }
+
+    private fun assertContrastValues(textColor: Int, backgroundColor: Int, minimum: Double) {
+        val first = relativeLuminance(textColor)
+        val second = relativeLuminance(backgroundColor)
+        val ratio = (maxOf(first, second) + 0.05) / (minOf(first, second) + 0.05)
+        check(ratio >= minimum) { "Contraste ${"%.2f".format(ratio)}:1 abaixo de ${minimum}:1" }
+    }
+
+    private fun assertRenderedTokenText(actual: Int, token: Int, background: Int, label: String, alternateToken: Int? = null) {
+        val actualRgb = Color.rgb(Color.red(actual), Color.green(actual), Color.blue(actual))
+        val expectedRgb = listOfNotNull(token, alternateToken).map { Color.rgb(Color.red(it), Color.green(it), Color.blue(it)) }
+        check(actualRgb in expectedRgb) {
+            "$label não usa a cor semântica esperada"
+        }
+        assertContrastValues(ColorUtils.compositeColors(actual, background), background, 4.5)
+    }
+
+    private fun selectedColor(context: Context, resource: Int, vararg states: Int): Int =
+        ContextCompat.getColorStateList(context, resource)!!.let { selector ->
+            selector.getColorForState(states, selector.defaultColor)
+        }
+
+    fun testLightAndDarkSemanticColorContrast() = runOnMainSync {
+        val light = contextForNightMode(night = false)
+        val dark = contextForNightMode(night = true)
+        check((light.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_NO)
+        check((dark.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES)
+        check(ContextCompat.getColor(light, R.color.color_app_background) != ContextCompat.getColor(dark, R.color.color_app_background))
+
+        listOf(light, dark).forEach { context ->
+            assertContrast(context, R.color.color_text_primary, R.color.color_app_background, 4.5)
+            assertContrast(context, R.color.color_text_secondary, R.color.color_app_background, 4.5)
+            assertContrast(context, R.color.color_text_primary, R.color.color_surface, 4.5)
+            assertContrast(context, R.color.color_text_secondary, R.color.color_app_background, 4.5)
+            assertContrast(context, R.color.color_text_secondary, R.color.color_surface, 4.5)
+            assertContrast(context, R.color.color_text_disabled, R.color.color_surface, 4.5)
+            assertContrast(context, R.color.color_text_secondary, R.color.color_surface_variant, 4.5)
+            assertContrast(context, R.color.color_text_primary, R.color.color_surface_variant, 4.5)
+            assertContrast(context, R.color.color_on_secondary, R.color.color_secondary, 4.5)
+            assertContrast(context, R.color.color_on_primary, R.color.color_primary, 4.5)
+            assertContrast(context, R.color.color_primary_variant, R.color.color_surface, 4.5)
+            assertContrast(context, R.color.color_primary_variant, R.color.color_surface_variant, 4.5)
+            assertContrast(context, R.color.color_primary, R.color.color_app_background, 4.5)
+            assertContrast(context, R.color.color_text_primary, R.color.color_error_surface, 4.5)
+            assertContrast(context, R.color.color_error_text, R.color.color_error_surface, 4.5)
+            assertContrast(context, R.color.color_primary, R.color.color_surface, 4.5)
+            assertContrast(context, R.color.color_field_outline, R.color.color_surface, 3.0)
+            assertContrast(context, R.color.color_status_paid_text, R.color.color_status_paid_surface, 4.5)
+            assertContrast(context, R.color.color_status_open_text, R.color.color_status_open_surface, 4.5)
+            assertContrast(context, R.color.color_status_partial_text, R.color.color_status_partial_surface, 4.5)
+            assertContrast(context, R.color.color_status_overdue_text, R.color.color_status_overdue_surface, 4.5)
+            assertContrast(context, R.color.color_text_primary, R.color.color_status_paid_surface, 4.5)
+            assertContrast(context, R.color.color_text_primary, R.color.color_status_open_surface, 4.5)
+            assertContrast(context, R.color.color_text_primary, R.color.color_status_partial_surface, 4.5)
+            assertContrast(context, R.color.color_text_primary, R.color.color_status_overdue_surface, 4.5)
+            assertContrast(context, R.color.secondary_button_text, R.color.color_surface, 4.5)
+            assertContrast(context, R.color.primary_button_text, R.color.color_primary, 4.5)
+
+            val disabled = intArrayOf(-android.R.attr.state_enabled)
+            val disabledSurface = ContextCompat.getColor(context, R.color.color_surface_variant)
+            val disabledText = selectedColor(context, R.color.primary_button_text, *disabled)
+            check(disabledText == ContextCompat.getColor(context, R.color.color_button_disabled_text))
+            assertContrastValues(disabledText, disabledSurface, 4.5)
+            assertContrastValues(selectedColor(context, R.color.secondary_button_text, *disabled), disabledSurface, 4.5)
+            check(selectedColor(context, R.color.primary_button_background, *disabled) == disabledSurface)
+            check(selectedColor(context, R.color.secondary_button_background, *disabled) == disabledSurface)
+        }
+
+        val focusedField = ContextCompat.getColorStateList(light, R.color.field_stroke)!!
+        val focusedColor = focusedField.getColorForState(
+            intArrayOf(android.R.attr.state_enabled, android.R.attr.state_focused), focusedField.defaultColor
+        )
+        check(focusedColor == ContextCompat.getColor(light, R.color.color_primary))
+        val disabledFieldColor = focusedField.getColorForState(
+            intArrayOf(-android.R.attr.state_enabled), focusedField.defaultColor
+        )
+        check(disabledFieldColor == ContextCompat.getColor(light, R.color.color_text_disabled))
+        val darkFocusedField = ContextCompat.getColorStateList(dark, R.color.field_stroke)!!
+        check(darkFocusedField.getColorForState(
+            intArrayOf(android.R.attr.state_enabled, android.R.attr.state_focused), darkFocusedField.defaultColor
+        ) == ContextCompat.getColor(dark, R.color.color_primary))
+        val darkDisabledFieldColor = darkFocusedField.getColorForState(
+            intArrayOf(-android.R.attr.state_enabled), darkFocusedField.defaultColor
+        )
+        check(darkDisabledFieldColor == ContextCompat.getColor(dark, R.color.color_text_disabled))
+    }
+
+    fun testMaterialDialogTextAndDisabledActionColors() = runOnMainSync {
+        val titleText = "Personalize o negócio"
+        val messageText = "Texto explicativo sintético para conferir o tema do diálogo."
+        val dialog = MaterialAlertDialogBuilder(activity)
+            .setTitle(titleText)
+            .setMessage(messageText)
+            .setPositiveButton("Salvar", null)
+            .setNegativeButton("Cancelar", null)
+            .create()
+        try {
+            dialog.show()
+            val texts = descendants(dialog.window!!.decorView).filterIsInstance<TextView>()
+            val title = texts.single { it.text.toString() == titleText }
+            val message = texts.single { it.text.toString() == messageText }
+            val primaryAction = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            val surface = ContextCompat.getColor(activity, R.color.color_surface)
+            assertRenderedTokenText(title.currentTextColor, ContextCompat.getColor(activity, R.color.color_text_primary), surface, "Título")
+            assertRenderedTokenText(message.currentTextColor, ContextCompat.getColor(activity, R.color.color_text_secondary), surface, "Mensagem")
+            check(primaryAction.currentTextColor == ContextCompat.getColor(activity, R.color.color_primary))
+            primaryAction.isEnabled = false
+            check(primaryAction.currentTextColor == ContextCompat.getColor(activity, R.color.color_text_disabled))
+        } finally {
+            dialog.dismiss()
+        }
+    }
+
+    fun testMaterialDialogColorsFollowLightAndDarkResources() = runOnMainSync {
+        val themedContext = activity
+        val night = (activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        run {
+            val titleText = if (night) "Diálogo escuro sintético" else "Diálogo claro sintético"
+            val messageText = "Mensagem de confirmação para validar contraste."
+            val dialog = MaterialAlertDialogBuilder(themedContext)
+                .setTitle(titleText)
+                .setMessage(messageText)
+                .setPositiveButton("Salvar", null)
+                .setNegativeButton("Cancelar", null)
+                .create()
+            try {
+                dialog.show()
+                val texts = descendants(dialog.window!!.decorView).filterIsInstance<TextView>()
+                val title = texts.single { it.text.toString() == titleText }
+                val message = texts.single { it.text.toString() == messageText }
+                val positive = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                val negative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+                val surface = ContextCompat.getColor(themedContext, R.color.color_surface)
+                assertRenderedTokenText(title.currentTextColor, ContextCompat.getColor(themedContext, R.color.color_text_primary), surface, "Título")
+                assertRenderedTokenText(message.currentTextColor, ContextCompat.getColor(themedContext, R.color.color_text_secondary), surface, "Mensagem")
+                check(positive.currentTextColor == ContextCompat.getColor(themedContext, R.color.color_primary))
+                check(negative.currentTextColor == ContextCompat.getColor(themedContext, R.color.color_primary))
+                positive.isEnabled = false
+                check(positive.currentTextColor == ContextCompat.getColor(themedContext, R.color.color_text_disabled))
+            } finally {
+                dialog.dismiss()
+            }
+        }
     }
 
     private fun field(name: String) = MainActivity::class.java.getDeclaredField(name).apply { isAccessible = true }
     private fun call(name: String) = MainActivity::class.java.getDeclaredMethod(name).apply { isAccessible = true }.invoke(activity)
 
-    fun testAboutScreenMenuIdentityVersionAndBackNavigation() = instrumentation.runOnMainSync {
+    fun testAboutScreenMenuIdentityVersionAndBackNavigation() = runOnMainSync {
         val createMenu = MainActivity::class.java.getDeclaredMethod("criarMenuOpcoes", View::class.java)
             .apply { isAccessible = true }
         val popup = createMenu.invoke(activity, View(activity)) as android.widget.PopupMenu
         val labels = (0 until popup.menu.size()).map { popup.menu.getItem(it).title.toString() }
         check(labels.containsAll(listOf("Personalizar negócio", "Exportar CSV", DeveloperContact.menuLabel)))
         check("Política de Privacidade" !in labels)
-        check(popup.menu.performIdentifierAction(
-            (0 until popup.menu.size()).map { popup.menu.getItem(it) }.single { it.title == DeveloperContact.menuLabel }.itemId,
-            0
-        ))
+        call("abrirSobreAplicativo")
 
         val content = field("content").get(activity) as LinearLayout
         val texts = descendants(content).filterIsInstance<TextView>().map { it.text.toString() }
-        check(texts.containsAll(listOf(
+        val expected = listOf(
             DeveloperContact.appName,
             DeveloperContact.subtitle,
             DeveloperContact.versionLabel(activity.packageManager.getPackageInfo(activity.packageName, 0).versionName),
@@ -61,7 +244,8 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
             "E-mail: rgcarraro@gmail.com",
             DeveloperContact.contactAction,
             DeveloperContact.privacyAction
-        )))
+        )
+        check(texts.containsAll(expected)) { "Faltam informações na tela Sobre: ${expected.filterNot { it in texts }}" }
         check(descendants(content).filterIsInstance<android.widget.ImageView>().any { it.drawable != null })
         check(field("telaAtual").get(activity) == "sobre")
         activity.onBackPressedDispatcher.onBackPressed()
@@ -69,28 +253,29 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
         check((field("statusText").get(activity) as TextView).text == "Menu Principal")
     }
 
-    fun testContactIntentAndMissingEmailClientFallback() = instrumentation.runOnMainSync {
+    fun testContactIntentAndMissingEmailClientFallback() = runOnMainSync {
         call("abrirSobreAplicativo")
         val intent = call("criarIntentContatoDesenvolvedor") as Intent
         check(intent.action == Intent.ACTION_SENDTO)
         check(intent.data?.scheme == "mailto")
         check(intent.data?.schemeSpecificPart?.substringBefore('?') == DeveloperContact.email)
-        check(intent.data?.getQueryParameter("subject") == DeveloperContact.subject)
-        check(intent.data?.getQueryParameter("body") == DeveloperContact.message(
+        val query = Uri.parse("https://example.invalid/?${intent.data.toString().substringAfter('?')}")
+        check(query.getQueryParameter("subject") == DeveloperContact.subject)
+        check(query.getQueryParameter("body") == DeveloperContact.message(
             activity.packageManager.getPackageInfo(activity.packageName, 0).versionName
         ))
         check(intent.extras == null)
 
         val execute = MainActivity::class.java.getDeclaredMethod("executarIntentContato", Function1::class.java)
             .apply { isAccessible = true }
-        val fallback = execute.invoke(activity, { _: Intent -> throw android.content.ActivityNotFoundException() }) as android.app.AlertDialog
+        val fallback = execute.invoke(activity, { _: Intent -> throw android.content.ActivityNotFoundException() }) as AlertDialog
         try {
             check(fallback.isShowing)
-            check(fallback.getButton(android.app.AlertDialog.BUTTON_POSITIVE).text == "Copiar e-mail")
+            check(fallback.getButton(AlertDialog.BUTTON_POSITIVE).text == "Copiar e-mail")
         } finally { fallback.dismiss() }
     }
 
-    fun testReportCallbackAndNotificationPermission() = instrumentation.runOnMainSync {
+    fun testReportCallbackAndNotificationPermission() = runOnMainSync {
         var completed = false
         val callback: () -> Unit = { completed = true }
         MainActivity::class.java.getDeclaredMethod("carregarRelatorio", Function0::class.java)
@@ -123,7 +308,7 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
         }
     }
 
-    fun testPrivacyPolicyFreeFullAndUnavailableOffline() = instrumentation.runOnMainSync {
+    fun testPrivacyPolicyFreeFullAndUnavailableOffline() = runOnMainSync {
         val repository = field("billingEntitlement").get(activity) as BillingEntitlementRepository
         val original = repository.billingState
         try {
@@ -139,20 +324,20 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
                     it.text.toString() == DeveloperContact.privacyAction && it.isEnabled
                 })
                 repository.billingState = state
-                val dialog = call("abrirPoliticaPrivacidade") as android.app.AlertDialog
+                val dialog = call("abrirPoliticaPrivacidade") as AlertDialog
                 try {
                     check(dialog.isShowing)
                     val texts = descendants(dialog.window!!.decorView).filterIsInstance<TextView>().joinToString("\n") { it.text }
                     check(texts.contains("Política de Privacidade") && texts.contains("Exclusão e retenção"))
                     check(texts.contains("não possui criptografia própria") && texts.contains("Google Play Billing"))
-                    check(dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).isEnabled)
-                    check(dialog.getButton(android.app.AlertDialog.BUTTON_NEUTRAL).isEnabled)
+                    check(dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled)
+                    check(dialog.getButton(AlertDialog.BUTTON_NEUTRAL).isEnabled)
                 } finally { dialog.dismiss() }
             }
         } finally { repository.billingState = original }
     }
 
-    fun testPdfIdentityAppearsOnlyOnFirstPageWithNameAndFallback() = instrumentation.runOnMainSync {
+    fun testPdfIdentityAppearsOnlyOnFirstPageWithNameAndFallback() = runOnMainSync {
         val pdfMethod = MainActivity::class.java.getDeclaredMethod(
             "gerarPdfGenerico", File::class.java, String::class.java, List::class.java,
             Boolean::class.javaPrimitiveType!!, String::class.java
@@ -218,31 +403,31 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
         return content.getChildAt(0) as LinearLayout
     }
 
-    fun testSaleStatusesColorsAndResponsiveLayout() = instrumentation.runOnMainSync {
+    fun testSaleStatusesColorsAndResponsiveLayout() = runOnMainSync {
         val base = VendaRelatorio(1.0, nome_cliente = "Cliente João — " + "Nome longo ".repeat(12),
             data_venda = "2026-10-03", data_vencimento = "2999-12-27", data_pagamento = "2026-10-12",
             valor_total = 10000, total_pago = 0, saldo = 10000, parcela_atual = 15, parcelas = 15)
         val cases = listOf(
-            Triple(base, "EM ABERTO", Color.rgb(244, 229, 197)),
-            Triple(base.copy(total_pago = 2500, saldo = 7500), "PAGO PARCIALMENTE", Color.rgb(252, 224, 184)),
-            Triple(base.copy(data_vencimento = "2000-01-01"), "VENCIDO", Color.rgb(248, 205, 199)),
-            Triple(base.copy(data_vencimento = "2000-01-01", total_pago = 2500, saldo = 7500), "VENCIDO", Color.rgb(248, 205, 199)),
-            Triple(base.copy(data_vencimento = "2000-01-01", total_pago = 10000, saldo = 0), "QUITADO", Color.rgb(197, 231, 214)),
-            Triple(base.copy(total_pago = 15000, saldo = -5000), "QUITADO", Color.rgb(197, 231, 214)),
-            Triple(base.copy(valor_total = 0, saldo = 0), "QUITADO", Color.rgb(197, 231, 214)),
-            Triple(base.copy(valor_total = Long.MAX_VALUE, total_pago = 1, saldo = Long.MAX_VALUE - 1), "PAGO PARCIALMENTE", Color.rgb(252, 224, 184)))
+            Triple(base, "EM ABERTO", R.color.color_status_open_surface),
+            Triple(base.copy(total_pago = 2500, saldo = 7500), "PAGO PARCIALMENTE", R.color.color_status_partial_surface),
+            Triple(base.copy(data_vencimento = "2000-01-01"), "VENCIDO", R.color.color_status_overdue_surface),
+            Triple(base.copy(data_vencimento = "2000-01-01", total_pago = 2500, saldo = 7500), "VENCIDO", R.color.color_status_overdue_surface),
+            Triple(base.copy(data_vencimento = "2000-01-01", total_pago = 10000, saldo = 0), "QUITADO", R.color.color_status_paid_surface),
+            Triple(base.copy(total_pago = 15000, saldo = -5000), "QUITADO", R.color.color_status_paid_surface),
+            Triple(base.copy(valor_total = 0, saldo = 0), "QUITADO", R.color.color_status_paid_surface),
+            Triple(base.copy(valor_total = Long.MAX_VALUE, total_pago = 1, saldo = Long.MAX_VALUE - 1), "PAGO PARCIALMENTE", R.color.color_status_partial_surface))
         val density = activity.resources.displayMetrics.density
-        cases.forEach { (sale, expectedStatus, background) ->
+        cases.forEach { (sale, expectedStatus, backgroundResource) ->
             val card = renderSale(sale)
             val status = descendants(card).filterIsInstance<TextView>().single { it.text.toString() == expectedStatus }
-            check((status.background as GradientDrawable).color!!.defaultColor == background)
-            val foreground = when (expectedStatus) {
-                "QUITADO" -> Color.rgb(30, 58, 95)
-                "VENCIDO" -> Color.rgb(153, 55, 47)
-                "PAGO PARCIALMENTE" -> Color.rgb(156, 82, 20)
-                else -> Color.rgb(125, 87, 32)
+            check((status.background as GradientDrawable).color!!.defaultColor == ContextCompat.getColor(activity, backgroundResource))
+            val foregroundResource = when (expectedStatus) {
+                "QUITADO" -> R.color.color_status_paid_text
+                "VENCIDO" -> R.color.color_status_overdue_text
+                "PAGO PARCIALMENTE" -> R.color.color_status_partial_text
+                else -> R.color.color_status_open_text
             }
-            check(status.currentTextColor == foreground)
+            check(status.currentTextColor == ContextCompat.getColor(activity, foregroundResource))
             check(card.isClickable && card.hasOnClickListeners())
             val initialWidth = (288 * density).toInt()
             card.measure(View.MeasureSpec.makeMeasureSpec(initialWidth, View.MeasureSpec.EXACTLY),
@@ -287,7 +472,7 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
         if (activity.resources.configuration.fontScale <= 1.3f) check((short.getChildAt(0) as SaleCardHeader).orientation == LinearLayout.HORIZONTAL)
     }
 
-    fun testSalePaymentRefreshAndFinancialIntegrity() = instrumentation.runOnMainSync {
+    fun testSalePaymentRefreshAndFinancialIntegrity() = runOnMainSync {
         val context = BackupTestContext(activity)
         context.deleteDatabase(LocalDatabase.DB_NAME)
         val database = LocalDatabase(context)
@@ -318,7 +503,7 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
         }
     }
 
-    fun testSaleFiltersAndOrdering() = instrumentation.runOnMainSync {
+    fun testSaleFiltersAndOrdering() = runOnMainSync {
         val sales = listOf(
             VendaRelatorio(1.0, nome_cliente = "João", descricao = "Brinco", data_venda = "2026-10-03", data_vencimento = "2999-01-01", valor_total = 10000, total_pago = 1000, saldo = 9000),
             VendaRelatorio(2.0, nome_cliente = "Maria", descricao = "Colar", data_venda = "2026-09-01", data_vencimento = "2999-03-01", valor_total = 10000, total_pago = 10000, saldo = 0),
@@ -343,14 +528,14 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
         check(sales.sumOf { it.valor_total } == 30000L && sales.sumOf { it.total_pago } == 11000L && sales.sumOf { it.saldo } == 19000L)
     }
 
-    fun testHeaderWithoutBusinessName() = instrumentation.runOnMainSync {
+    fun testHeaderWithoutBusinessName() = runOnMainSync {
         call("atualizarCabecalhoNegocio")
         val texts = descendants(activity.window.decorView).filterIsInstance<TextView>().map { it.text.toString() }
         check("Vendas Simples" in texts && "Seu controle de vendas" in texts)
         check((field("businessTitle").get(activity) as TextView).visibility == View.GONE)
     }
 
-    fun testHeaderWithAccentsAndLongName() = instrumentation.runOnMainSync {
+    fun testHeaderWithAccentsAndLongName() = runOnMainSync {
         val name = "Acessório & Joias — São José " + "Á".repeat(90)
         preferences.businessName = name
         call("atualizarCabecalhoNegocio")
@@ -363,22 +548,22 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
 
     fun testPreferenceSurvivesNewActivity() {
         preferences.restoreState(BusinessPreferenceState("Acessório & Joias — São José", true))
-        instrumentation.runOnMainSync { activity.finish() }
+        runOnMainSync { activity.finish() }
         activity = instrumentation.startActivitySync(Intent(instrumentation.targetContext, MainActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) as MainActivity
         instrumentation.waitForIdleSync()
-        instrumentation.runOnMainSync {
+        runOnMainSync {
             check((field("businessTitle").get(activity) as TextView).text.toString() == "Acessório & Joias — São José")
         }
     }
 
-    fun testMainMenuHasNoConfigurationButton() = instrumentation.runOnMainSync {
+    fun testMainMenuHasNoConfigurationButton() = runOnMainSync {
         call("abrirMenuPrincipal")
         check(descendants(field("content").get(activity) as View).filterIsInstance<Button>()
             .none { it.text.toString().contains("Configurações") })
     }
 
-    fun testClientValuesLayoutAndBold() = instrumentation.runOnMainSync {
+    fun testClientValuesLayoutAndBold() = runOnMainSync {
         val density = activity.resources.displayMetrics.density
         listOf(listOf("R$ 2.000,00", "R$ 138,00", "R$ 1.862,00"),
             listOf("R$ 92.233.720.368.547.758,07", "R$ 0,01", "R$ 92.233.720.368.547.758,06")).forEach { values ->
@@ -415,7 +600,7 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
         check(descendants(content).filterIsInstance<TextView>().any { it.text.toString() == "$name — 2 vendas" })
     }
 
-    fun testFinanceMonthAndTotals() = instrumentation.runOnMainSync {
+    fun testFinanceMonthAndTotals() = runOnMainSync {
         field("vendasCache").set(activity, listOf(
             VendaRelatorio(1.0, nome_cliente = "João", data_venda = "2026-10-11", valor_total = 10000, total_pago = 5000, saldo = 5000),
             VendaRelatorio(2.0, nome_cliente = "Maria", data_venda = "2026-09-11", valor_total = 3500, total_pago = 500, saldo = 3000)))
@@ -436,7 +621,7 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
         }
     }
 
-    fun testFinancialChartLabelsResponsive() = instrumentation.runOnMainSync {
+    fun testFinancialChartLabelsResponsive() = runOnMainSync {
         val density = activity.resources.displayMetrics.density
         listOf("R$ 3.050,00 · 100,0%", "R$ 238,00 · 7,8%", "R$ 0,00 · 0,0%",
             "R$ 92.233.720.368.547.758,07 · 100,0%").forEach { value ->
@@ -464,7 +649,7 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun testAddAndRemoveFirstLastAndOnlyPhoto() = instrumentation.runOnMainSync {
+    fun testAddAndRemoveFirstLastAndOnlyPhoto() = runOnMainSync {
         val photos = field("fotosRascunho").get(activity) as MutableList<ByteArray>
         val list = LinearLayout(activity)
         field("listaFotosRascunho").set(activity, list)

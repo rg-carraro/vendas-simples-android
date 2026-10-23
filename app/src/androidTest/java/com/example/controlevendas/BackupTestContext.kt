@@ -9,7 +9,7 @@ import java.io.File
 
 /** Namespace de teste separado: nenhum banco/preferência operacional é aberto ou apagado. */
 class BackupTestContext(base: Context) : ContextWrapper(base) {
-    init { check(base.packageName == "com.vendassimples.app") }
+    init { check(base.packageName == "com.vendassimples.app" || base.packageName == "com.vendassimples.app.fase16") }
     override fun getPackageName() = "com.vendassimples.app.backup_tests.test"
     override fun getFilesDir() = File(baseContext.cacheDir, "backup-test-files").apply { mkdirs() }
     override fun getCacheDir() = File(baseContext.cacheDir, "backup-test-cache").apply { mkdirs() }
