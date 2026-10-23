@@ -1,0 +1,28 @@
+<resources>
+    <color name="color_app_background">#F5F7FB</color>
+    <color name="color_surface">#FFFFFF</color>
+    <color name="color_surface_variant">#E2E8F0</color>
+    <color name="color_text_primary">#1E293B</color>
+    <color name="color_text_secondary">#475569</color>
+    <color name="color_text_disabled">#475569</color>
+    <color name="color_button_disabled_text">#475569</color>
+    <color name="color_primary">#2563EB</color>
+    <color name="color_on_primary">#FFFFFF</color>
+    <color name="color_primary_variant">#1E3A5F</color>
+    <color name="color_secondary">#475569</color>
+    <color name="color_on_secondary">#FFFFFF</color>
+    <color name="color_outline">#64748B</color>
+    <color name="color_field_outline">#64748B</color>
+    <color name="color_control_highlight">#332563EB</color>
+    <color name="color_error_text">#991B1B</color>
+    <color name="color_error_surface">#FEE2E2</color>
+    <color name="color_error_outline">#B91C1C</color>
+    <color name="color_status_paid_text">#166534</color>
+    <color name="color_status_paid_surface">#DCFCE7</color>
+    <color name="color_status_open_text">#854D0E</color>
+    <color name="color_status_open_surface">#FEF3C7</color>
+    <color name="color_status_partial_text">#9A3412</color>
+    <color name="color_status_partial_surface">#FFEDD5</color>
+    <color name="color_status_overdue_text">#991B1B</color>
+    <color name="color_status_overdue_surface">#FEE2E2</color>
+</resources>
