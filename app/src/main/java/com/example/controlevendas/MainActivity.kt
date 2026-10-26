@@ -680,8 +680,8 @@ class MainActivity : AppCompatActivity() {
             })
         }
 
-        val filtroData = botaoFiltro("Data", R.drawable.ic_calendar, filtroInicio != null || filtroFim != null) { abrirFiltroPeriodoVendas() }
-        val filtroReceber = botaoFiltro(if (filtrarAReceber) "Todos" else "A receber", R.drawable.ic_money, filtrarAReceber) {
+        val filtroData = botaoFiltro("Data", filtroInicio != null || filtroFim != null) { abrirFiltroPeriodoVendas() }
+        val filtroReceber = botaoFiltro("A receber", filtrarAReceber) {
             filtrarAReceber = !filtrarAReceber
             abrirListaVendas()
         }
@@ -976,17 +976,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun botaoFiltro(rotulo: String, icone: Int, ativo: Boolean, acao: () -> Unit): Button = botaoVoltar(rotulo, acao).apply {
+    private fun botaoFiltro(rotulo: String, ativo: Boolean, acao: () -> Unit): Button = botaoVoltar(rotulo, acao).apply {
         minWidth = dp(48)
         minHeight = dp(48)
         setPadding(dp(10), dp(6), dp(10), dp(6))
-        setCompoundDrawablesWithIntrinsicBounds(icone, 0, 0, 0)
-        compoundDrawablePadding = dp(8)
+        gravity = Gravity.CENTER
+        isSingleLine = false
+        maxLines = 2
         val textColors = ContextCompat.getColorStateList(
             this@MainActivity,
             if (ativo) R.color.primary_button_text else R.color.secondary_button_text
         )
-        TextViewCompat.setCompoundDrawableTintList(this, textColors)
         setTextColor(textColors)
         backgroundTintList = ContextCompat.getColorStateList(
             this@MainActivity,
@@ -995,6 +995,38 @@ class MainActivity : AppCompatActivity() {
         background = if (ativo) fundoArredondado(corPrimaria, 18f) else fundoArredondadoComBorda(corSuperficie, 18f, corBorda)
         isSelected = ativo
         contentDescription = "$rotulo: filtro ${if (ativo) "ativo" else "inativo"}"
+    }
+
+    private fun Button.prepararBotaoFoto() {
+        minWidth = 0
+        minHeight = dp(50)
+        setPadding(dp(8), dp(8), dp(8), dp(8))
+        gravity = Gravity.CENTER
+        isSingleLine = false
+        maxLines = 2
+        ellipsize = null
+    }
+
+    private fun criarBotoesFoto(): LinearLayout = LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER
+        addView(botaoVoltar("Galeria") {
+            selecionarFotos.launch("image/*")
+        }.apply { prepararBotaoFoto() }, LinearLayout.LayoutParams(
+            0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
+        ))
+        addView(botaoVoltar("Abrir câmera") {
+            try {
+                val arquivo = File.createTempFile("produto_", ".jpg", cacheDir)
+                arquivoCamera = arquivo
+                val uri = FileProvider.getUriForFile(this@MainActivity, "${packageName}.provider", arquivo)
+                fotografarProduto.launch(uri)
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, "Não foi possível abrir a câmera: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }.apply { prepararBotaoFoto() }, LinearLayout.LayoutParams(
+            0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
+        ).apply { leftMargin = dp(8) })
     }
 
     private fun linhaDetalhe(rotulo: String, valor: String, destaque: Boolean = false): LinearLayout =
@@ -2033,19 +2065,9 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
 
         if (vendaExistente == null) {
             layout.addView(texto("Fotos do produto (opcional):", 14f, true))
-            layout.addView(botaoVoltar("Escolher da galeria") {
-                selecionarFotos.launch("image/*")
-            })
-            layout.addView(botaoVoltar("Abrir câmera") {
-                try {
-                    val arquivo = File.createTempFile("produto_", ".jpg", cacheDir)
-                    arquivoCamera = arquivo
-                    val uri = FileProvider.getUriForFile(this, "${packageName}.provider", arquivo)
-                    fotografarProduto.launch(uri)
-                } catch (e: Exception) {
-                    Toast.makeText(this, "Não foi possível abrir a câmera: ${e.message}", Toast.LENGTH_LONG).show()
-                }
-            })
+            layout.addView(criarBotoesFoto(), LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ))
             listaFotosRascunho = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
             layout.addView(listaFotosRascunho)
         }
@@ -2229,9 +2251,6 @@ private fun cobrarViaWhatsApp(venda: VendaRelatorio) {
             }.apply {
                 minWidth = dp(48)
                 minHeight = dp(48)
-                setCompoundDrawablesWithIntrinsicBounds(android.R.drawable.ic_menu_delete, 0, 0, 0)
-                compoundDrawablePadding = dp(6)
-                TextViewCompat.setCompoundDrawableTintList(this, android.content.res.ColorStateList.valueOf(corOnPrimaria))
                 contentDescription = "Remover foto ${indice + 1} de ${fotosRascunho.size}"
             }, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT

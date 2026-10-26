@@ -511,7 +511,16 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
         field("vendasCache").set(activity, sales)
         fun names(): List<String> {
             call("abrirListaVendas")
-            return descendants(field("content").get(activity) as View).filterIsInstance<SaleCardHeader>()
+            val content = field("content").get(activity) as View
+            val filterButtons = descendants(content).filterIsInstance<Button>()
+                .filter { it.text.toString() in setOf("Data", "A receber") }
+            check(filterButtons.map { it.text.toString() }.toSet() == setOf("Data", "A receber"))
+            filterButtons.forEach { button ->
+                check(button.compoundDrawables.all { it == null })
+                check(button.gravity and android.view.Gravity.HORIZONTAL_GRAVITY_MASK == android.view.Gravity.CENTER_HORIZONTAL)
+                check(button.minHeight >= (48 * activity.resources.displayMetrics.density).toInt())
+            }
+            return descendants(content).filterIsInstance<SaleCardHeader>()
                 .map { (it.getChildAt(0) as TextView).text.toString() }
         }
         check(names() == listOf("Maria", "Ana", "João"))
@@ -670,6 +679,7 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
             val row = list.getChildAt(index) as LinearLayout
             val button = row.getChildAt(1) as Button
             check(button.contentDescription.toString() == "Remover foto ${index + 1} de ${photos.size}")
+            check(button.compoundDrawables.all { it == null })
             val params = button.layoutParams as LinearLayout.LayoutParams
             check(params.width == LinearLayout.LayoutParams.WRAP_CONTENT)
             val gap = (16 * activity.resources.displayMetrics.density).toInt()
@@ -683,5 +693,35 @@ class FinalUiInstrumentedTests(private val instrumentation: Instrumentation) {
         remove(0)
         check(photos.isEmpty() && list.childCount == 0)
         field("listaFotosRascunho").set(activity, null)
+    }
+
+    fun testPhotoActionButtonsStayReadableAtLargeText() = runOnMainSync {
+        val method = MainActivity::class.java.getDeclaredMethod("criarBotoesFoto").apply { isAccessible = true }
+        val row = method.invoke(activity) as LinearLayout
+        check(row.orientation == LinearLayout.HORIZONTAL && row.childCount == 2)
+        val buttons = (0 until row.childCount).map { row.getChildAt(it) as Button }
+        check(buttons.map { it.text.toString() } == listOf("Galeria", "Abrir câmera"))
+        buttons.forEach { button ->
+            check(button.compoundDrawables.all { it == null })
+            check(button.hasOnClickListeners())
+            check(button.maxLines == 2 && button.ellipsize == null)
+        }
+        val firstParams = buttons[0].layoutParams as LinearLayout.LayoutParams
+        val secondParams = buttons[1].layoutParams as LinearLayout.LayoutParams
+        check(firstParams.width == 0 && secondParams.width == 0)
+        check(firstParams.weight == secondParams.weight && firstParams.weight == 1f)
+        check(secondParams.leftMargin == (8 * activity.resources.displayMetrics.density).toInt())
+
+        buttons.forEach { it.setTextSize(28f) }
+        val width = (280 * activity.resources.displayMetrics.density).toInt()
+        row.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+        row.layout(0, 0, width, row.measuredHeight)
+        buttons.forEach { button ->
+            val layout = button.layout
+            check(layout != null && layout.lineCount in 1..2)
+            check((0 until layout.lineCount).all { layout.getEllipsisCount(it) == 0 })
+            check(layout.getLineEnd(layout.lineCount - 1) == button.text.length)
+        }
     }
 }

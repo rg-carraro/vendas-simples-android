@@ -147,5 +147,14 @@ Fonte principal: [RELEASE_V11](RELEASE_V11.md) e [HISTORICO_TESTES](HISTORICO_TE
 - **Base:** branch `feature/fase16-light-dark-mode`, base `dfb87e6ddb294834bde8f6ae044b4a1d58ed7525`, código V14 (`14 / 1.0.14`). O proprietário relata distribuição V14 em teste fechado; Console não consultada.
 - **Mudanças:** paletas semânticas `values`/`values-night`, diálogos DayNight, cores de botões/estados/controles, correção do resíduo `.corrupt` e testes instrumentados. SQLite schema, formato de backup, Billing e metadados da V14 preservados.
 - **Validação:** 46 testes unitários por variante; 38/38 backup; UI 76/76 nas quatro combinações tema/fonte; compilação AndroidTest; lint 0 erros (63 avisos debug/65 release); assembleDebug passou. O proprietário relata que todos os cenários manuais que executou no S22 passaram; essa aprovação é relatada, sem detalhamento caso a caso. APK isolado `.fase16` mantido localmente, não versionado.
-- **Commits da feature:** `d00acef` (UI/temas) e `a813542` (limpeza temporária de backup). Integração PR Fase16D em andamento; registrar PR e SHA final após merge.
+- **Commits da feature:** `d00acef` (UI/temas) e `a813542` (limpeza temporária de backup). Integração confirmada pelo PR #7, merge `a742c9139950c6098b4a4960c181e97a45b48fb7`.
 - **Estado de distribuição:** sem AAB, upload ou publicação. Versionamento permanece 14 / 1.0.14; V15 ainda não preparada para distribuição.
+
+### Fase 17B — Interface Clean (26/10/2026; sem nova versão)
+
+- **Base:** branch/worktree `feature/fase17b-interface-clean`, baseada na master integrada `a742c9139950c6098b4a4960c181e97a45b48fb7`.
+- **Mudanças:** botões Galeria/Câmera em linha com larguras iguais e texto adaptável; removidos ícones de lixeira, calendário e financeiro somente nos controles solicitados. Mantidos callbacks, estado/cores e margem da ação da foto.
+- **Validação:** 46/46 unitários Debug e Release, compilação AndroidTest, lint sem erros e `assembleDebug` passaram. Runtime/visual no S22 não executado: dispositivo indisponível no ADB em 26/10/2026. Ver [relatório Fase 17B](FASE17B_INTERFACE_CLEAN.md).
+- **Versão/distribuição:** `14 / 1.0.14` preservada; APK apenas Debug local, sem instalação, AAB, upload ou publicação. Sem commit ou push.
+- **Aditivo 17C:** APK Debug instalado limpo em `user 0` após autorização, aberto no S22; 20/20 testes `final-ui` passaram pelo runner ADB direto. O task conectado do Gradle reportou 0 testes. V14 oficial manteve metadados e `lastUpdateTime`; fonte/tema não foram alterados. Câmera/galeria reais e inspeção visual permanecem pendentes; Secure Folder não pôde ser consultado. SHA-256 do APK: `3F198F49A124E500A918326F0EA20D334203580765ED69D701FA85E141DA5A87`. Detalhes no relatório Fase 17B.
+- **Aditivo 17D:** em 26/10, o proprietário informou aprovação visual nos modos claro e escuro. O runner direto passou novamente 20/20 no S22; testes unitários Debug/Release, compilação AndroidTest, lint e assembleDebug concluíram `BUILD SUCCESSFUL` (itens unitários/build em cache). Nenhuma alteração em versionCode/versionName; Billing real não validado pela variante `.fase16`. Ver relatório Fase 17B e registro final Fase 17D.
