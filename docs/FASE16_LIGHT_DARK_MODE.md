@@ -4,7 +4,7 @@
 **Branch/worktree:** `feature/fase16-light-dark-mode`, `.worktrees/fase16-light-dark-mode`
 **Commit base:** `dfb87e6ddb294834bde8f6ae044b4a1d58ed7525` (confirmado por `git ls-remote` como master remota atual em 23/10/2026)
 **Versão do código-base:** `versionCode 14`, `versionName 1.0.14`, `applicationId com.vendassimples.app`. O proprietário relata que a V14 está na Play Store; Console não consultada.
-**Estado:** alterações locais não commitadas, em branch isolada. Sem PR, merge, push, AAB ou publicação.
+**Estado final:** implementação integrada à `master` pela PR #7 (merge `a742c9139950c6098b4a4960c181e97a45b48fb7`). A sincronização da master local e a consolidação documental estão registradas na Fase 16F. Não houve AAB ou publicação.
 
 ## Requisitos e decisões
 
@@ -103,4 +103,4 @@ Razões são propriedades da combinação de tokens; não incluem elevação, tr
 
 ## Estado Git e continuidade
 
-Alterações permanecem na branch `feature/fase16-light-dark-mode`, baseada na `master` remota V14. A integração Fase 16D está autorizada; registrar PR e SHA do merge neste histórico após a conclusão. Não houve geração de AAB ou publicação. A V14 e sua instalação foram preservadas.
+A Fase 16 foi integrada à `master` pela PR [#7](https://github.com/rg-carraro/vendas-simples-android/pull/7), merge `a742c9139950c6098b4a4960c181e97a45b48fb7`, em 23/10/2026. O merge tem como pais a base V14 `dfb87e6ddb294834bde8f6ae044b4a1d58ed7525` e o tip da feature `7db6fb3784bb8544cfbfa5f840d53fb40b558eb4`. A versão permanece `versionCode 14` / `versionName 1.0.14`; o proprietário relata que a V14 segue em teste fechado, sem consulta à Play Console. Não houve AAB ou publicação. A futura V15 depende de autorização específica. A [Fase 16F](FASE16F_SINCRONIZACAO_CONSOLIDACAO.md) registra a sincronização local e preservação dos documentos conflitantes; a [Fase 16G](FASE16G_BUILD_UNIFICADA.md) registra o APK Debug consolidado.

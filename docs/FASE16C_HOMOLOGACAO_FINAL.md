@@ -43,7 +43,7 @@ O proprietário aprovou os cenários manuais que executou; a implementação e a
 
 ## APK Debug entregue
 
-- **Arquivo:** [VendasSimples_Fase16_LightDark_Debug.apk](../dist/debug/VendasSimples_Fase16_LightDark_Debug.apk)
+- **Arquivo:** `VendasSimples_Fase16_LightDark_Debug.apk` (artefato local mantido apenas na worktree de testes; não versionado).
 - **Caminho absoluto:** `C:\Users\rgcar\git\vendas-simples-android\.worktrees\fase16-light-dark-mode\dist\debug\VendasSimples_Fase16_LightDark_Debug.apk`
 - **Tamanho:** 8.660.187 bytes (8,26 MiB).
 - **SHA-256:** `C036F5E3996E7A02AD0F55456E123A6FA08B75C88FCB2491F936B74120CCF1BD`.
@@ -66,4 +66,4 @@ Esse identificador permite coexistência com o app oficial. O pacote oficial nã
 
 Antes e depois dos testes, ADB confirmou `com.vendassimples.app`, versionCode 14, versionName 1.0.14 e lastUpdateTime `2026-10-21 12:53:45`. O pacote da V14 não foi instalado, desinstalado, limpo nem usado como alvo instrumentado; nenhum banco real foi lido ou alterado. O aparelho terminou em tema claro e fonte 1,0.
 
-Na atualização deste relatório, a integração Fase 16D está em andamento e deve ser registrada pelo SHA do merge no histórico de versões após sua conclusão. Não houve AAB ou publicação e nenhuma preparação de V15 foi feita. A autorização atual cobre integração Git, sem distribuição na Google Play.
+Verificação remota e sincronização local em 23/10/2026 confirmaram a PR [#7](https://github.com/rg-carraro/vendas-simples-android/pull/7) integrada à `master` no merge `a742c9139950c6098b4a4960c181e97a45b48fb7`. O segundo pai é o tip da feature `7db6fb3784bb8544cfbfa5f840d53fb40b558eb4`; o primeiro pai é a base V14 `dfb87e6ddb294834bde8f6ae044b4a1d58ed7525`. Não houve AAB ou publicação; a futura V15 depende de autorização específica.

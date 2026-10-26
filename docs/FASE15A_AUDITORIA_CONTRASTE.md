@@ -128,3 +128,7 @@ Sem aplicar mudanças nesta Fase 15A, recomenda-se priorizar:
 - Contexto da versão: `docs/FASE14_FUNCIONAL_PDF_PRIVACIDADE.md` na worktree V14.
 - Plano geral: `docs/VALIDACAO.md`.
 - Skills: `.agents/skills/vendas-simples-interface/SKILL.md` e `.agents/skills/vendas-simples-validar/SKILL.md`.
+
+## Atualização posterior — conclusão da Fase 16
+
+Este documento é o retrato estático anterior às correções e permanece como histórico, não como descrição do estado atual da interface. A Fase 16 implementou paletas semânticas DayNight, corrigiu os pares de contraste visados e foi homologada conforme [relatório de implementação](FASE16_LIGHT_DARK_MODE.md), [Fase 16B](FASE16B_HOMOLOGACAO.md) e [Fase 16C](FASE16C_HOMOLOGACAO_FINAL.md). A integração ocorreu pela PR [#7](https://github.com/rg-carraro/vendas-simples-android/pull/7), merge `a742c9139950c6098b4a4960c181e97a45b48fb7`, sem alterar a versão 14 / 1.0.14 ou publicar na Play. Os resultados de homologação e limites continuam nos relatórios posteriores.

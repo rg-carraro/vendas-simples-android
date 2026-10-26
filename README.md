@@ -2,11 +2,11 @@
 
 Produto Android independente para controle local de vendas, parcelas e recebimentos.
 
-**Estado da base (19/10/2026):** a master contém a V13 (`13 / 1.0.13`) e a consolidação documental Fase 14. Na branch isolada `feature/v14-pdf-identidade-privacidade`, a V14 (`14 / 1.0.14`) está em validação funcional local; não integrada nem distribuída. O proprietário relatou que o envio 6 da V13 está “Em análise” na faixa fechada Alpha; não verificado diretamente. O AAB V13 preservado tem SHA-256 `33D0906198E439304887A59AB683AF723636DEEE6ACAF51025BD073C42ED6642`. Consulte [pendências](docs/PENDENCIAS_ATUAIS.md), [histórico V0–V13](docs/HISTORICO_COMPLETO_V0_V13.md) e [relatório Fase 14 funcional](docs/FASE14_FUNCIONAL_PDF_PRIVACIDADE.md).
+**Estado da base (26/10/2026):** `master` contém a V14 (`versionCode 14`, `versionName 1.0.14`), o Light/Dark Mode da Fase 16 e a Interface Clean da Fase 17B (commit `21e5f824914339944efd6110ad91a0082178aad7`). A Fase 16 entrou pela PR #7; a Fase 17B foi integrada por fast-forward direto após o conector de PR recusar acesso. O proprietário informa que a V14 permanece em teste fechado; a Play Console não foi consultada. O proprietário relata aprovação visual da Fase 17B em claro e escuro no S22. Não houve preparação nem publicação da V15, que depende de autorização específica. Consulte [histórico de versões](docs/HISTORICO_VERSOES.md), [Fase 16](docs/FASE16_LIGHT_DARK_MODE.md), [Fase 17D — master consolidada](docs/FASE17D_MASTER_CONSOLIDADA.md) e [pendências](docs/PENDENCIAS_ATUAIS.md).
 
 **V13 — marco integrado:** a tela Sobre e o contato iniciado pelo usuário foram integrados à master pela PR #4. Build debug, 46 testes unitários, compilação instrumentada e lint (0 erros/67 avisos) estão registrados no [relatório da Fase 13](docs/FASE13_SOBRE_APLICATIVO.md). O AAB local release foi gerado e validado no ciclo seguinte, com hash registrado no [histórico de versões](docs/HISTORICO_VERSOES.md). Testes instrumentados em runtime, atualização direta pela Play, API 24 e Billing real seguem pendentes. O proprietário informou estado Alpha “Em análise”; consulte [Pendências atuais](docs/PENDENCIAS_ATUAIS.md) para a classificação da evidência.
 
-**V14 — em desenvolvimento local:** a branch `feature/v14-pdf-identidade-privacidade` remove o atalho duplicado da política do menu e aplica identidade oficial na primeira página dos PDFs. Não foi integrada nem distribuída; consulte [relatório funcional](docs/FASE14_FUNCIONAL_PDF_PRIVACIDADE.md).
+**V14 — versão-base preservada:** `versionCode 14` / `versionName 1.0.14`; o proprietário informa distribuição em teste fechado. A master mantém esses metadados após a integração Fase 16. A implementação de temas não prepara uma nova versão; veja o [relatório funcional V14](docs/FASE14_FUNCIONAL_PDF_PRIVACIDADE.md) e o [relatório Fase 16](docs/FASE16_LIGHT_DARK_MODE.md).
 
 A referência é a branch `comercial` de `alejoiasvendasapp`, fixada no commit `ce112c40c4f79368042555e451338b5f318077bd`. O repositório original é somente leitura e não será alterado.
 
@@ -50,9 +50,9 @@ As skills ficam em `.agents/skills/`, com instruções locais versionadas:
 
 ## Próxima etapa
 
-Consultar [Pendências atuais](docs/PENDENCIAS_ATUAIS.md): o proprietário informou o envio 6 da V13 em análise na faixa fechada Alpha em 19/10/2026. Revisão, disponibilização aos testadores e elegibilidade de produção precisam ser confirmadas na Console. Runtime instrumentado, API 24, atualização direta pela Play e Billing de teste também seguem pendentes. Não inferir aprovação ou publicação.
+Consultar [Pendências atuais](docs/PENDENCIAS_ATUAIS.md). A Fase 16 está integrada e homologada; qualquer preparação da V15 requer autorização específica do proprietário. Status da V14 na Play Console não foi verificado nesta atualização.
 
-O proprietário aprovou duas decisões funcionais para a V14 — acesso à política dentro de “Sobre o aplicativo” e identidade visual em todos os PDFs. A implementação está na branch funcional isolada e aguarda validação/integração; consulte [relatório da Fase 14](docs/FASE14_FUNCIONAL_PDF_PRIVACIDADE.md), [decisões](docs/DECISOES.md), [roadmap](docs/ROADMAP_PRODUTO.md) e [pendências](docs/PENDENCIAS_ATUAIS.md).
+As mudanças funcionais da V14 e a implementação visual da Fase 16 estão integradas na `master`. A futura V15 permanece pendente de autorização e de planejamento de release; consulte [decisões](docs/DECISOES.md), [roadmap](docs/ROADMAP_PRODUTO.md) e [pendências](docs/PENDENCIAS_ATUAIS.md).
 
 ## Marco V10 beta da Store
 
