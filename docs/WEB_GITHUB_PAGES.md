@@ -4,6 +4,7 @@ O conteúdo público inicial fica em `site/` e não depende do código Android:
 
 - `site/index.html`: página institucional inicial;
 - `site/privacy/index.html`: Política de Privacidade pública;
+- `site/terms/index.html`: minuta de Termos de Serviço, sujeita à aprovação do responsável;
 - `site/styles.css`: estilos responsivos compartilhados.
 
 ## Publicação no GitHub Pages
@@ -15,6 +16,12 @@ O repositório usa o workflow `.github/workflows/pages.yml`, que publica somente
 A política ficará em:
 
 `https://<proprietario>.github.io/vendas-simples-android/privacy/`
+
+Os Termos de Serviço, após aprovação e publicação, ficarão em:
+
+`https://<proprietario>.github.io/vendas-simples-android/terms/`
+
+O proprietário informou em 06/11/2026 que a V14 (`14 / 1.0.14`) está em testes fechados; esse estado externo não foi verificado nesta tarefa. O código V14 está integrado na master local. A página de Termos não cita versões nem detalhes internos; identifica Rodrigo Geraldi Carraro como desenvolvedor independente pessoa física e mantém `vendassimples.app@gmail.com` como contato oficial, ambos confirmados pelo proprietário. Não houve push, deploy nem confirmação HTTP da rota `/terms/`.
 
 Para ativar, abra **Settings → Pages**, selecione **GitHub Actions** como fonte e execute o workflow `Publicar site no GitHub Pages` uma vez, se ele não for iniciado automaticamente após o push. O proprietário e o domínio devem ser confirmados antes de inserir a URL no Google Play Console.
 
