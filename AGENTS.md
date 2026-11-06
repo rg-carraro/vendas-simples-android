@@ -17,14 +17,21 @@
 ## Memória histórica e continuidade
 
 - Antes de alterar funcionalidade existente, consulte `docs/INDEX.md`, `docs/HISTORICO_COMPLETO_V0_V12.md`, `docs/HISTORICO_COMPLETO_V0_V13.md`, `docs/DECISOES.md`, `docs/PROBLEMAS_E_SOLUCOES.md` e o histórico do arquivo (`git log --all --follow -- <arquivo>`); valide comportamento no código atual.
-- Estado Git: V13 integrada à master pela PR #4, merge `5593215`, `13 / 1.0.13`. O proprietário relatou envio Alpha 6 “Em análise” em 19/10/2026; isso não comprova aprovação, disponibilidade aos testadores ou produção. Consulte `docs/PENDENCIAS_ATUAIS.md` para o status e fonte.
-- V14 tem duas decisões funcionais aprovadas. A implementação local está na branch isolada `feature/v14-pdf-identidade-privacidade`, em validação, sem integração ou distribuição; consulte `docs/FASE14_FUNCIONAL_PDF_PRIVACIDADE.md`, `docs/DECISOES.md` e `docs/ROADMAP_PRODUTO.md`.
+- Histórico: V13 foi integrada pela PR #4, merge `5593215`. A V14 (`14 / 1.0.14`) está integrada na master pelo merge `dfb87e6`; o HEAD de base desta worktree é `a32311b`. O proprietário informa que a V14 está em testes fechados, mas o estado atual da Play Console não foi verificado nesta tarefa. Não inferir aprovação para produção. Consulte `docs/PROJECT_STATUS.md`, `docs/FASE14_FUNCIONAL_PDF_PRIVACIDADE.md`, `docs/DECISOES.md` e `docs/ROADMAP_PRODUTO.md`.
 - Diferencie `versionCode`/`versionName`, rótulos informais V0–V13, tags/commits, AAB local, upload, aprovação, rollout e release Play. Classifique evidência como `CONFIRMADO`, `RELATADO PELO PROPRIETÁRIO`, `INFERIDO`, `NÃO COMPROVADO` ou `PENDENTE`.
 - Para correção, consulte `docs/PROBLEMAS_E_SOLUCOES.md`; registre causa confirmada versus hipótese, solução e validação. Atualize histórico temático sem duplicar regras comerciais. Use `docs/MANUTENCAO_POS_LANCAMENTO.md` para triagem e regressão.
 - Para novo marco, use `docs/CONTINUIDADE_CODEX.md`, atualize `docs/HISTORICO_VERSOES.md` e `docs/HISTORICO_TESTES.md` quando houver evidência e registre decisões duradouras em `docs/DECISOES.md`.
 - Antes de documentar ou commitar, confira `git worktree list`, branch/HEAD/status e arquivos não rastreados; preserve todas as árvores e artefatos existentes e faça staging seletivo.
 
 ## Desenvolvimento futuro
+
+### Leitura obrigatória e continuidade entre sessões
+
+Antes de uma nova tarefa, leia `AGENTS.md`, `docs/PROJECT_STATUS.md`, `docs/DECISIONS.md` e `docs/NEXT_STEPS.md`. Consulte `docs/CHANGELOG_PROJECT.md` e o histórico temático relevante; para alterações funcionais, consulte também `docs/TESTING_HISTORY.md` e `docs/VALIDACAO.md`. Leia `README.md`, `docs/DECISOES.md`, o documento afetado e a skill pertinente. Confira branch, HEAD, `git status` e `git worktree list`; não presuma que a worktree ativa corresponde à versão distribuída.
+
+Consulte o histórico antes de propor alterações e não reabra problemas encerrados sem evidência nova. Registre decisões, correções e validações com suas fontes, atualize o status ao final, mantenha a cronologia e não apague registros válidos. Diferencie evidência de código/Git, declaração do proprietário, inferência e informação não comprovada. Não substitua decisão anterior sem documentar a razão.
+
+Ao concluir uma tarefa, informe solicitação, execução, arquivos alterados, verificações e resultados, decisões, pendências e documentos históricos atualizados. Registre somente fatos comprovados ou informações explicitamente identificadas como fornecidas pelo proprietário.
 
 - Use `docs/MVP.md` e `docs/BACKLOG.md` como proposta de trabalho; registre alterações de escopo e decisões confirmadas.
 - As decisões comerciais confirmadas estão em `docs/DECISOES.md`, `docs/MONETIZACAO.md` e `docs/REGRAS_FINANCEIRAS.md`; não reabra FREE 30 vendas, Licença Completa (`FULL_ACCESS`) com preço consultado no Google Play ou ausência de assinatura como hipóteses.
